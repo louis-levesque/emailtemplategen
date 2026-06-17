@@ -11,7 +11,7 @@ import {
 
 const OUTER_STYLE = 'font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6;';
 const CONTAINER_STYLE = 'max-width: 600px; margin: 0 auto;';
-const SECTION_STYLE = 'margin-bottom: 20px;';
+const SECTION_STYLE = 'margin-bottom: 24px;';
 
 /** Escape HTML special characters in a plain-text segment. */
 function escapeHtml(str: string): string {
@@ -69,18 +69,18 @@ function buildFeatureRows(
   let rows = '';
 
   if (keyFeatures.length > 0) {
-    rows += `<tr><td style="padding: 6px 0 4px; font-size: 11px; font-weight: bold; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.06em;">Key Features</td></tr>`;
+    rows += `<tr><td style="padding: 6px 0 4px; font-size: 12px; font-weight: bold; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.06em;">Key Features</td></tr>`;
     rows += keyFeatures.map(f =>
-      `<tr><td style="padding: 3px 0 3px 8px; font-weight: 600; color: #222;">✓ ${f.label}</td></tr>`
+      `<tr><td style="padding: 3px 0 3px 8px; font-weight: 600; color: #222;">&#10003; ${escapeHtml(f.label)}</td></tr>`
     ).join('');
   }
 
   if (otherFeatures.length > 0) {
     if (keyFeatures.length > 0) {
-      rows += `<tr><td style="padding: 10px 0 4px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em;">Other features included</td></tr>`;
+      rows += `<tr><td style="padding: 10px 0 4px; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.06em;">Other features included</td></tr>`;
     }
     rows += otherFeatures.map(f =>
-      `<tr><td style="padding: 3px 0 3px 8px; color: #444;">✓ ${f.label}</td></tr>`
+      `<tr><td style="padding: 3px 0 3px 8px; color: #444;">&#10003; ${escapeHtml(f.label)}</td></tr>`
     ).join('');
   }
 
@@ -117,12 +117,12 @@ function renderPlanBlock(block: PlanBlock): string {
 
         return `
     <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
-      <td style="padding: 4px 0; text-align: right; font-size: 13px;">
+      <td style="padding: 4px 0 4px 0; color: #555; font-size: 13px; width: 55%;">${label}</td>
+      <td style="padding: 4px 0; font-size: 13px; text-align: right;">
         <span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${original}</span>
         <strong style="color: #b45309;">${discStr}${unit}</strong>
-        ${isAnnualTotal && monthlyDisc ? `<span style="display:block; font-size:11px; color:#b45309;">(${monthlyDisc}/mo)</span>` : ''}
-        <span style="display:block; font-size:11px; color:#888;">first ${promo.durationMonths} month${promo.durationMonths !== 1 ? 's' : ''}, then ${original}</span>
+        ${isAnnualTotal && monthlyDisc ? `<br><span style="font-size:11px; color:#b45309;">(${monthlyDisc}/mo)</span>` : ''}
+        <br><span style="font-size:11px; color:#888;">first ${promo.durationMonths} month${promo.durationMonths !== 1 ? 's' : ''}, then ${original}</span>
       </td>
     </tr>`;
       }
@@ -130,10 +130,10 @@ function renderPlanBlock(block: PlanBlock): string {
       const isAnnualTotal = key === 'annualTotal';
       return `
     <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
+      <td style="padding: 4px 0 4px 0; color: #555; font-size: 13px; width: 55%;">${label}</td>
       <td style="padding: 4px 0; text-align: right; font-weight: bold; color: ${def.color}; font-size: 13px;">
         ${original}
-        ${isAnnualTotal ? `<span style="display:block; font-size:11px; font-weight:normal; color:#888;">(${tier.annualMonthly})</span>` : ''}
+        ${isAnnualTotal ? `<br><span style="font-size:11px; font-weight:normal; color:#888;">(${tier.annualMonthly})</span>` : ''}
       </td>
     </tr>`;
     })
@@ -141,36 +141,20 @@ function renderPlanBlock(block: PlanBlock): string {
 
   return `
 <div style="${SECTION_STYLE}">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid ${def.color}; border-radius: 6px; overflow: hidden;">
-    <tr>
-      <td style="background-color: ${def.color}; padding: 12px 16px;">
-        <strong style="color: #ffffff; font-size: 18px;">${def.title}</strong>
-        <span style="color: rgba(255,255,255,0.85); font-size: 13px; display: block; margin-top: 2px;">${def.tagline}</span>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 10px 16px; background-color: #f9f9f9; border-bottom: 1px solid ${def.color}22;">
-        <strong style="font-size: 13px; color: #555;">Included user seats: </strong>
-        <span style="font-size: 13px; color: ${def.color}; font-weight: bold;">${seatLabel}</span>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 10px 16px; background-color: #f9f9f9;">
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          ${pricingRows}
-        </table>
-        ${block.promoValidUntil && Object.keys(promotions).length > 0 ? `<p style="margin: 8px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
-      </td>
-    </tr>
-    ${hasFeatures ? `
-    <tr>
-      <td style="padding: 12px 16px;">
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          ${featureRows}
-        </table>
-      </td>
-    </tr>` : ''}
+  <p style="margin: 0 0 2px 0;">
+    <strong style="color: ${def.color}; font-size: 18px;">${def.title}</strong>&nbsp;&nbsp;<span style="color: #666; font-size: 13px; font-style: italic;">${def.tagline}</span>
+  </p>
+  <p style="margin: 0 0 10px 0; font-size: 13px; color: #555;">
+    <strong>Included user seats:</strong>&nbsp;<strong style="color: ${def.color};">${seatLabel}</strong>
+  </p>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    ${pricingRows}
   </table>
+  ${block.promoValidUntil && Object.keys(promotions).length > 0 ? `<p style="margin: 8px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
+  ${hasFeatures ? `
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 10px;">
+    ${featureRows}
+  </table>` : ''}
 </div>`;
 }
 
@@ -189,31 +173,18 @@ function renderAddonBlock(block: AddonBlock): string {
 
   return `
 <div style="${SECTION_STYLE}">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #1F9839; border-radius: 4px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr>
-      <td style="padding: 10px 14px; background-color: #f9fafb;">
-        <strong style="font-size: 15px; color: #111;">${def.name}</strong>
-        <span style="font-size: 13px; float: right;">${priceDisplay}</span>
-      </td>
+      <td style="font-size: 15px; font-weight: bold; color: #111;">${def.name}</td>
+      <td style="text-align: right; font-size: 13px; white-space: nowrap;">${priceDisplay}</td>
     </tr>
-    <tr>
-      <td style="padding: 6px 14px 2px; color: #555; font-size: 13px;">${def.description}</td>
-    </tr>
-    ${promo && block.promoValidUntil ? `
-    <tr>
-      <td style="padding: 4px 14px 2px;">
-        <p style="margin: 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>
-      </td>
-    </tr>` : ''}
-    ${hasFeatures ? `
-    <tr>
-      <td style="padding: 8px 14px 12px;">
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          ${featureRows}
-        </table>
-      </td>
-    </tr>` : ''}
   </table>
+  <p style="margin: 4px 0 0; color: #555; font-size: 13px;">${def.description}</p>
+  ${promo && block.promoValidUntil ? `<p style="margin: 4px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
+  ${hasFeatures ? `
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 6px;">
+    ${featureRows}
+  </table>` : ''}
 </div>`;
 }
 

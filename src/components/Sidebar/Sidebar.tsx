@@ -24,6 +24,18 @@ export function Sidebar({ dispatch }: Props) {
       </div>
 
       <div className="flex-1 px-2 py-3 overflow-y-auto">
+        <SidebarSection title="Greeting">
+          <SidebarItem
+            label="Greeting"
+            description="Personalised greeting using Salesforce recipient name"
+            onAdd={() => addBlock({
+              instanceId: generateId(),
+              kind: 'text',
+              content: '{{#if Recipient.FirstName}}Hey {{Recipient.FirstName}},{{else}}Hey there!{{/if}}',
+            })}
+          />
+        </SidebarSection>
+
         <SidebarSection title="Plans">
           {PLANS.map(plan => (
             <SidebarItem
@@ -67,8 +79,8 @@ export function Sidebar({ dispatch }: Props) {
             onAdd={() => addBlock({ instanceId: generateId(), kind: 'signature' })}
           />
           <SidebarItem
-            label="Text / Greeting"
-            description="Add a custom paragraph or greeting"
+            label="Free Text"
+            description="Add a custom paragraph or note"
             onAdd={() => addBlock({ instanceId: generateId(), kind: 'text', content: '' })}
           />
           <SidebarItem

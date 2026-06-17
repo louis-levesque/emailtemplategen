@@ -1,4 +1,4 @@
-import type { AppState, CanvasBlock, EmailHeader } from '../types';
+import type { AppState, CanvasBlock, EmailHeader, PricingKey, PromoConfig } from '../types';
 
 export type CanvasAction =
   | { type: 'ADD_BLOCK'; block: CanvasBlock }
@@ -6,6 +6,9 @@ export type CanvasAction =
   | { type: 'REORDER_BLOCKS'; orderedIds: string[] }
   | { type: 'TOGGLE_FEATURE'; instanceId: string; featureId: string }
   | { type: 'SET_PLAN_SEATS'; instanceId: string; seats: number }
+  | { type: 'TOGGLE_PRICING_KEY'; instanceId: string; key: PricingKey }
+  | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<PricingKey, PromoConfig>> }
+  | { type: 'SET_ADDON_PROMO'; instanceId: string; promo: PromoConfig | null }
   | { type: 'UPDATE_TEXT'; instanceId: string; content: string }
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
@@ -70,6 +73,43 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
             : b
         ),
       };
+
+    case 'TOGGLE_PRICING_KEY': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b => {
+          if (b.instanceId !== action.instanceId || b.kind !== 'plan') return b;
+          const keys = b.visiblePricingKeys ?? [];
+          const has = keys.includes(action.key);
+          return {
+            ...b,
+            visiblePricingKeys: has ? keys.filter(k => k !== action.key) : [...keys, action.key],
+          };
+        }),
+      };
+    }
+
+    case 'SET_PLAN_PROMOTIONS': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'plan'
+            ? { ...b, promotions: action.promotions }
+            : b
+        ),
+      };
+    }
+
+    case 'SET_ADDON_PROMO': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'addon'
+            ? { ...b, promo: action.promo }
+            : b
+        ),
+      };
+    }
 
     case 'SET_CHECKOUT_URL':
       return {

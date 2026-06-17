@@ -2,6 +2,7 @@ import type { Dispatch } from 'react';
 import { PLANS } from '../../data/plans';
 import { ADDONS } from '../../data/addons';
 import type { CanvasBlock } from '../../types';
+import { ALL_PRICING_KEYS } from '../../types';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { generateId } from '../../utils/generateId';
 import { SidebarSection } from './SidebarSection';
@@ -51,6 +52,8 @@ export function Sidebar({ dispatch }: Props) {
                 definitionId: plan.id,
                 selectedSeats: plan.tiers[0].seats,
                 visibleFeatureIds: plan.features.map(f => f.id),
+                visiblePricingKeys: [...ALL_PRICING_KEYS],
+                promotions: {},
               })}
             />
           ))}
@@ -68,6 +71,7 @@ export function Sidebar({ dispatch }: Props) {
                 kind: 'addon',
                 definitionId: addon.id,
                 visibleFeatureIds: addon.features.map(f => f.id),
+                promo: null,
               })}
             />
           ))}

@@ -30,6 +30,21 @@ export interface AddonDefinition {
 
 export type BlockKind = 'plan' | 'addon' | 'signature' | 'text' | 'checkout';
 
+export type PricingKey = 'monthlyNoCommitment' | 'monthlyAnnual' | 'annualMonthly' | 'annualTotal';
+
+export const ALL_PRICING_KEYS: PricingKey[] = [
+  'monthlyNoCommitment',
+  'monthlyAnnual',
+  'annualMonthly',
+  'annualTotal',
+];
+
+export interface PromoConfig {
+  type: 'percent' | 'dollar';
+  value: number;
+  durationMonths: number;
+}
+
 interface BaseBlock {
   instanceId: string;
   kind: BlockKind;
@@ -40,12 +55,15 @@ export interface PlanBlock extends BaseBlock {
   definitionId: string;
   selectedSeats: number;
   visibleFeatureIds: string[];
+  visiblePricingKeys: PricingKey[];
+  promotions: Partial<Record<PricingKey, PromoConfig>>;
 }
 
 export interface AddonBlock extends BaseBlock {
   kind: 'addon';
   definitionId: string;
   visibleFeatureIds: string[];
+  promo: PromoConfig | null;
 }
 
 export interface SignatureBlock extends BaseBlock {

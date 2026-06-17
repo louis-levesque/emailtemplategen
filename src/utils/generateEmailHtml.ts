@@ -22,14 +22,44 @@ function renderTextBlock(block: TextBlock): string {
   return `<div style="${SECTION_STYLE}"><p style="margin:0;">${escaped}</p></div>`;
 }
 
+function buildFeatureRows(
+  allFeatures: { id: string; label: string }[],
+  visibleFeatureIds: string[],
+  keyFeatureIds: string[],
+  accentColor: string,
+): string {
+  const keyFeatures = allFeatures.filter(f => keyFeatureIds.includes(f.id) && visibleFeatureIds.includes(f.id));
+  const otherFeatures = allFeatures.filter(f => visibleFeatureIds.includes(f.id) && !keyFeatureIds.includes(f.id));
+
+  if (keyFeatures.length === 0 && otherFeatures.length === 0) return '';
+
+  let rows = '';
+
+  if (keyFeatures.length > 0) {
+    rows += `<tr><td style="padding: 6px 0 4px; font-size: 11px; font-weight: bold; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.06em;">Key Features</td></tr>`;
+    rows += keyFeatures.map(f =>
+      `<tr><td style="padding: 3px 0 3px 8px; font-weight: 600; color: #222;">✓ ${f.label}</td></tr>`
+    ).join('');
+  }
+
+  if (otherFeatures.length > 0) {
+    if (keyFeatures.length > 0) {
+      rows += `<tr><td style="padding: 10px 0 4px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em;">Other features included</td></tr>`;
+    }
+    rows += otherFeatures.map(f =>
+      `<tr><td style="padding: 3px 0 3px 8px; color: #444;">✓ ${f.label}</td></tr>`
+    ).join('');
+  }
+
+  return rows;
+}
+
 function renderPlanBlock(block: PlanBlock): string {
   const def = PLANS.find(p => p.id === block.definitionId);
   if (!def) return '';
   const tier = def.tiers.find(t => t.seats === block.selectedSeats) ?? def.tiers[0];
-  const visibleFeatures = def.features.filter(f => block.visibleFeatureIds.includes(f.id));
-  const featureRows = visibleFeatures
-    .map(f => `<tr><td style="padding: 4px 0; padding-left: 8px;">✓ ${f.label}</td></tr>`)
-    .join('');
+  const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? [], def.color);
+  const hasFeatures = featureRows.length > 0;
 
   const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
   const visiblePricingKeys = block.visiblePricingKeys ?? ALL_PRICING_KEYS;
@@ -99,7 +129,7 @@ function renderPlanBlock(block: PlanBlock): string {
         ${block.promoValidUntil && Object.keys(promotions).length > 0 ? `<p style="margin: 8px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
       </td>
     </tr>
-    ${visibleFeatures.length > 0 ? `
+    ${hasFeatures ? `
     <tr>
       <td style="padding: 12px 16px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -114,10 +144,8 @@ function renderPlanBlock(block: PlanBlock): string {
 function renderAddonBlock(block: AddonBlock): string {
   const def = ADDONS.find(a => a.id === block.definitionId);
   if (!def) return '';
-  const visibleFeatures = def.features.filter(f => block.visibleFeatureIds.includes(f.id));
-  const featureRows = visibleFeatures
-    .map(f => `<tr><td style="padding: 3px 0; padding-left: 8px; color: #444;">✓ ${f.label}</td></tr>`)
-    .join('');
+  const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? [], '#1F9839');
+  const hasFeatures = featureRows.length > 0;
 
   const promo = block.promo ?? null;
   const discounted = promo ? applyPromo(def.price, promo) : null;
@@ -144,7 +172,7 @@ function renderAddonBlock(block: AddonBlock): string {
         <p style="margin: 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>
       </td>
     </tr>` : ''}
-    ${visibleFeatures.length > 0 ? `
+    ${hasFeatures ? `
     <tr>
       <td style="padding: 8px 14px 12px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -207,10 +235,19 @@ export function generateEmailText(state: AppState): string {
         const tier = def.tiers.find(t => t.seats === block.selectedSeats) ?? def.tiers[0];
         const visiblePricingKeys = block.visiblePricingKeys ?? ALL_PRICING_KEYS;
         const promotions = block.promotions ?? {};
-        const features = def.features
-          .filter(f => block.visibleFeatureIds.includes(f.id))
+        const keyIds = block.keyFeatureIds ?? [];
+        const keyFeaturesText = def.features
+          .filter(f => keyIds.includes(f.id) && block.visibleFeatureIds.includes(f.id))
+          .map(f => `  ★ ${f.label}`)
+          .join('\n');
+        const otherFeaturesText = def.features
+          .filter(f => block.visibleFeatureIds.includes(f.id) && !keyIds.includes(f.id))
           .map(f => `  ✓ ${f.label}`)
           .join('\n');
+        const features = [
+          keyFeaturesText ? `Key Features:\n${keyFeaturesText}` : '',
+          otherFeaturesText ? (keyFeaturesText ? `Other features included:\n${otherFeaturesText}` : otherFeaturesText) : '',
+        ].filter(Boolean).join('\n');
         const pricing = ALL_PRICING_KEYS
           .filter(key => visiblePricingKeys.includes(key))
           .map(key => {
@@ -239,10 +276,19 @@ export function generateEmailText(state: AppState): string {
       case 'addon': {
         const def = ADDONS.find(a => a.id === block.definitionId);
         if (!def) return '';
-        const features = def.features
-          .filter(f => block.visibleFeatureIds.includes(f.id))
+        const addonKeyIds = block.keyFeatureIds ?? [];
+        const addonKeyText = def.features
+          .filter(f => addonKeyIds.includes(f.id) && block.visibleFeatureIds.includes(f.id))
+          .map(f => `  ★ ${f.label}`)
+          .join('\n');
+        const addonOtherText = def.features
+          .filter(f => block.visibleFeatureIds.includes(f.id) && !addonKeyIds.includes(f.id))
           .map(f => `  ✓ ${f.label}`)
           .join('\n');
+        const features = [
+          addonKeyText ? `Key Features:\n${addonKeyText}` : '',
+          addonOtherText ? (addonKeyText ? `Other features included:\n${addonOtherText}` : addonOtherText) : '',
+        ].filter(Boolean).join('\n');
         const promo = block.promo ?? null;
         const priceLine = promo
           ? `${def.name} — ${formatCurrency(applyPromo(def.price, promo))}/mo (${promo.durationMonths} mo, then ${def.price})`

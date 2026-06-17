@@ -4,6 +4,7 @@ import { ALL_PRICING_KEYS } from '../../types';
 import { PLANS } from '../../data/plans';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { PromoModal, type PromoRow } from './PromoModal';
+import { FeatureBuckets } from './FeatureBuckets';
 import {
   PRICING_LABELS,
   applyPromo,
@@ -155,22 +156,16 @@ export function PlanBlock({ block, dispatch }: Props) {
             )}
           </div>
 
-          {/* Feature toggles */}
+          {/* Feature buckets */}
           <div className="px-4 py-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Features to include</p>
-            <div className="space-y-1">
-              {def.features.map(f => (
-                <label key={f.id} className="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded accent-green-600"
-                    checked={block.visibleFeatureIds.includes(f.id)}
-                    onChange={() => dispatch({ type: 'TOGGLE_FEATURE', instanceId: block.instanceId, featureId: f.id })}
-                  />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900">{f.label}</span>
-                </label>
-              ))}
-            </div>
+            <FeatureBuckets
+              allFeatures={def.features}
+              visibleFeatureIds={block.visibleFeatureIds}
+              keyFeatureIds={block.keyFeatureIds ?? []}
+              onSetBucket={(featureId, bucket) =>
+                dispatch({ type: 'SET_FEATURE_BUCKET', instanceId: block.instanceId, featureId, bucket })
+              }
+            />
           </div>
         </div>
       </div>

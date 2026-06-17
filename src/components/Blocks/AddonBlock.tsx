@@ -3,6 +3,7 @@ import type { AddonBlock as AddonBlockType } from '../../types';
 import { ADDONS } from '../../data/addons';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { PromoModal } from './PromoModal';
+import { FeatureBuckets } from './FeatureBuckets';
 import { applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 
 interface Props {
@@ -65,20 +66,14 @@ export function AddonBlock({ block, dispatch }: Props) {
           )}
           <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{def.description}</div>
           <div className="px-4 py-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Features to include</p>
-            <div className="space-y-1">
-              {def.features.map(f => (
-                <label key={f.id} className="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded accent-green-600"
-                    checked={block.visibleFeatureIds.includes(f.id)}
-                    onChange={() => dispatch({ type: 'TOGGLE_FEATURE', instanceId: block.instanceId, featureId: f.id })}
-                  />
-                  <span className="text-sm text-gray-700 group-hover:text-gray-900">{f.label}</span>
-                </label>
-              ))}
-            </div>
+            <FeatureBuckets
+              allFeatures={def.features}
+              visibleFeatureIds={block.visibleFeatureIds}
+              keyFeatureIds={block.keyFeatureIds ?? []}
+              onSetBucket={(featureId, bucket) =>
+                dispatch({ type: 'SET_FEATURE_BUCKET', instanceId: block.instanceId, featureId, bucket })
+              }
+            />
           </div>
         </div>
       </div>

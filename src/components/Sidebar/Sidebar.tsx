@@ -52,6 +52,7 @@ export function Sidebar({ dispatch }: Props) {
                 definitionId: plan.id,
                 selectedSeats: plan.tiers[0].seats,
                 visibleFeatureIds: plan.features.map(f => f.id),
+                keyFeatureIds: [],
                 visiblePricingKeys: [...ALL_PRICING_KEYS],
                 promotions: {},
               })}
@@ -71,6 +72,7 @@ export function Sidebar({ dispatch }: Props) {
                 kind: 'addon',
                 definitionId: addon.id,
                 visibleFeatureIds: addon.features.map(f => f.id),
+                keyFeatureIds: [],
                 promo: null,
               })}
             />

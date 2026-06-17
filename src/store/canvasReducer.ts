@@ -5,6 +5,7 @@ export type CanvasAction =
   | { type: 'REMOVE_BLOCK'; instanceId: string }
   | { type: 'REORDER_BLOCKS'; orderedIds: string[] }
   | { type: 'TOGGLE_FEATURE'; instanceId: string; featureId: string }
+  | { type: 'SET_FEATURE_BUCKET'; instanceId: string; featureId: string; bucket: 'key' | 'included' | 'hidden' }
   | { type: 'SET_PLAN_SEATS'; instanceId: string; seats: number }
   | { type: 'TOGGLE_PRICING_KEY'; instanceId: string; key: PricingKey }
   | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<PricingKey, PromoConfig>>; validUntil: string | null }
@@ -48,6 +49,42 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
             visibleFeatureIds: has
               ? b.visibleFeatureIds.filter(id => id !== action.featureId)
               : [...b.visibleFeatureIds, action.featureId],
+          };
+        }),
+      };
+    }
+
+    case 'SET_FEATURE_BUCKET': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b => {
+          if (b.instanceId !== action.instanceId) return b;
+          if (b.kind !== 'plan' && b.kind !== 'addon') return b;
+          const { featureId, bucket } = action;
+          const keyIds = b.keyFeatureIds ?? [];
+          if (bucket === 'key') {
+            return {
+              ...b,
+              visibleFeatureIds: b.visibleFeatureIds.includes(featureId)
+                ? b.visibleFeatureIds
+                : [...b.visibleFeatureIds, featureId],
+              keyFeatureIds: keyIds.includes(featureId) ? keyIds : [...keyIds, featureId],
+            };
+          }
+          if (bucket === 'included') {
+            return {
+              ...b,
+              visibleFeatureIds: b.visibleFeatureIds.includes(featureId)
+                ? b.visibleFeatureIds
+                : [...b.visibleFeatureIds, featureId],
+              keyFeatureIds: keyIds.filter(id => id !== featureId),
+            };
+          }
+          // hidden
+          return {
+            ...b,
+            visibleFeatureIds: b.visibleFeatureIds.filter(id => id !== featureId),
+            keyFeatureIds: keyIds.filter(id => id !== featureId),
           };
         }),
       };

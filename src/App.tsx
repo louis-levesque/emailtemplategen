@@ -62,11 +62,11 @@ export default function App() {
     setDragLabel(null);
 
     if (factory) {
-      // sidebar item dropped
+      // sidebar item dropped — capture index BEFORE clearing it
+      const idx = insertIndexRef.current !== null ? insertIndexRef.current : state.blocks.length;
       setInsertIndex(null);
       insertIndexRef.current = null;
       if (!over) return;
-      const idx = insertIndexRef.current !== null ? insertIndexRef.current : state.blocks.length;
       dispatch({ type: 'ADD_BLOCK_AT', block: factory(), index: idx });
     } else {
       // canvas reorder

@@ -7,8 +7,8 @@ export type CanvasAction =
   | { type: 'TOGGLE_FEATURE'; instanceId: string; featureId: string }
   | { type: 'SET_PLAN_SEATS'; instanceId: string; seats: number }
   | { type: 'TOGGLE_PRICING_KEY'; instanceId: string; key: PricingKey }
-  | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<PricingKey, PromoConfig>> }
-  | { type: 'SET_ADDON_PROMO'; instanceId: string; promo: PromoConfig | null }
+  | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<PricingKey, PromoConfig>>; validUntil: string | null }
+  | { type: 'SET_ADDON_PROMO'; instanceId: string; promo: PromoConfig | null; validUntil: string | null }
   | { type: 'UPDATE_TEXT'; instanceId: string; content: string }
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
@@ -94,7 +94,7 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         ...state,
         blocks: state.blocks.map(b =>
           b.instanceId === action.instanceId && b.kind === 'plan'
-            ? { ...b, promotions: action.promotions }
+            ? { ...b, promotions: action.promotions, promoValidUntil: action.validUntil ?? undefined }
             : b
         ),
       };
@@ -105,7 +105,7 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         ...state,
         blocks: state.blocks.map(b =>
           b.instanceId === action.instanceId && b.kind === 'addon'
-            ? { ...b, promo: action.promo }
+            ? { ...b, promo: action.promo, promoValidUntil: action.validUntil ?? undefined }
             : b
         ),
       };

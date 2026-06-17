@@ -29,6 +29,23 @@ export function formatCurrency(value: number): string {
   return '$' + value.toFixed(2);
 }
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+function getOrdinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+/** Format an ISO date string (YYYY-MM-DD) as "Month Dth YYYY", e.g. "July 10th 2026" */
+export function formatValidUntil(dateStr: string): string {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return `${MONTH_NAMES[month - 1]} ${getOrdinal(day)} ${year}`;
+}
+
 /** Convert a month count to a human-readable duration */
 export function formatDuration(months: number): string {
   if (months === 12) return '1 year';

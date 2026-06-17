@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { PromoConfig } from '../../types';
-import { applyPromo, formatCurrency } from '../../utils/priceUtils';
+import { applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 
 export interface PromoRow {
   key: string;
@@ -19,7 +19,8 @@ interface Props {
   title: string;
   rows: PromoRow[];
   initialPromos: Partial<Record<string, PromoConfig>>;
-  onSave: (promos: Partial<Record<string, PromoConfig>>) => void;
+  initialValidUntil?: string;
+  onSave: (promos: Partial<Record<string, PromoConfig>>, validUntil: string | null) => void;
   onClose: () => void;
 }
 
@@ -35,12 +36,13 @@ function defaultRowState(existing?: PromoConfig): RowState {
   return { enabled: false, type: 'percent', value: '', durationMonths: '3' };
 }
 
-export function PromoModal({ title, rows, initialPromos, onSave, onClose }: Props) {
+export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSave, onClose }: Props) {
   const [rowStates, setRowStates] = useState<Record<string, RowState>>(() => {
     const s: Record<string, RowState> = {};
     rows.forEach(r => { s[r.key] = defaultRowState(initialPromos[r.key]); });
     return s;
   });
+  const [validUntil, setValidUntil] = useState<string>(initialValidUntil ?? '');
 
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +67,7 @@ export function PromoModal({ title, rows, initialPromos, onSave, onClose }: Prop
         promos[r.key] = { type: rs.type, value: val, durationMonths: dur };
       }
     });
-    onSave(promos);
+    onSave(promos, validUntil || null);
     onClose();
   }
 
@@ -179,6 +181,30 @@ export function PromoModal({ title, rows, initialPromos, onSave, onClose }: Prop
               </div>
             );
           })}
+        </div>
+
+        {/* Valid Until */}
+        <div className="px-5 py-4 border-t border-gray-200 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-700">
+                Valid until
+                <span className="text-xs font-normal text-gray-400 ml-1.5">optional — applies to all promotions</span>
+              </p>
+            </div>
+            <input
+              type="date"
+              value={validUntil}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={e => setValidUntil(e.target.value)}
+              className="text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+          {validUntil && (
+            <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2.5 py-1.5">
+              "Promotional pricing valid until {formatValidUntil(validUntil)}."
+            </p>
+          )}
         </div>
 
         {/* Footer */}

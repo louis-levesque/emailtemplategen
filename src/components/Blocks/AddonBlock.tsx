@@ -3,7 +3,7 @@ import type { AddonBlock as AddonBlockType } from '../../types';
 import { ADDONS } from '../../data/addons';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { PromoModal } from './PromoModal';
-import { applyPromo, formatCurrency } from '../../utils/priceUtils';
+import { applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 
 interface Props {
   block: AddonBlockType;
@@ -56,6 +56,13 @@ export function AddonBlock({ block, dispatch }: Props) {
             </div>
           </div>
 
+          {promo && block.promoValidUntil && (
+            <div className="px-4 pt-1.5">
+              <p className="text-xs text-amber-700">
+                Promotional pricing valid until {formatValidUntil(block.promoValidUntil)}.
+              </p>
+            </div>
+          )}
           <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{def.description}</div>
           <div className="px-4 py-3">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Features to include</p>
@@ -81,9 +88,10 @@ export function AddonBlock({ block, dispatch }: Props) {
           title={def.name}
           rows={[{ key: 'price', label: def.name, originalPrice: def.price }]}
           initialPromos={promo ? { price: promo } : {}}
-          onSave={promos => {
+          initialValidUntil={block.promoValidUntil}
+          onSave={(promos, validUntil) => {
             const p = promos['price'] ?? null;
-            dispatch({ type: 'SET_ADDON_PROMO', instanceId: block.instanceId, promo: p as typeof block.promo });
+            dispatch({ type: 'SET_ADDON_PROMO', instanceId: block.instanceId, promo: p as typeof block.promo, validUntil });
           }}
           onClose={() => setShowPromoModal(false)}
         />

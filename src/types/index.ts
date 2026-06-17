@@ -56,6 +56,7 @@ export interface PlanBlock extends BaseBlock {
   visibleFeatureIds: string[];
   visiblePricingKeys: PricingKey[];
   promotions: Partial<Record<PricingKey, PromoConfig>>;
+  promoValidUntil?: string;
 }
 
 export interface AddonBlock extends BaseBlock {
@@ -63,6 +64,7 @@ export interface AddonBlock extends BaseBlock {
   definitionId: string;
   visibleFeatureIds: string[];
   promo: PromoConfig | null;
+  promoValidUntil?: string;
 }
 
 export interface SignatureBlock extends BaseBlock {

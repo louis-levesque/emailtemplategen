@@ -8,6 +8,7 @@ import {
   PRICING_LABELS,
   applyPromo,
   formatCurrency,
+  formatValidUntil,
 } from '../../utils/priceUtils';
 
 interface Props {
@@ -147,6 +148,11 @@ export function PlanBlock({ block, dispatch }: Props) {
               })}
             </div>
 
+            {hasAnyPromo && block.promoValidUntil && (
+              <p className="text-xs text-amber-700 mt-2">
+                Promotional pricing valid until {formatValidUntil(block.promoValidUntil)}.
+              </p>
+            )}
           </div>
 
           {/* Feature toggles */}
@@ -174,7 +180,8 @@ export function PlanBlock({ block, dispatch }: Props) {
           title={`${def.title} — ${selectedTier.seats} ${selectedTier.seats === 1 ? 'user' : 'users'}`}
           rows={promoRows}
           initialPromos={promotions}
-          onSave={promos => dispatch({ type: 'SET_PLAN_PROMOTIONS', instanceId: block.instanceId, promotions: promos })}
+          initialValidUntil={block.promoValidUntil}
+          onSave={(promos, validUntil) => dispatch({ type: 'SET_PLAN_PROMOTIONS', instanceId: block.instanceId, promotions: promos, validUntil })}
           onClose={() => setShowPromoModal(false)}
         />
       )}

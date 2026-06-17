@@ -6,6 +6,7 @@ import {
   PRICING_LABELS,
   applyPromo,
   formatCurrency,
+  formatValidUntil,
 } from './priceUtils';
 
 const OUTER_STYLE = 'font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6;';
@@ -95,6 +96,7 @@ function renderPlanBlock(block: PlanBlock): string {
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           ${pricingRows}
         </table>
+        ${block.promoValidUntil && Object.keys(promotions).length > 0 ? `<p style="margin: 8px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
       </td>
     </tr>
     ${visibleFeatures.length > 0 ? `
@@ -136,6 +138,12 @@ function renderAddonBlock(block: AddonBlock): string {
     <tr>
       <td style="padding: 6px 14px 2px; color: #555; font-size: 13px;">${def.description}</td>
     </tr>
+    ${promo && block.promoValidUntil ? `
+    <tr>
+      <td style="padding: 4px 14px 2px;">
+        <p style="margin: 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>
+      </td>
+    </tr>` : ''}
     ${visibleFeatures.length > 0 ? `
     <tr>
       <td style="padding: 8px 14px 12px;">
@@ -218,9 +226,13 @@ export function generateEmailText(state: AppState): string {
             return `  ${PRICING_LABELS[key]}: ${tier[key]}`;
           })
           .join('\n');
+        const validUntilPlan = block.promoValidUntil && Object.keys(promotions).length > 0
+          ? `  Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
+          : '';
         return [
           `${def.title} (${tier.seats} ${tier.seats === 1 ? 'user' : 'users'}) — ${def.tagline}`,
           pricing,
+          validUntilPlan,
           features,
         ].filter(Boolean).join('\n');
       }
@@ -235,7 +247,10 @@ export function generateEmailText(state: AppState): string {
         const priceLine = promo
           ? `${def.name} — ${formatCurrency(applyPromo(def.price, promo))}/mo (${promo.durationMonths} mo, then ${def.price})`
           : `${def.name} — ${def.price}`;
-        return `${priceLine}\n${def.description}\n${features}`;
+        const validUntilAddon = promo && block.promoValidUntil
+          ? `Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
+          : '';
+        return [priceLine, def.description, validUntilAddon, features].filter(Boolean).join('\n');
       }
       case 'signature':
         return '{{{Sender.Email_Signature_Rich_Text__c}}}';

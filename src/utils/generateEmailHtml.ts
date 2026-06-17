@@ -13,13 +13,46 @@ const OUTER_STYLE = 'font-family: Arial, Helvetica, sans-serif; font-size: 14px;
 const CONTAINER_STYLE = 'max-width: 600px; margin: 0 auto;';
 const SECTION_STYLE = 'margin-bottom: 20px;';
 
+/** Escape HTML special characters in a plain-text segment. */
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * Convert raw text content to safe HTML:
+ * - Escapes HTML in plain-text segments
+ * - Converts [display text](url) to styled <a> links
+ * - Converts newlines to <br>
+ */
+function processTextContent(raw: string): string {
+  const LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: string[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  LINK_RE.lastIndex = 0;
+  while ((match = LINK_RE.exec(raw)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(escapeHtml(raw.slice(lastIndex, match.index)));
+    }
+    const linkText = escapeHtml(match[1]);
+    const linkUrl = match[2].replace(/"/g, '&quot;');
+    parts.push(
+      `<a href="${linkUrl}" target="_blank" style="color: #1F9839; text-decoration: underline;">${linkText}</a>`
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < raw.length) {
+    parts.push(escapeHtml(raw.slice(lastIndex)));
+  }
+
+  return parts.join('').replace(/\n/g, '<br>');
+}
+
 function renderTextBlock(block: TextBlock): string {
-  const escaped = block.content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n/g, '<br>');
-  return `<div style="${SECTION_STYLE}"><p style="margin:0;">${escaped}</p></div>`;
+  const processed = processTextContent(block.content);
+  return `<div style="${SECTION_STYLE}"><p style="margin:0;">${processed}</p></div>`;
 }
 
 function buildFeatureRows(
@@ -228,7 +261,9 @@ export function generateEmailHtml(state: AppState): string {
 export function generateEmailText(state: AppState): string {
   return state.blocks.map(block => {
     switch (block.kind) {
-      case 'text': return block.content;
+      case 'text':
+        // Convert [text](url) links to "text (url)" for plain text
+        return block.content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
       case 'plan': {
         const def = PLANS.find(p => p.id === block.definitionId);
         if (!def) return '';

@@ -55,6 +55,7 @@ export interface SignatureBlock extends BaseBlock {
 export interface TextBlock extends BaseBlock {
   kind: 'text';
   content: string;
+  displayLabel?: string;
 }
 
 export interface CheckoutLinkBlock extends BaseBlock {

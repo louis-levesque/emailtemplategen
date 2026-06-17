@@ -32,6 +32,7 @@ export function Sidebar({ dispatch }: Props) {
               instanceId: generateId(),
               kind: 'text',
               content: '{{#if Recipient.FirstName}}Hey {{Recipient.FirstName}},{{else}}Hey there!{{/if}}',
+              displayLabel: 'Greeting Text',
             })}
           />
         </SidebarSection>

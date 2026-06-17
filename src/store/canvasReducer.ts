@@ -15,7 +15,7 @@ const GREETING_CONTENT = '{{#if Recipient.FirstName}}Hey {{Recipient.FirstName}}
 export const initialState: AppState = {
   header: { to: '', subject: '' },
   blocks: [
-    { instanceId: 'greeting-initial', kind: 'text', content: GREETING_CONTENT },
+    { instanceId: 'greeting-initial', kind: 'text', content: GREETING_CONTENT, displayLabel: 'Greeting Text' },
   ],
 };
 

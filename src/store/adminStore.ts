@@ -19,6 +19,8 @@ export type AdminAction =
   | { type: 'UPDATE_PLAN_FEATURE'; planId: string; featureId: string; label: string }
   | { type: 'DELETE_PLAN_FEATURE'; planId: string; featureId: string }
   | { type: 'MOVE_PLAN_FEATURE'; fromPlanId: string; toPlanId: string; featureId: string }
+  | { type: 'REORDER_PLAN_FEATURES'; planId: string; fromIndex: number; toIndex: number }
+  | { type: 'REORDER_ADDON_FEATURES'; addonId: string; fromIndex: number; toIndex: number }
   | { type: 'ADD_PLAN' }
   | { type: 'DELETE_PLAN'; planId: string }
   | { type: 'UPDATE_ADDON_META'; addonId: string; field: 'name' | 'description' | 'price'; value: string }
@@ -141,6 +143,18 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
       };
     }
 
+    case 'REORDER_PLAN_FEATURES': {
+      const plan = state.plans.find(p => p.id === action.planId);
+      if (!plan) return state;
+      const features = [...plan.features];
+      const [moved] = features.splice(action.fromIndex, 1);
+      features.splice(action.toIndex, 0, moved);
+      return {
+        ...state,
+        plans: state.plans.map(p => p.id !== action.planId ? p : { ...p, features }),
+      };
+    }
+
     case 'ADD_PLAN': {
       const newId = `custom-plan-${Date.now()}`;
       const newPlan: PlanDefinition = {
@@ -207,6 +221,18 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
           }
         ),
       };
+
+    case 'REORDER_ADDON_FEATURES': {
+      const addon = state.addons.find(a => a.id === action.addonId);
+      if (!addon) return state;
+      const features = [...addon.features];
+      const [moved] = features.splice(action.fromIndex, 1);
+      features.splice(action.toIndex, 0, moved);
+      return {
+        ...state,
+        addons: state.addons.map(a => a.id !== action.addonId ? a : { ...a, features }),
+      };
+    }
 
     case 'ADD_ADDON': {
       const newId = `custom-addon-${Date.now()}`;

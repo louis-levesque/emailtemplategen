@@ -6,9 +6,15 @@ import {
   useSensor,
   useSensors,
   useDroppable,
-  useDraggable,
+  closestCenter,
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { AdminAction } from '../../store/adminStore';
 import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature } from '../../types';
@@ -18,38 +24,40 @@ interface Props {
   onClose: () => void;
 }
 
-// ─── Draggable feature row ────────────────────────────────────────────────────
+// ─── Sortable feature row (plans) ─────────────────────────────────────────────
 
-interface DraggableFeatureProps {
+interface SortableFeatureProps {
   planId: string;
   feature: PlanFeature;
   dispatch: Dispatch<AdminAction>;
 }
 
-function DraggableFeatureRow({ planId, feature, dispatch }: DraggableFeatureProps) {
+function SortableFeatureRow({ planId, feature, dispatch }: SortableFeatureProps) {
   const [label, setLabel] = useState(feature.label);
   const [editing, setEditing] = useState(false);
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `feat:${planId}:${feature.id}`,
     data: { planId, featureId: feature.id, label: feature.label },
   });
 
-  const style = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-    : undefined;
+  const style = {
+    transform: CSS.Transform.toString(transform) ?? undefined,
+    transition: transition ?? undefined,
+    opacity: isDragging ? 0.3 : undefined,
+  };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-start gap-1.5 group rounded px-1 py-0.5 hover:bg-gray-50 ${isDragging ? 'opacity-30' : ''}`}
+      className="flex items-start gap-1.5 group rounded px-1 py-0.5 hover:bg-gray-50"
     >
       <button
         {...attributes}
         {...listeners}
         className="mt-0.5 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
-        title="Drag to move to another plan"
+        title="Drag to reorder or move to another plan"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
           <circle cx="3.5" cy="2.5" r="1.2"/><circle cx="3.5" cy="6" r="1.2"/><circle cx="3.5" cy="9.5" r="1.2"/>
@@ -288,16 +296,21 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
             <span className="text-xs text-green-600 font-medium animate-pulse">Drop here →</span>
           )}
         </div>
-        <div className="space-y-0.5 max-h-60 overflow-y-auto pr-1">
-          {plan.features.map(feature => (
-            <DraggableFeatureRow
-              key={feature.id}
-              planId={plan.id}
-              feature={feature}
-              dispatch={dispatch}
-            />
-          ))}
-        </div>
+        <SortableContext
+          items={plan.features.map(f => `feat:${plan.id}:${f.id}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-0.5 max-h-60 overflow-y-auto pr-1">
+            {plan.features.map(feature => (
+              <SortableFeatureRow
+                key={feature.id}
+                planId={plan.id}
+                feature={feature}
+                dispatch={dispatch}
+              />
+            ))}
+          </div>
+        </SortableContext>
         <AddFeatureRow planId={plan.id} dispatch={dispatch} />
       </div>
     </div>
@@ -325,22 +338,48 @@ function PlansTab({ plans, dispatch }: PlansTabProps) {
     setActiveFeatureDrag(null);
     const { active, over } = event;
     if (!over) return;
-    const data = active.data.current;
-    if (!data) return;
-    const fromPlanId = data.planId as string;
-    const featureId = data.featureId as string;
+
+    const activeId = String(active.id);
     const overId = String(over.id);
-    if (!overId.startsWith('planzone:')) return;
-    const toPlanId = overId.replace('planzone:', '');
-    if (fromPlanId !== toPlanId) {
+    if (!activeId.startsWith('feat:')) return;
+
+    // Parse "feat:planId:featureId"
+    const [, fromPlanId, featureId] = activeId.split(':');
+
+    let toPlanId: string;
+    let toFeatureId: string | null = null;
+
+    if (overId.startsWith('feat:')) {
+      const [, overPlanId, overFeatureId] = overId.split(':');
+      toPlanId = overPlanId;
+      toFeatureId = overFeatureId;
+    } else if (overId.startsWith('planzone:')) {
+      toPlanId = overId.slice('planzone:'.length);
+    } else {
+      return;
+    }
+
+    if (fromPlanId === toPlanId) {
+      // Same plan → reorder
+      const plan = plans.find(p => p.id === fromPlanId);
+      if (!plan) return;
+      const fromIndex = plan.features.findIndex(f => f.id === featureId);
+      const toIndex = toFeatureId !== null
+        ? plan.features.findIndex(f => f.id === toFeatureId)
+        : plan.features.length - 1;
+      if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+        dispatch({ type: 'REORDER_PLAN_FEATURES', planId: fromPlanId, fromIndex, toIndex });
+      }
+    } else {
+      // Cross-plan → move
       dispatch({ type: 'MOVE_PLAN_FEATURE', fromPlanId, toPlanId, featureId });
     }
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <p className="text-xs text-gray-400 mb-4">
-        Click any field to edit inline. Drag a feature's <span className="font-semibold">⠿</span> handle across plans to move it.
+        Click any field to edit inline. Drag a feature's <span className="font-semibold">⠿</span> handle to reorder it, or drag it onto another plan to move it there.
       </p>
       <div className="grid grid-cols-2 gap-4">
         {plans.map(plan => (
@@ -364,21 +403,46 @@ function PlansTab({ plans, dispatch }: PlansTabProps) {
   );
 }
 
-// ─── Addon feature row ────────────────────────────────────────────────────────
+// ─── Sortable addon feature row ───────────────────────────────────────────────
 
-interface AddonFeatureRowProps {
+interface SortableAddonFeatureProps {
   addonId: string;
   feature: PlanFeature;
   dispatch: Dispatch<AdminAction>;
 }
 
-function AddonFeatureRow({ addonId, feature, dispatch }: AddonFeatureRowProps) {
+function SortableAddonFeatureRow({ addonId, feature, dispatch }: SortableAddonFeatureProps) {
   const [label, setLabel] = useState(feature.label);
   const [editing, setEditing] = useState(false);
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: `addonfeat:${addonId}:${feature.id}`,
+    data: { label: feature.label },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform) ?? undefined,
+    transition: transition ?? undefined,
+    opacity: isDragging ? 0.3 : undefined,
+  };
+
   return (
-    <div className="flex items-start gap-1.5 group rounded px-1 py-0.5 hover:bg-gray-50">
-      <span className="mt-0.5 text-gray-200 flex-shrink-0 select-none text-xs">•</span>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-start gap-1.5 group rounded px-1 py-0.5 hover:bg-gray-50"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="mt-0.5 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
+        title="Drag to reorder"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+          <circle cx="3.5" cy="2.5" r="1.2"/><circle cx="3.5" cy="6" r="1.2"/><circle cx="3.5" cy="9.5" r="1.2"/>
+          <circle cx="8.5" cy="2.5" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/><circle cx="8.5" cy="9.5" r="1.2"/>
+        </svg>
+      </button>
       {editing ? (
         <input
           // eslint-disable-next-line jsx-a11y/no-autofocus
@@ -430,6 +494,9 @@ interface AddonEditorProps {
 function AddonEditor({ addon, dispatch }: AddonEditorProps) {
   const [addingFeature, setAddingFeature] = useState(false);
   const [newFeatureLabel, setNewFeatureLabel] = useState('');
+  const [activeDragLabel, setActiveDragLabel] = useState<string | null>(null);
+
+  const addonSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   function submitFeature() {
     const label = newFeatureLabel.trim();
@@ -442,6 +509,26 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
   function handleDeleteAddon() {
     if (window.confirm(`Delete the "${addon.name}" add-on? Any canvas blocks using this add-on will become empty.`)) {
       dispatch({ type: 'DELETE_ADDON', addonId: addon.id });
+    }
+  }
+
+  function handleAddonDragStart(event: DragStartEvent) {
+    setActiveDragLabel(event.active.data.current?.label as string ?? null);
+  }
+
+  function handleAddonDragEnd(event: DragEndEvent) {
+    setActiveDragLabel(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (!activeId.startsWith('addonfeat:') || !overId.startsWith('addonfeat:')) return;
+    const fromFeatureId = activeId.split(':')[2];
+    const toFeatureId = overId.split(':')[2];
+    const fromIndex = addon.features.findIndex(f => f.id === fromFeatureId);
+    const toIndex = addon.features.findIndex(f => f.id === toFeatureId);
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      dispatch({ type: 'REORDER_ADDON_FEATURES', addonId: addon.id, fromIndex, toIndex });
     }
   }
 
@@ -484,11 +571,30 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
       {/* Features */}
       <div className="px-4 py-3">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Features ({addon.features.length})</p>
-        <div className="space-y-0.5">
-          {addon.features.map(f => (
-            <AddonFeatureRow key={f.id} addonId={addon.id} feature={f} dispatch={dispatch} />
-          ))}
-        </div>
+        <DndContext
+          sensors={addonSensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleAddonDragStart}
+          onDragEnd={handleAddonDragEnd}
+        >
+          <SortableContext
+            items={addon.features.map(f => `addonfeat:${addon.id}:${f.id}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-0.5">
+              {addon.features.map(f => (
+                <SortableAddonFeatureRow key={f.id} addonId={addon.id} feature={f} dispatch={dispatch} />
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay>
+            {activeDragLabel && (
+              <div className="bg-white border border-green-400 shadow-lg rounded-full px-3 py-1 text-xs font-semibold text-green-700 cursor-grabbing">
+                {activeDragLabel}
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
         {addingFeature ? (
           <div className="mt-2 flex items-center gap-1.5">
             <input
@@ -521,7 +627,7 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
 function AddonsTab({ addons, dispatch }: { addons: AddonDefinition[]; dispatch: Dispatch<AdminAction> }) {
   return (
     <div>
-      <p className="text-xs text-gray-400 mb-4">Click any field to edit inline. Changes are applied live.</p>
+      <p className="text-xs text-gray-400 mb-4">Click any field to edit inline. Drag a feature's <span className="font-semibold">⠿</span> handle to reorder it.</p>
       <div className="grid grid-cols-2 gap-4">
         {addons.map(addon => (
           <AddonEditor key={addon.id} addon={addon} dispatch={dispatch} />

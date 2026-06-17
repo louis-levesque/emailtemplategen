@@ -61,7 +61,7 @@ export function Sidebar({ dispatch }: Props) {
         </SidebarSection>
 
         <SidebarSection title="Plans">
-          {PLANS.map(plan => (
+          {plans.map(plan => (
             <DraggableSidebarItem
               key={plan.id}
               id={`plan-${plan.id}`}
@@ -94,7 +94,7 @@ export function Sidebar({ dispatch }: Props) {
         </SidebarSection>
 
         <SidebarSection title="Add-ons">
-          {ADDONS.map(addon => (
+          {addons.map(addon => (
             <DraggableSidebarItem
               key={addon.id}
               id={`addon-${addon.id}`}

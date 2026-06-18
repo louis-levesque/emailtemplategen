@@ -1,4 +1,4 @@
-import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, CheckoutLinkBlock, PlanDefinition, AddonDefinition } from '../types';
+import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition } from '../types';
 import { ALL_PRICING_KEYS } from '../types';
 import {
   PRICING_LABELS,
@@ -239,6 +239,79 @@ function renderCheckoutLinkBlock(block: CheckoutLinkBlock): string {
 </div>`;
 }
 
+function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addons: AddonDefinition[]): string {
+  if (slot.kind === 'plan') {
+    const def = plans.find(p => p.id === slot.definitionId);
+    if (!def) return '';
+    const tier = def.tiers.find(t => t.seats === slot.selectedSeats) ?? def.tiers[0];
+    const price = tier.monthlyNoCommitment;
+    const visibleFeatures = def.features.filter(f => slot.visibleFeatureIds.includes(f.id));
+    const featureBullets = visibleFeatures
+      .map(f => `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`)
+      .join('');
+    return `
+      <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${def.color}; border-radius:6px; overflow:hidden;">
+          <tr>
+            <td style="background-color:${def.color}; padding:8px 10px;">
+              <strong style="color:#fff; font-size:14px; display:block;">${escapeHtml(def.title)}</strong>
+              <span style="color:rgba(255,255,255,0.9); font-size:12px; font-weight:bold;">${escapeHtml(price)}</span>
+            </td>
+          </tr>
+          ${featureBullets ? `
+          <tr>
+            <td style="padding:8px 10px; background-color:#fff;">
+              ${featureBullets}
+            </td>
+          </tr>` : ''}
+        </table>
+      </td>`;
+  }
+
+  // addon
+  const def = addons.find(a => a.id === slot.definitionId);
+  if (!def) return '';
+  const visibleFeatures = def.features.filter(f => slot.visibleFeatureIds.includes(f.id));
+  const featureBullets = visibleFeatures
+    .map(f => `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`)
+    .join('');
+  return `
+    <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d1d5db; border-radius:6px; overflow:hidden;">
+        <tr>
+          <td style="background-color:#6b7280; padding:8px 10px;">
+            <strong style="color:#fff; font-size:14px; display:block;">${escapeHtml(def.name)}</strong>
+            <span style="color:rgba(255,255,255,0.9); font-size:12px; font-weight:bold;">${escapeHtml(def.price)}</span>
+          </td>
+        </tr>
+        ${featureBullets ? `
+        <tr>
+          <td style="padding:8px 10px; background-color:#fff;">
+            ${featureBullets}
+          </td>
+        </tr>` : ''}
+      </table>
+    </td>`;
+}
+
+function renderCompareBlock(block: CompareBlock, plans: PlanDefinition[], addons: AddonDefinition[]): string {
+  const filledSlots = block.slots.filter((s): s is CompareSlot => s !== null);
+  if (filledSlots.length === 0) return '';
+
+  const cells = filledSlots
+    .map(slot => renderCompareSlotCell(slot, plans, addons))
+    .join('');
+
+  return `
+<div style="${SECTION_STYLE}">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      ${cells}
+    </tr>
+  </table>
+</div>`;
+}
+
 function renderBlock(block: CanvasBlock, plans: PlanDefinition[], addons: AddonDefinition[]): string {
   switch (block.kind) {
     case 'text': return renderTextBlock(block);
@@ -246,6 +319,7 @@ function renderBlock(block: CanvasBlock, plans: PlanDefinition[], addons: AddonD
     case 'addon': return renderAddonBlock(block, addons);
     case 'signature': return renderSignatureBlock();
     case 'checkout': return renderCheckoutLinkBlock(block);
+    case 'compare': return renderCompareBlock(block, plans, addons);
   }
 }
 
@@ -342,6 +416,21 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         return '{{{Sender.Email_Signature_Rich_Text__c}}}';
       case 'checkout':
         return block.url ? `Preview Checkout Page: ${block.url}` : '';
+      case 'compare': {
+        const names = block.slots
+          .filter((s): s is NonNullable<typeof s> => s !== null)
+          .map(slot => {
+            if (slot.kind === 'plan') {
+              const def = plans.find(p => p.id === slot.definitionId);
+              return def ? def.title : '';
+            } else {
+              const def = addons.find(a => a.id === slot.definitionId);
+              return def ? def.name : '';
+            }
+          })
+          .filter(Boolean);
+        return `--- Compare ---\n${names.join(' | ')}`;
+      }
     }
   }).join('\n\n');
 }

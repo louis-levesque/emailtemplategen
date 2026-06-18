@@ -1,4 +1,4 @@
-import type { AppState, CanvasBlock, EmailHeader, PricingKey, PromoConfig } from '../types';
+import type { AppState, CanvasBlock, CompareSlot, EmailHeader, PricingKey, PromoConfig } from '../types';
 
 export type CanvasAction =
   | { type: 'ADD_BLOCK'; block: CanvasBlock }
@@ -13,6 +13,7 @@ export type CanvasAction =
   | { type: 'SET_ADDON_PROMO'; instanceId: string; promo: PromoConfig | null; validUntil: string | null }
   | { type: 'UPDATE_TEXT'; instanceId: string; content: string }
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
+  | { type: 'SET_COMPARE_SLOT'; instanceId: string; slotIndex: number; slot: CompareSlot | null }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
 
 export const initialState: AppState = {
@@ -159,6 +160,16 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         blocks: state.blocks.map(b =>
           b.instanceId === action.instanceId && b.kind === 'checkout'
             ? { ...b, url: action.url }
+            : b
+        ),
+      };
+
+    case 'SET_COMPARE_SLOT':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'compare'
+            ? { ...b, slots: b.slots.map((s, i) => i === action.slotIndex ? action.slot : s) }
             : b
         ),
       };

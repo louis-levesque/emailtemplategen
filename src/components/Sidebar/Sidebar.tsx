@@ -121,6 +121,13 @@ export function Sidebar({ dispatch }: Props) {
             blockFactory={() => ({ instanceId: generateId(), kind: 'text', content: '' })}
             onAdd={() => addBlock({ instanceId: generateId(), kind: 'text', content: '' })}
           />
+          <DraggableSidebarItem
+            id="compare"
+            label="Compare"
+            description="Side-by-side comparison of up to 3 plans or add-ons"
+            blockFactory={() => ({ instanceId: generateId(), kind: 'compare', slots: [null, null, null] })}
+            onAdd={() => addBlock({ instanceId: generateId(), kind: 'compare', slots: [null, null, null] })}
+          />
         </SidebarSection>
       </div>
     </aside>

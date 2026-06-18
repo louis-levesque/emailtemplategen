@@ -51,8 +51,8 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm font-bold">J</span>
+          <div className="w-8 h-8 bg-jobber rounded-lg flex items-center justify-center">
+            <span className="text-jobber-dark text-sm font-bold">J</span>
           </div>
           <div>
             <h1 className="text-sm font-bold text-gray-900">Email Template Builder</h1>
@@ -107,10 +107,10 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
             disabled={!hasBlocks}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               copiedRich
-                ? 'bg-green-500 text-white'
+                ? 'bg-jobber text-jobber-dark opacity-80'
                 : !hasBlocks
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-green-600 text-white hover:bg-green-700 active:scale-95'
+                : 'bg-jobber text-jobber-dark hover:opacity-90 active:scale-95'
             }`}
           >
             {copiedRich ? '✓ Copied!' : 'Copy Only'}
@@ -121,10 +121,10 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
             disabled={!hasBlocks}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
               copied
-                ? 'bg-green-500 border-green-500 text-white'
+                ? 'bg-jobber border-jobber text-jobber-dark'
                 : !hasBlocks
                 ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-white'
-                : 'border-green-600 text-green-700 bg-white hover:bg-green-50 active:scale-95'
+                : 'border-jobber text-jobber-dark bg-white hover:bg-jobber/10 active:scale-95'
             }`}
           >
             {copied ? '✓ Copied!' : 'Copy HTML'}

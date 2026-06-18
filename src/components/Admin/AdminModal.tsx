@@ -85,7 +85,7 @@ function InsertLinkInline({ onInsert, onClose, defaultText = '' }: InsertLinkInl
         value={text}
         onChange={e => setText(e.target.value)}
         placeholder="Display text"
-        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400"
+        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
       />
       <input
         type="url"
@@ -93,13 +93,13 @@ function InsertLinkInline({ onInsert, onClose, defaultText = '' }: InsertLinkInl
         onChange={e => setUrl(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') onClose(); }}
         placeholder="https://getjobber.com/..."
-        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400"
+        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
       />
       <div className="flex gap-1.5">
         <button
           onClick={commit}
           disabled={!text.trim() || !url.trim()}
-          className="px-2.5 py-1 text-xs font-semibold bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="px-2.5 py-1 text-xs font-semibold bg-jobber text-jobber-dark rounded-md hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           Insert
         </button>
@@ -209,7 +209,7 @@ function SortableFeatureRow({ planId, feature, dispatch }: SortableFeatureProps)
                 if (e.key === 'Enter') { linkFormOpenRef.current = false; commitEdit(); }
                 if (e.key === 'Escape') { setLabel(feature.label); setEditing(false); setShowLinkForm(false); linkFormOpenRef.current = false; }
               }}
-              className="w-full text-xs border-b border-green-400 outline-none py-0.5 bg-transparent"
+              className="w-full text-xs border-b border-jobber outline-none py-0.5 bg-transparent"
             />
           ) : (
             <span
@@ -271,7 +271,7 @@ function AddFeatureRow({ planId, dispatch }: { planId: string; dispatch: Dispatc
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-2 text-xs text-green-600 hover:text-green-700 font-semibold flex items-center gap-1"
+        className="mt-2 text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1"
       >
         + Add feature
       </button>
@@ -287,9 +287,9 @@ function AddFeatureRow({ planId, dispatch }: { planId: string; dispatch: Dispatc
         onChange={e => setValue(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') { setValue(''); setOpen(false); } }}
         placeholder="Feature label…"
-        className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400"
+        className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
       />
-      <button onClick={submit} disabled={!value.trim()} className="text-xs bg-green-600 text-white px-2 py-1 rounded disabled:opacity-40">Add</button>
+      <button onClick={submit} disabled={!value.trim()} className="text-xs bg-jobber text-jobber-dark px-2 py-1 rounded disabled:opacity-40">Add</button>
       <button onClick={() => { setValue(''); setOpen(false); }} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
     </div>
   );
@@ -323,7 +323,7 @@ function TierRow({ planId, tier, tierIndex, dispatch, canRemove }: TierRowProps)
             min={1}
             value={tier.seats}
             onChange={e => dispatch({ type: 'UPDATE_TIER_FIELD', planId, tierIndex, field: 'seats', value: Number(e.target.value) })}
-            className="w-16 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400"
+            className="w-16 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
           />
         </div>
         {canRemove && (
@@ -343,7 +343,7 @@ function TierRow({ planId, tier, tierIndex, dispatch, canRemove }: TierRowProps)
               value={tier[field] as string}
               onChange={e => dispatch({ type: 'UPDATE_TIER_FIELD', planId, tierIndex, field, value: e.target.value })}
               placeholder={placeholder}
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400"
+              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
             />
           </div>
         ))}
@@ -420,7 +420,7 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
           />
           <button
             onClick={() => { captureTaglineSel(); setShowTaglineLinkForm(true); }}
-            className="flex-shrink-0 text-gray-400 hover:text-green-600 transition-colors"
+            className="flex-shrink-0 text-gray-400 hover:text-jobber transition-colors"
             title="Insert link into tagline"
           >
             <LinkIcon />
@@ -458,7 +458,7 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
             ))}
             <button
               onClick={() => dispatch({ type: 'ADD_TIER', planId: plan.id })}
-              className="text-xs text-green-600 hover:text-green-700 font-semibold flex items-center gap-1 mt-1"
+              className="text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1 mt-1"
             >
               + Add tier
             </button>
@@ -469,14 +469,14 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
       {/* Features drop zone */}
       <div
         ref={setNodeRef}
-        className={`flex-1 px-4 py-3 transition-colors ${isOver ? 'bg-green-50 ring-2 ring-inset ring-green-300' : ''}`}
+        className={`flex-1 px-4 py-3 transition-colors ${isOver ? 'bg-jobber/10 ring-2 ring-inset ring-jobber/50' : ''}`}
       >
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
             Features ({plan.features.length})
           </span>
           {isOver && (
-            <span className="text-xs text-green-600 font-medium animate-pulse">Drop here →</span>
+            <span className="text-xs text-jobber font-medium animate-pulse">Drop here →</span>
           )}
         </div>
         <SortableContext
@@ -571,13 +571,13 @@ function PlansTab({ plans, dispatch }: PlansTabProps) {
       </div>
       <button
         onClick={() => dispatch({ type: 'ADD_PLAN' })}
-        className="mt-4 w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-green-400 rounded-xl text-sm font-semibold text-gray-400 hover:text-green-600 transition-colors"
+        className="mt-4 w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-jobber rounded-xl text-sm font-semibold text-gray-400 hover:text-jobber transition-colors"
       >
         + Add New Plan
       </button>
       <DragOverlay>
         {activeFeatureDrag && (
-          <div className="bg-white border border-green-400 shadow-lg rounded-full px-3 py-1 text-xs font-semibold text-green-700 cursor-grabbing">
+          <div className="bg-white border border-jobber shadow-lg rounded-full px-3 py-1 text-xs font-semibold text-jobber-dark cursor-grabbing">
             {activeFeatureDrag.label}
           </div>
         )}
@@ -684,7 +684,7 @@ function SortableAddonFeatureRow({ addonId, feature, dispatch }: SortableAddonFe
                 if (e.key === 'Enter') { linkFormOpenRef.current = false; commitEdit(); }
                 if (e.key === 'Escape') { setLabel(feature.label); setEditing(false); setShowLinkForm(false); linkFormOpenRef.current = false; }
               }}
-              className="w-full text-xs border-b border-green-400 outline-none py-0.5 bg-transparent"
+              className="w-full text-xs border-b border-jobber outline-none py-0.5 bg-transparent"
             />
           ) : (
             <span
@@ -808,7 +808,7 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
             <input
               value={addon.price}
               onChange={e => dispatch({ type: 'UPDATE_ADDON_META', addonId: addon.id, field: 'price', value: e.target.value })}
-              className="w-24 text-xs font-bold text-green-700 bg-transparent border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400 text-right"
+              className="w-24 text-xs font-bold text-jobber-dark bg-transparent border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber text-right"
               placeholder="$0/mo"
             />
           </div>
@@ -824,7 +824,7 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
           <span className="text-xs text-gray-400">Description</span>
           <button
             onClick={() => { captureDescSel(); setShowDescLinkForm(true); }}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-green-600 transition-colors"
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-jobber transition-colors"
             title="Insert link into description"
           >
             <LinkIcon /> <span>Insert Link</span>
@@ -837,7 +837,7 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
           onSelect={captureDescSel}
           onKeyUp={captureDescSel}
           rows={2}
-          className="mt-1 w-full text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-300 rounded px-1 py-0.5 outline-none resize-none focus:ring-1 focus:ring-green-400"
+          className="mt-1 w-full text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-300 rounded px-1 py-0.5 outline-none resize-none focus:ring-1 focus:ring-jobber"
           placeholder="Add-on description…"
         />
         {showDescLinkForm && (
@@ -868,7 +868,7 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
           </SortableContext>
           <DragOverlay>
             {activeDragLabel && (
-              <div className="bg-white border border-green-400 shadow-lg rounded-full px-3 py-1 text-xs font-semibold text-green-700 cursor-grabbing">
+              <div className="bg-white border border-jobber shadow-lg rounded-full px-3 py-1 text-xs font-semibold text-jobber-dark cursor-grabbing">
                 {activeDragLabel}
               </div>
             )}
@@ -883,15 +883,15 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
               onChange={e => setNewFeatureLabel(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') submitFeature(); if (e.key === 'Escape') { setNewFeatureLabel(''); setAddingFeature(false); } }}
               placeholder="Feature description…"
-              className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-400"
+              className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
             />
-            <button onClick={submitFeature} disabled={!newFeatureLabel.trim()} className="text-xs bg-green-600 text-white px-2 py-1 rounded disabled:opacity-40">Add</button>
+            <button onClick={submitFeature} disabled={!newFeatureLabel.trim()} className="text-xs bg-jobber text-jobber-dark px-2 py-1 rounded disabled:opacity-40">Add</button>
             <button onClick={() => { setNewFeatureLabel(''); setAddingFeature(false); }} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
           </div>
         ) : (
           <button
             onClick={() => setAddingFeature(true)}
-            className="mt-2 text-xs text-green-600 hover:text-green-700 font-semibold flex items-center gap-1"
+            className="mt-2 text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1"
           >
             + Add feature
           </button>
@@ -916,7 +916,7 @@ function AddonsTab({ addons, dispatch }: { addons: AddonDefinition[]; dispatch: 
       </div>
       <button
         onClick={() => dispatch({ type: 'ADD_ADDON' })}
-        className="mt-4 w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-green-400 rounded-xl text-sm font-semibold text-gray-400 hover:text-green-600 transition-colors"
+        className="mt-4 w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-jobber rounded-xl text-sm font-semibold text-gray-400 hover:text-jobber transition-colors"
       >
         + Add New Add-on
       </button>
@@ -968,7 +968,7 @@ export function AdminModal({ onClose }: Props) {
               disabled={!isDirty}
               className={`text-xs font-semibold rounded-lg px-3 py-1.5 border transition-colors ${
                 isDirty
-                  ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
+                  ? 'bg-jobber text-jobber-dark border-jobber hover:opacity-90'
                   : 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed'
               }`}
             >
@@ -999,7 +999,7 @@ export function AdminModal({ onClose }: Props) {
               onClick={() => setTab(t)}
               className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${
                 tab === t
-                  ? 'border-green-600 text-green-700'
+                  ? 'border-jobber text-jobber-dark'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >

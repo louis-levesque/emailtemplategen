@@ -189,11 +189,11 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
   const promoLabel = promo ? (promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`) : '';
   const priceDisplay = discounted !== null
     ? `<span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${def.price}</span><strong style="color: #b45309;">${formatCurrency(discounted)}/mo</strong><span style="display:block; font-size:11px; color:#888; text-align:right;">${promoLabel} off for ${promo!.durationMonths} mo, then ${def.price}</span>`
-    : `<strong style="color: #1F9839;">${def.price}</strong>`;
+    : `<strong style="color: #1D2D44;">${def.price}</strong>`;
 
   return `
 <div style="${SECTION_STYLE}">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #1F9839; border-radius: 4px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #9DC63F; border-radius: 4px;">
     <tr>
       <td style="padding: 10px 14px; background-color: #f9fafb;">
         <strong style="font-size: 15px; color: #111;">${def.name}</strong>

@@ -104,7 +104,7 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
                 <label className="flex items-center gap-3 cursor-pointer mb-3">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 accent-green-600"
+                    className="w-4 h-4 accent-jobber"
                     checked={rs.enabled}
                     onChange={e => patch(row.key, { enabled: e.target.checked })}
                   />
@@ -131,22 +131,22 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
                         placeholder="0"
                         value={rs.value}
                         onChange={e => patch(row.key, { value: e.target.value })}
-                        className="w-20 text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400 text-right"
+                        className="w-20 text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-jobber text-right"
                       />
                       {/* % / $ toggle */}
                       <div className="flex rounded-md border border-gray-200 overflow-hidden text-xs font-semibold">
                         <button
                           onClick={() => patch(row.key, { type: 'percent' })}
-                          className={`px-2.5 py-1.5 transition-colors ${rs.type === 'percent' ? 'bg-green-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                          className={`px-2.5 py-1.5 transition-colors ${rs.type === 'percent' ? 'bg-jobber text-jobber-dark' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
                         >%</button>
                         <button
                           onClick={() => patch(row.key, { type: 'dollar' })}
-                          className={`px-2.5 py-1.5 transition-colors border-l border-gray-200 ${rs.type === 'dollar' ? 'bg-green-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
+                          className={`px-2.5 py-1.5 transition-colors border-l border-gray-200 ${rs.type === 'dollar' ? 'bg-jobber text-jobber-dark' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
                         >$</button>
                       </div>
                       {/* Live preview */}
                       {discounted !== null && discounted > 0 && discounted < origNum && (
-                        <span className="text-xs text-green-700 font-semibold">
+                        <span className="text-xs text-jobber-dark font-semibold">
                           → {formatCurrency(discounted)}{row.originalPrice.includes('/mo') ? '/mo' : '/yr'}
                         </span>
                       )}
@@ -162,7 +162,7 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
                         placeholder="3"
                         value={rs.durationMonths}
                         onChange={e => patch(row.key, { durationMonths: e.target.value })}
-                        className="w-20 text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400 text-right"
+                        className="w-20 text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-jobber text-right"
                       />
                       <span className="text-xs text-gray-500">months</span>
                       {/* Quick picks */}
@@ -171,7 +171,7 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
                           <button
                             key={m}
                             onClick={() => patch(row.key, { durationMonths: String(m) })}
-                            className={`px-2 py-0.5 rounded text-xs border transition-colors ${rs.durationMonths === String(m) ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+                            className={`px-2 py-0.5 rounded text-xs border transition-colors ${rs.durationMonths === String(m) ? 'bg-jobber text-jobber-dark border-jobber' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
                           >{m}mo</button>
                         ))}
                       </div>
@@ -197,7 +197,7 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
               value={validUntil}
               min={new Date().toISOString().slice(0, 10)}
               onChange={e => setValidUntil(e.target.value)}
-              className="text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="text-sm border border-gray-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-jobber"
             />
           </div>
           {validUntil && (
@@ -212,7 +212,7 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
           <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors">
             Cancel
           </button>
-          <button onClick={handleSave} className="px-4 py-2 text-sm font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+          <button onClick={handleSave} className="px-4 py-2 text-sm font-semibold bg-jobber text-jobber-dark rounded-lg hover:opacity-90 transition-colors">
             Save Promotions
           </button>
         </div>

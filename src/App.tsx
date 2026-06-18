@@ -110,7 +110,7 @@ export default function App() {
         </div>
         <DragOverlay>
           {dragLabel ? (
-            <div className="bg-white border-2 border-green-400 shadow-xl rounded-lg px-4 py-2.5 text-sm font-semibold text-green-700 opacity-95 cursor-grabbing">
+            <div className="bg-white border-2 border-jobber shadow-xl rounded-lg px-4 py-2.5 text-sm font-semibold text-jobber-dark opacity-95 cursor-grabbing">
               + {dragLabel}
             </div>
           ) : null}

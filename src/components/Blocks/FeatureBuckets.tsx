@@ -133,7 +133,7 @@ export function FeatureBuckets({ allFeatures, visibleFeatureIds, keyFeatureIds, 
                 <button
                   onClick={() => onSetBucket(f.id, 'included')}
                   title="Show in email"
-                  className="mt-0.5 flex-shrink-0 text-gray-200 hover:text-green-500 transition-colors"
+                  className="mt-0.5 flex-shrink-0 text-gray-200 hover:text-jobber transition-colors"
                 >
                   <EyeOnIcon />
                 </button>

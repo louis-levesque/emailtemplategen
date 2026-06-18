@@ -94,7 +94,7 @@ export function TextBlock({ block, dispatch }: Props) {
 
       <textarea
         ref={textareaRef}
-        className="w-full text-sm text-gray-800 border border-gray-200 rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-green-400 min-h-[80px]"
+        className="w-full text-sm text-gray-800 border border-gray-200 rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-jobber min-h-[80px]"
         placeholder="Type your message here…"
         value={block.content}
         onChange={e =>
@@ -112,7 +112,7 @@ export function TextBlock({ block, dispatch }: Props) {
               placeholder="e.g. Watch our intro video"
               value={linkText}
               onChange={e => setLinkText(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-jobber"
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
@@ -125,14 +125,14 @@ export function TextBlock({ block, dispatch }: Props) {
               value={linkUrl}
               onChange={e => setLinkUrl(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleInsertLink(); }}
-              className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-jobber"
             />
           </div>
           <div className="flex gap-2 pt-0.5">
             <button
               onClick={handleInsertLink}
               disabled={!linkText.trim() || !linkUrl.trim()}
-              className="px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 text-xs font-semibold bg-jobber text-jobber-dark rounded-lg hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Insert
             </button>

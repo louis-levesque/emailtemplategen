@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@theme {
+  --color-jobber: #9DC63F;
+  --color-jobber-dark: #1D2D44;
+}

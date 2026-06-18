@@ -24,7 +24,7 @@ export function AddonBlock({ block, dispatch }: Props) {
   return (
     <>
       <div className="p-3">
-        <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#1F9839' }}>
+        <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#9DC63F' }}>
           <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
             <span className="font-semibold text-gray-800">{def.name}</span>
             <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ export function AddonBlock({ block, dispatch }: Props) {
                   </div>
                 </div>
               ) : (
-                <span className="text-sm font-bold text-green-700">{def.price}</span>
+                <span className="text-sm font-bold text-jobber-dark">{def.price}</span>
               )}
               {/* Promo button */}
               <button

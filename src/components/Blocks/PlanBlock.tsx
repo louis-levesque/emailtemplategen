@@ -102,7 +102,7 @@ export function PlanBlock({ block, dispatch }: Props) {
                     <label className="flex items-center gap-1.5 cursor-pointer mt-0.5">
                       <input
                         type="checkbox"
-                        className="w-3.5 h-3.5 accent-green-600"
+                        className="w-3.5 h-3.5 accent-jobber"
                         checked={isVisible}
                         onChange={() => dispatch({ type: 'TOGGLE_PRICING_KEY', instanceId: block.instanceId, key })}
                       />

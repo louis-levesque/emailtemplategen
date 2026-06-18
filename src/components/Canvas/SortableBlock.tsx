@@ -37,9 +37,9 @@ export function SortableBlock({ block, dispatch, showInsertLine }: Props) {
   return (
     <div ref={setNodeRef} style={style}>
       {showInsertLine && (
-        <div className="h-0.5 bg-green-500 rounded-full mb-1 mx-1" />
+        <div className="h-0.5 bg-jobber rounded-full mb-1 mx-1" />
       )}
-      <div className="relative group bg-white rounded-xl shadow-sm border border-gray-100 mb-3 hover:border-green-300 hover:shadow-md transition-all">
+      <div className="relative group bg-white rounded-xl shadow-sm border border-gray-100 mb-3 hover:border-jobber/40 hover:shadow-md transition-all">
         {/* Drag handle */}
         <div
           {...attributes}

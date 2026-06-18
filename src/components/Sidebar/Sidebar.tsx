@@ -30,26 +30,19 @@ export function Sidebar({ dispatch }: Props) {
           <DraggableSidebarItem
             id="greeting"
             label="Greeting"
-            description="Personalised greeting using Salesforce recipient name"
+            description="Personalised greeting"
             blockFactory={() => ({
               instanceId: generateId(),
               kind: 'text',
-              content: '{{#if Recipient.FirstName}}Hey {{Recipient.FirstName}},{{else}}Hey there!{{/if}}',
+              content: '',
               displayLabel: 'Greeting Text',
             })}
             onAdd={() => addBlock({
               instanceId: generateId(),
               kind: 'text',
-              content: '{{#if Recipient.FirstName}}Hey {{Recipient.FirstName}},{{else}}Hey there!{{/if}}',
+              content: '',
               displayLabel: 'Greeting Text',
             })}
-          />
-          <DraggableSidebarItem
-            id="signature"
-            label="My Signature"
-            description="Salesforce merge fields: name, title, phone, email"
-            blockFactory={() => ({ instanceId: generateId(), kind: 'signature' })}
-            onAdd={() => addBlock({ instanceId: generateId(), kind: 'signature' })}
           />
           <DraggableSidebarItem
             id="checkout"

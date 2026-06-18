@@ -204,9 +204,9 @@ export function CompareBlock({ block, dispatch }: Props) {
 
   return (
     <div className="p-3">
-      <div className="rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+      <div className="rounded-lg border border-gray-200 bg-gray-50">
         {/* Block header */}
-        <div className="px-4 py-2 border-b border-gray-200 bg-white flex items-center gap-2">
+        <div className="px-4 py-2 border-b border-gray-200 bg-white rounded-t-lg flex items-center gap-2">
           <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Compare</span>
           <span className="text-xs text-gray-400">— up to 3 plans or add-ons side by side</span>
         </div>

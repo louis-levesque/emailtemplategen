@@ -20,16 +20,13 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
   const hasBlocks = state.blocks.length > 0;
 
   async function handleOpenInGmail() {
-    // Auto-copy rich text to clipboard so the user can paste it straight into Gmail
+    // Copy rich text to clipboard — user pastes into Gmail compose body
     const html = generateEmailHtml(state, plans, addons);
     const plain = generateEmailText(state, plans, addons);
     await copyRichTextToClipboard(html, plain);
 
-    // Open Gmail inbox with the compose overlay (no fs=1 → normal inbox + floating compose)
-    const params = new URLSearchParams({ view: 'cm' });
-    if (state.header.to.trim()) params.set('to', state.header.to.trim());
-    if (state.header.subject.trim()) params.set('su', state.header.subject.trim());
-    window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank', 'noopener,noreferrer');
+    // Open Gmail inbox — user clicks Compose and pastes
+    window.open('https://mail.google.com/mail/', '_blank', 'noopener,noreferrer');
 
     setGmailOpened(true);
     setTimeout(() => setGmailOpened(false), 3000);

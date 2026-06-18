@@ -15,6 +15,7 @@ export function EmailHeader({ header, dispatch }: Props) {
         <div className="w-3 h-3 rounded-full bg-yellow-400"/>
         <div className="w-3 h-3 rounded-full bg-green-400"/>
         <span className="ml-2 text-xs text-gray-400">New Email</span>
+        <span className="ml-auto text-xs text-gray-300 italic">Optional — for design reference only</span>
       </div>
       <div className="divide-y divide-gray-100">
         <div className="flex items-center px-4 py-2">

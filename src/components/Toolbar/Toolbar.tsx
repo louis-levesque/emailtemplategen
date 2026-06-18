@@ -105,26 +105,26 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
           <button
             onClick={handleCopyRich}
             disabled={!hasBlocks}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               copiedRich
-                ? 'bg-green-500 border-green-500 text-white'
+                ? 'bg-green-500 text-white'
                 : !hasBlocks
-                ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-white'
-                : 'border-green-600 text-green-700 bg-white hover:bg-green-50 active:scale-95'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700 active:scale-95'
             }`}
           >
-            {copiedRich ? '✓ Copied!' : 'Copy Rich Text'}
+            {copiedRich ? '✓ Copied!' : 'Copy Only'}
           </button>
 
           <button
             onClick={handleCopy}
             disabled={!hasBlocks}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
               copied
-                ? 'bg-green-500 text-white'
+                ? 'bg-green-500 border-green-500 text-white'
                 : !hasBlocks
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-green-600 text-white hover:bg-green-700 active:scale-95'
+                ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-white'
+                : 'border-green-600 text-green-700 bg-white hover:bg-green-50 active:scale-95'
             }`}
           >
             {copied ? '✓ Copied!' : 'Copy HTML'}

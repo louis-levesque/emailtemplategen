@@ -18,6 +18,13 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
 
   const hasBlocks = state.blocks.length > 0;
 
+  function handleOpenInGmail() {
+    const params = new URLSearchParams({ view: 'cm', fs: '1' });
+    if (state.header.to.trim()) params.set('to', state.header.to.trim());
+    if (state.header.subject.trim()) params.set('su', state.header.subject.trim());
+    window.open(`https://mail.google.com/mail/?${params.toString()}`, '_blank', 'noopener,noreferrer');
+  }
+
   async function handleCopy() {
     const html = generateEmailHtml(state, plans, addons);
     await copyToClipboard(html);
@@ -68,6 +75,17 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
             }`}
           >
             Preview Email
+          </button>
+
+          <button
+            onClick={handleOpenInGmail}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:scale-95 transition-all flex items-center gap-1.5"
+            title="Open Gmail compose pre-filled with To and Subject"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.910 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" fill="#EA4335"/>
+            </svg>
+            Open in Gmail
           </button>
 
           <button

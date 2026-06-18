@@ -15,12 +15,10 @@ export type CanvasAction =
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
 
-const GREETING_CONTENT = '{{#if Recipient.FirstName}}Hey {{Recipient.FirstName}},{{else}}Hey there!{{/if}}';
-
 export const initialState: AppState = {
   header: { to: '', subject: '' },
   blocks: [
-    { instanceId: 'greeting-initial', kind: 'text', content: GREETING_CONTENT, displayLabel: 'Greeting Text' },
+    { instanceId: 'greeting-initial', kind: 'text', content: '', displayLabel: 'Greeting Text' },
   ],
 };
 

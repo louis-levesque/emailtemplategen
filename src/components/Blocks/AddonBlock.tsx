@@ -36,7 +36,7 @@ export function AddonBlock({ block, dispatch }: Props) {
                     <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}/mo</span>
                   </div>
                   <div className="text-xs text-gray-400 text-right">
-                    {promo!.durationMonths} mo, then {def.price}
+                    {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {def.price}
                   </div>
                 </div>
               ) : (

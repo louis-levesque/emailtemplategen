@@ -127,7 +127,7 @@ export function PlanBlock({ block, dispatch }: Props) {
                             </div>
                           )}
                           <div className="text-xs text-gray-400">
-                            {promo!.durationMonths} mo, then {original}
+                            {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {original}
                           </div>
                         </>
                       ) : (

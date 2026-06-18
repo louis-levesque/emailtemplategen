@@ -239,29 +239,101 @@ function renderCheckoutLinkBlock(block: CheckoutLinkBlock): string {
 </div>`;
 }
 
+/**
+ * Compact feature list for a compare slot cell.
+ * Key features get bold checkmarks under a "Key Features" label;
+ * other included features get regular checkmarks.
+ */
+function buildCompareFeatureRows(
+  allFeatures: { id: string; label: string }[],
+  visibleFeatureIds: string[],
+  keyFeatureIds: string[],
+  accentColor: string,
+): string {
+  const keyFeatures = allFeatures.filter(f => keyFeatureIds.includes(f.id) && visibleFeatureIds.includes(f.id));
+  const otherFeatures = allFeatures.filter(f => visibleFeatureIds.includes(f.id) && !keyFeatureIds.includes(f.id));
+
+  if (keyFeatures.length === 0 && otherFeatures.length === 0) return '';
+
+  let html = '';
+
+  if (keyFeatures.length > 0) {
+    html += `<div style="font-size:10px; font-weight:bold; color:${accentColor}; text-transform:uppercase; letter-spacing:0.05em; padding:2px 0 3px;">Key Features</div>`;
+    html += keyFeatures.map(f =>
+      `<div style="font-size:12px; color:#222; font-weight:600; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`
+    ).join('');
+  }
+
+  if (otherFeatures.length > 0) {
+    if (keyFeatures.length > 0) {
+      html += `<div style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:0.05em; padding:4px 0 3px;">Other features</div>`;
+    }
+    html += otherFeatures.map(f =>
+      `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`
+    ).join('');
+  }
+
+  return html;
+}
+
 function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addons: AddonDefinition[]): string {
   if (slot.kind === 'plan') {
     const def = plans.find(p => p.id === slot.definitionId);
     if (!def) return '';
     const tier = def.tiers.find(t => t.seats === slot.selectedSeats) ?? def.tiers[0];
-    const price = tier.monthlyNoCommitment;
-    const visibleFeatures = def.features.filter(f => slot.visibleFeatureIds.includes(f.id));
-    const featureBullets = visibleFeatures
-      .map(f => `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`)
+    const visiblePricingKeys = slot.visiblePricingKeys ?? ALL_PRICING_KEYS;
+    const promotions = slot.promotions ?? {};
+
+    // Build pricing rows using the same logic as renderPlanBlock
+    const pricingRows = ALL_PRICING_KEYS
+      .filter(key => visiblePricingKeys.includes(key))
+      .map(key => {
+        const original = tier[key];
+        const promo = promotions[key];
+        const label = PRICING_LABELS[key];
+
+        if (promo) {
+          const discounted = applyPromo(original, promo);
+          const discStr = formatCurrency(discounted);
+          const unit = original.includes('/yr') ? '/yr' : '/mo';
+          const isAnnualTotal = key === 'annualTotal';
+          const monthlyDisc = isAnnualTotal
+            ? formatCurrency(Math.round((discounted / 12) * 100) / 100)
+            : null;
+          return `<div style="font-size:11px; color:#555; padding:1px 0;">${escapeHtml(label)}: <span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${isAnnualTotal && monthlyDisc ? ` <span style="color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}</div>`;
+        }
+
+        const isAnnualTotal = key === 'annualTotal';
+        return `<div style="font-size:11px; color:#555; padding:1px 0;">${escapeHtml(label)}: <strong style="color:${def.color};">${escapeHtml(original)}</strong>${isAnnualTotal ? ` <span style="color:#888;">(${escapeHtml(tier.annualMonthly)})</span>` : ''}</div>`;
+      })
       .join('');
+
+    const promoValidUntilHtml = slot.promoValidUntil && Object.keys(promotions).length > 0
+      ? `<div style="font-size:10px; color:#92400e; margin-top:4px;">Promotional pricing valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
+      : '';
+
+    // Feature rows with key feature support
+    const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds, def.color);
+
     return `
       <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${def.color}; border-radius:6px; overflow:hidden;">
           <tr>
             <td style="background-color:${def.color}; padding:8px 10px;">
               <strong style="color:#fff; font-size:14px; display:block;">${escapeHtml(def.title)}</strong>
-              <span style="color:rgba(255,255,255,0.9); font-size:12px; font-weight:bold;">${escapeHtml(price)}</span>
             </td>
           </tr>
-          ${featureBullets ? `
+          ${pricingRows || promoValidUntilHtml ? `
+          <tr>
+            <td style="padding:6px 10px; background-color:#f9f9f9; border-bottom:1px solid ${def.color}22;">
+              ${pricingRows}
+              ${promoValidUntilHtml}
+            </td>
+          </tr>` : ''}
+          ${featureRows ? `
           <tr>
             <td style="padding:8px 10px; background-color:#fff;">
-              ${featureBullets}
+              ${featureRows}
             </td>
           </tr>` : ''}
         </table>
@@ -271,23 +343,34 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
   // addon
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return '';
-  const visibleFeatures = def.features.filter(f => slot.visibleFeatureIds.includes(f.id));
-  const featureBullets = visibleFeatures
-    .map(f => `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`)
-    .join('');
+
+  const promo = slot.promo ?? null;
+  const discounted = promo ? applyPromo(def.price, promo) : null;
+  const promoLabel = promo ? (promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`) : '';
+  const priceHtml = discounted !== null
+    ? `<span style="text-decoration:line-through;color:#aaa;">${escapeHtml(def.price)}</span> <strong style="color:#b45309;">${escapeHtml(formatCurrency(discounted))}/mo</strong><div style="font-size:10px;color:#888;">${escapeHtml(promoLabel)} off for ${promo!.durationMonths} mo, then ${escapeHtml(def.price)}</div>`
+    : `<strong style="color:#1D2D44;">${escapeHtml(def.price)}</strong>`;
+
+  const promoValidUntilHtml = promo && slot.promoValidUntil
+    ? `<div style="font-size:10px; color:#92400e; margin-top:2px;">Promotional pricing valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
+    : '';
+
+  const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds, '#1F9839');
+
   return `
     <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d1d5db; border-radius:6px; overflow:hidden;">
         <tr>
           <td style="background-color:#6b7280; padding:8px 10px;">
             <strong style="color:#fff; font-size:14px; display:block;">${escapeHtml(def.name)}</strong>
-            <span style="color:rgba(255,255,255,0.9); font-size:12px; font-weight:bold;">${escapeHtml(def.price)}</span>
+            <div style="font-size:12px; margin-top:2px;">${priceHtml}</div>
+            ${promoValidUntilHtml}
           </td>
         </tr>
-        ${featureBullets ? `
+        ${featureRows ? `
         <tr>
           <td style="padding:8px 10px; background-color:#fff;">
-            ${featureBullets}
+            ${featureRows}
           </td>
         </tr>` : ''}
       </table>

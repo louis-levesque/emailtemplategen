@@ -92,12 +92,16 @@ export type CompareSlot =
       visibleFeatureIds: string[];
       keyFeatureIds: string[];
       visiblePricingKeys: PricingKey[];
+      promotions: Partial<Record<PricingKey, PromoConfig>>;
+      promoValidUntil?: string;
     }
   | {
       kind: 'addon';
       definitionId: string;
       visibleFeatureIds: string[];
       keyFeatureIds: string[];
+      promo: PromoConfig | null;
+      promoValidUntil?: string;
     };
 
 export interface CompareBlock extends BaseBlock {

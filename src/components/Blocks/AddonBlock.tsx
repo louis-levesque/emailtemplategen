@@ -25,20 +25,20 @@ export function AddonBlock({ block, dispatch }: Props) {
     <>
       <div className="p-3">
         <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#9DC63F' }}>
-          {/* Recommended badge — always visible above the name, click to toggle */}
-          <button
-            onClick={() => dispatch({ type: 'TOGGLE_RECOMMENDED', instanceId: block.instanceId })}
-            className={`w-full text-center text-[10px] font-semibold py-1.5 transition-colors ${
-              block.isRecommended
-                ? 'bg-lime-100 text-lime-700 hover:bg-lime-200'
-                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-            }`}
-          >
-            Recommended
-          </button>
-
-          <div className="px-4 py-3 bg-gray-50 flex justify-between items-center">
-            <span className="font-semibold text-gray-800">{def.name}</span>
+          <div className="px-4 py-3 bg-gray-50 flex justify-between items-start gap-2">
+            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+              <span className="font-semibold text-gray-800">{def.name}</span>
+              <button
+                onClick={() => dispatch({ type: 'TOGGLE_RECOMMENDED', instanceId: block.instanceId })}
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${
+                  block.isRecommended
+                    ? 'bg-lime-100 text-lime-700 hover:bg-lime-200'
+                    : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                }`}
+              >
+                Recommended
+              </button>
+            </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {/* Discounted price */}
               {discounted !== null ? (

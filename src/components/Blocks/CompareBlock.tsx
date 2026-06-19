@@ -162,6 +162,7 @@ function SlotCard({ slot, onClear, onEdit }: SlotCardProps) {
             </button>
           </div>
           <div className="font-semibold text-sm pr-14 truncate">{def.title}</div>
+          <div className="text-xs opacity-75 mt-0.5">{tier.seats} {tier.seats === 1 ? 'user seat' : 'user seats'}</div>
           <div className="text-xs opacity-80 font-bold mt-0.5">{price}</div>
         </div>
         {/* Features */}

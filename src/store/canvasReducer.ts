@@ -14,6 +14,7 @@ export type CanvasAction =
   | { type: 'UPDATE_TEXT'; instanceId: string; content: string }
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
   | { type: 'SET_COMPARE_SLOT'; instanceId: string; slotIndex: number; slot: CompareSlot | null }
+  | { type: 'REORDER_COMPARE_SLOTS'; instanceId: string; slots: (CompareSlot | null)[] }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
 
 export const initialState: AppState = {
@@ -170,6 +171,16 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         blocks: state.blocks.map(b =>
           b.instanceId === action.instanceId && b.kind === 'compare'
             ? { ...b, slots: b.slots.map((s, i) => i === action.slotIndex ? action.slot : s) }
+            : b
+        ),
+      };
+
+    case 'REORDER_COMPARE_SLOTS':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'compare'
+            ? { ...b, slots: action.slots }
             : b
         ),
       };

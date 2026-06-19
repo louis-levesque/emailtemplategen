@@ -1,4 +1,19 @@
-import { useState, useEffect, useRef, type Dispatch } from 'react';
+import { useState, useEffect, useRef, type CSSProperties, type Dispatch } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  horizontalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { CompareBlock as CompareBlockType, CompareSlot, PricingKey, PromoConfig } from '../../types';
 import { ALL_PRICING_KEYS } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
@@ -461,6 +476,50 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
 }
 
 // ---------------------------------------------------------------------------
+// SortableSlotWrapper — provides drag handle + sortable behaviour per slot
+// ---------------------------------------------------------------------------
+
+interface SortableSlotWrapperProps {
+  id: string;
+  isFilled: boolean;
+  children: React.ReactNode;
+}
+
+function SortableSlotWrapper({ id, isFilled, children }: SortableSlotWrapperProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex-1 relative min-w-0 group/slot">
+      {/* Drag handle — only rendered for filled slots, visible on hover */}
+      {isFilled && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute top-1.5 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center w-8 h-5 rounded cursor-grab active:cursor-grabbing opacity-0 group-hover/slot:opacity-100 transition-opacity hover:bg-black/5"
+          title="Drag to reorder"
+        >
+          <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
+            <circle cx="2" cy="2" r="1.3" fill="#9ca3af"/>
+            <circle cx="8" cy="2" r="1.3" fill="#9ca3af"/>
+            <circle cx="14" cy="2" r="1.3" fill="#9ca3af"/>
+            <circle cx="2" cy="6" r="1.3" fill="#9ca3af"/>
+            <circle cx="8" cy="6" r="1.3" fill="#9ca3af"/>
+            <circle cx="14" cy="6" r="1.3" fill="#9ca3af"/>
+          </svg>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // SlotCard dispatcher
 // ---------------------------------------------------------------------------
 
@@ -502,9 +561,24 @@ function SlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: SlotCardPr
 export function CompareBlock({ block, dispatch }: Props) {
   const [openPickerIndex, setOpenPickerIndex] = useState<number | null>(null);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
+
   function setSlot(slotIndex: number, slot: CompareSlot | null) {
     dispatch({ type: 'SET_COMPARE_SLOT', instanceId: block.instanceId, slotIndex, slot });
   }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = parseInt(active.id as string);
+    const newIndex = parseInt(over.id as string);
+    const newSlots = arrayMove(block.slots, oldIndex, newIndex);
+    dispatch({ type: 'REORDER_COMPARE_SLOTS', instanceId: block.instanceId, slots: newSlots });
+  }
+
+  const slotIds = block.slots.map((_, i) => String(i));
 
   return (
     <div className="p-3">
@@ -516,40 +590,44 @@ export function CompareBlock({ block, dispatch }: Props) {
         </div>
 
         {/* Slots */}
-        <div className="flex gap-3 p-3 items-start">
-          {block.slots.map((slot, i) => (
-            <div key={i} className="flex-1 relative min-w-0">
-              {slot === null ? (
-                <>
-                  <button
-                    onClick={() => setOpenPickerIndex(openPickerIndex === i ? null : i)}
-                    className="w-full h-24 rounded-lg border-2 border-dashed border-jobber/50 hover:border-jobber flex items-center justify-center transition-colors bg-white hover:bg-jobber/5 group"
-                    title="Add item to compare"
-                  >
-                    <span className="text-2xl font-light text-jobber/50 group-hover:text-jobber transition-colors">+</span>
-                  </button>
-                  {openPickerIndex === i && (
-                    <SlotPicker
-                      onSelect={selected => {
-                        setSlot(i, selected);
-                        setOpenPickerIndex(null);
-                      }}
-                      onClose={() => setOpenPickerIndex(null)}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={slotIds} strategy={horizontalListSortingStrategy}>
+            <div className="flex gap-3 p-3 items-start">
+              {block.slots.map((slot, i) => (
+                <SortableSlotWrapper key={i} id={String(i)} isFilled={slot !== null}>
+                  {slot === null ? (
+                    <>
+                      <button
+                        onClick={() => setOpenPickerIndex(openPickerIndex === i ? null : i)}
+                        className="w-full h-24 rounded-lg border-2 border-dashed border-jobber/50 hover:border-jobber flex items-center justify-center transition-colors bg-white hover:bg-jobber/5 group"
+                        title="Add item to compare"
+                      >
+                        <span className="text-2xl font-light text-jobber/50 group-hover:text-jobber transition-colors">+</span>
+                      </button>
+                      {openPickerIndex === i && (
+                        <SlotPicker
+                          onSelect={selected => {
+                            setSlot(i, selected);
+                            setOpenPickerIndex(null);
+                          }}
+                          onClose={() => setOpenPickerIndex(null)}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <SlotCard
+                      slot={slot}
+                      slotIndex={i}
+                      instanceId={block.instanceId}
+                      dispatch={dispatch}
+                      onClear={() => setSlot(i, null)}
                     />
                   )}
-                </>
-              ) : (
-                <SlotCard
-                  slot={slot}
-                  slotIndex={i}
-                  instanceId={block.instanceId}
-                  dispatch={dispatch}
-                  onClear={() => setSlot(i, null)}
-                />
-              )}
+                </SortableSlotWrapper>
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
   );

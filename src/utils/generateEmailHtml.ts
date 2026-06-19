@@ -62,7 +62,6 @@ function buildFeatureRows(
   allFeatures: { id: string; label: string }[],
   visibleFeatureIds: string[],
   keyFeatureIds: string[],
-  accentColor: string,
 ): string {
   const keyFeatures = allFeatures.filter(f => keyFeatureIds.includes(f.id) && visibleFeatureIds.includes(f.id));
   const otherFeatures = allFeatures.filter(f => visibleFeatureIds.includes(f.id) && !keyFeatureIds.includes(f.id));
@@ -72,9 +71,9 @@ function buildFeatureRows(
   let rows = '';
 
   if (keyFeatures.length > 0) {
-    rows += `<tr><td style="padding: 6px 0 4px; font-size: 11px; font-weight: bold; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.06em;">Key Features</td></tr>`;
+    rows += `<tr><td style="padding: 6px 0 4px; font-size: 11px; font-weight: bold; color: #d97706; text-transform: uppercase; letter-spacing: 0.06em;">Key Features</td></tr>`;
     rows += keyFeatures.map(f =>
-      `<tr><td style="padding: 3px 0 3px 8px; font-weight: 600; color: #222;">✓ ${processTextContent(f.label)}</td></tr>`
+      `<tr><td style="padding: 3px 0 3px 8px; font-weight: 600; color: #222;">&#9733; ${processTextContent(f.label)}</td></tr>`
     ).join('');
   }
 
@@ -83,7 +82,7 @@ function buildFeatureRows(
       rows += `<tr><td style="padding: 10px 0 4px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em;">Other features included</td></tr>`;
     }
     rows += otherFeatures.map(f =>
-      `<tr><td style="padding: 3px 0 3px 8px; color: #444;">✓ ${processTextContent(f.label)}</td></tr>`
+      `<tr><td style="padding: 3px 0 3px 8px; color: #444;">&#10003; ${processTextContent(f.label)}</td></tr>`
     ).join('');
   }
 
@@ -94,12 +93,21 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
   const def = plans.find(p => p.id === block.definitionId);
   if (!def) return '';
   const tier = def.tiers.find(t => t.seats === block.selectedSeats) ?? def.tiers[0];
-  const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? [], def.color);
+  const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? []);
   const hasFeatures = featureRows.length > 0;
 
   const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
   const visiblePricingKeys = block.visiblePricingKeys ?? ALL_PRICING_KEYS;
   const promotions = block.promotions ?? {};
+
+  // Header price: first visible pricing key
+  const headerKey = visiblePricingKeys[0] ?? 'monthlyNoCommitment';
+  const headerOriginal = tier[headerKey];
+  const headerPromo = promotions[headerKey];
+  const headerDiscounted = headerPromo ? applyPromo(headerOriginal, headerPromo) : null;
+  const headerPriceHtml = headerDiscounted !== null
+    ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px;margin-right:4px;">${headerOriginal}</span><strong style="color:#b45309;font-size:14px;">${formatCurrency(headerDiscounted)}/mo</strong>`
+    : `<strong style="color:#1D2D44;font-size:14px;">${headerOriginal}</strong>`;
 
   // Build pricing rows — only for visible keys
   const pricingRows = ALL_PRICING_KEYS
@@ -144,30 +152,41 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
 
   return `
 <div style="${SECTION_STYLE}">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid ${def.color}; border-radius: 6px; overflow: hidden;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #9DC63F; border-radius: 4px;">
     <tr>
-      <td style="background-color: ${def.color}; padding: 12px 16px;">
-        <strong style="color: #ffffff; font-size: 18px;">${def.title}</strong>
-        <span style="color: rgba(255,255,255,0.85); font-size: 13px; display: block; margin-top: 2px;">${processTextContent(def.tagline, 'rgba(255,255,255,0.9)')}</span>
+      <td style="padding: 10px 14px; background-color: #f9fafb;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="vertical-align: middle;">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${def.color};margin-right:6px;vertical-align:middle;"></span>
+              <strong style="font-size: 15px; color: #111; vertical-align: middle;">${def.title}</strong>
+            </td>
+            <td style="text-align: right; vertical-align: middle; white-space: nowrap; padding-left: 8px;">
+              ${headerPriceHtml}
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
     <tr>
-      <td style="padding: 10px 16px; background-color: #f9f9f9; border-bottom: 1px solid ${def.color}22;">
-        <strong style="font-size: 13px; color: #555;">Included user seats: </strong>
-        <span style="font-size: 13px; color: ${def.color}; font-weight: bold;">${seatLabel}</span>
+      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px;">${processTextContent(def.tagline)}</td>
+    </tr>
+    <tr>
+      <td style="padding: 6px 14px; background-color: #f9fafb; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #555;">
+        <strong>User seats:</strong> <span style="color: ${def.color}; font-weight: bold;">${seatLabel}</span>
       </td>
     </tr>
     <tr>
-      <td style="padding: 10px 16px; background-color: #f9f9f9;">
+      <td style="padding: 8px 14px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           ${pricingRows}
         </table>
-        ${block.promoValidUntil && Object.keys(promotions).length > 0 ? `<p style="margin: 8px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
+        ${block.promoValidUntil && Object.keys(promotions).length > 0 ? `<p style="margin: 6px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
       </td>
     </tr>
     ${hasFeatures ? `
     <tr>
-      <td style="padding: 12px 16px;">
+      <td style="padding: 8px 14px 12px; border-top: 1px solid #f0f0f0;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           ${featureRows}
         </table>
@@ -180,38 +199,46 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
 function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string {
   const def = addons.find(a => a.id === block.definitionId);
   if (!def) return '';
-  const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? [], '#1F9839');
+  const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? []);
   const hasFeatures = featureRows.length > 0;
 
   const promo = block.promo ?? null;
   const discounted = promo ? applyPromo(def.price, promo) : null;
-
   const promoLabel = promo ? (promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`) : '';
-  const priceDisplay = discounted !== null
-    ? `<span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${def.price}</span><strong style="color: #b45309;">${formatCurrency(discounted)}/mo</strong><span style="display:block; font-size:11px; color:#888; text-align:right;">${promoLabel} off for ${promo!.durationMonths} mo, then ${def.price}</span>`
-    : `<strong style="color: #1D2D44;">${def.price}</strong>`;
+
+  const headerPriceHtml = discounted !== null
+    ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px;margin-right:4px;">${def.price}</span><strong style="color:#b45309;font-size:14px;">${formatCurrency(discounted)}/mo</strong><span style="display:block;font-size:11px;color:#888;text-align:right;">${promoLabel} off for ${promo!.durationMonths} mo, then ${def.price}</span>`
+    : `<strong style="color:#1D2D44;font-size:14px;">${def.price}</strong>`;
 
   return `
 <div style="${SECTION_STYLE}">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #9DC63F; border-radius: 4px;">
     <tr>
       <td style="padding: 10px 14px; background-color: #f9fafb;">
-        <strong style="font-size: 15px; color: #111;">${def.name}</strong>
-        <span style="font-size: 13px; float: right;">${priceDisplay}</span>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="vertical-align: middle;">
+              <strong style="font-size: 15px; color: #111;">${def.name}</strong>
+            </td>
+            <td style="text-align: right; vertical-align: middle; white-space: nowrap; padding-left: 8px;">
+              ${headerPriceHtml}
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
     <tr>
-      <td style="padding: 6px 14px 2px; color: #555; font-size: 13px;">${processTextContent(def.description)}</td>
+      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px;">${processTextContent(def.description)}</td>
     </tr>
     ${promo && block.promoValidUntil ? `
     <tr>
-      <td style="padding: 4px 14px 2px;">
+      <td style="padding: 4px 14px 6px;">
         <p style="margin: 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>
       </td>
     </tr>` : ''}
     ${hasFeatures ? `
     <tr>
-      <td style="padding: 8px 14px 12px;">
+      <td style="padding: 8px 14px 12px; border-top: 1px solid #f0f0f0;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           ${featureRows}
         </table>
@@ -248,7 +275,6 @@ function buildCompareFeatureRows(
   allFeatures: { id: string; label: string }[],
   visibleFeatureIds: string[],
   keyFeatureIds: string[],
-  accentColor: string,
 ): string {
   const keyFeatures = allFeatures.filter(f => keyFeatureIds.includes(f.id) && visibleFeatureIds.includes(f.id));
   const otherFeatures = allFeatures.filter(f => visibleFeatureIds.includes(f.id) && !keyFeatureIds.includes(f.id));
@@ -258,9 +284,9 @@ function buildCompareFeatureRows(
   let html = '';
 
   if (keyFeatures.length > 0) {
-    html += `<div style="font-size:10px; font-weight:bold; color:${accentColor}; text-transform:uppercase; letter-spacing:0.05em; padding:2px 0 3px;">Key Features</div>`;
+    html += `<div style="font-size:10px; font-weight:bold; color:#d97706; text-transform:uppercase; letter-spacing:0.05em; padding:2px 0 3px;">Key Features</div>`;
     html += keyFeatures.map(f =>
-      `<div style="font-size:12px; color:#222; font-weight:600; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`
+      `<div style="font-size:12px; color:#222; font-weight:600; padding:2px 0;">&#9733; ${escapeHtml(stripLinkSyntax(f.label))}</div>`
     ).join('');
   }
 
@@ -284,56 +310,79 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
     const visiblePricingKeys = slot.visiblePricingKeys ?? ALL_PRICING_KEYS;
     const promotions = slot.promotions ?? {};
 
-    // Build pricing rows using the same logic as renderPlanBlock
+    // Header price: first visible pricing key
+    const headerKey = visiblePricingKeys[0] ?? 'monthlyNoCommitment';
+    const headerOriginal = tier[headerKey];
+    const headerPromo = promotions[headerKey];
+    const headerDiscounted = headerPromo ? applyPromo(headerOriginal, headerPromo) : null;
+    const headerPriceHtml = headerDiscounted !== null
+      ? `<span style="text-decoration:line-through;color:#aaa;font-size:11px;">${escapeHtml(headerOriginal)}</span> <strong style="color:#b45309;font-size:12px;">${escapeHtml(formatCurrency(headerDiscounted))}/mo</strong>`
+      : `<strong style="color:#1D2D44;font-size:12px;">${escapeHtml(headerOriginal)}</strong>`;
+
+    // All visible pricing rows
     const pricingRows = ALL_PRICING_KEYS
       .filter(key => visiblePricingKeys.includes(key))
       .map(key => {
         const original = tier[key];
         const promo = promotions[key];
         const label = PRICING_LABELS[key];
+        const isAnnualTotal = key === 'annualTotal';
 
         if (promo) {
           const discounted = applyPromo(original, promo);
           const discStr = formatCurrency(discounted);
           const unit = original.includes('/yr') ? '/yr' : '/mo';
-          const isAnnualTotal = key === 'annualTotal';
-          const monthlyDisc = isAnnualTotal
-            ? formatCurrency(Math.round((discounted / 12) * 100) / 100)
-            : null;
-          return `<div style="font-size:11px; color:#555; padding:1px 0;">${escapeHtml(label)}: <span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${isAnnualTotal && monthlyDisc ? ` <span style="color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}</div>`;
+          const monthlyDisc = isAnnualTotal ? formatCurrency(Math.round((discounted / 12) * 100) / 100) : null;
+          return `<div style="font-size:11px; color:#555; padding:1px 0;">${escapeHtml(label)}: <span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${isAnnualTotal && monthlyDisc ? ` <span style="color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}<span style="display:block;font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(original)}</span></div>`;
         }
 
-        const isAnnualTotal = key === 'annualTotal';
         return `<div style="font-size:11px; color:#555; padding:1px 0;">${escapeHtml(label)}: <strong style="color:${def.color};">${escapeHtml(original)}</strong>${isAnnualTotal ? ` <span style="color:#888;">(${escapeHtml(tier.annualMonthly)})</span>` : ''}</div>`;
       })
       .join('');
 
     const promoValidUntilHtml = slot.promoValidUntil && Object.keys(promotions).length > 0
-      ? `<div style="font-size:10px; color:#92400e; margin-top:4px;">Promotional pricing valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
+      ? `<div style="font-size:10px; color:#92400e; margin-top:4px;">Promo valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
       : '';
 
-    // Feature rows with key feature support
-    const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds, def.color);
+    const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds);
+    const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
 
     return `
       <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${def.color}; border-radius:6px; overflow:hidden;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px;">
           <tr>
-            <td style="background-color:${def.color}; padding:8px 10px;">
-              <strong style="color:#fff; font-size:14px; display:block;">${escapeHtml(def.title)}</strong>
-              <span style="color:rgba(255,255,255,0.85); font-size:11px;">${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}</span>
+            <td style="padding:8px 10px; background-color:#f9fafb;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:middle;">
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:${def.color};margin-right:5px;vertical-align:middle;"></span>
+                    <strong style="font-size:13px; color:#111; vertical-align:middle;">${escapeHtml(def.title)}</strong>
+                  </td>
+                  <td style="text-align:right; vertical-align:middle; padding-left:6px; white-space:nowrap;">
+                    ${headerPriceHtml}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.tagline))}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 10px; background-color:#f9fafb; border-top:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0; font-size:11px; color:#555;">
+              <strong>User seats:</strong> <span style="color:${def.color}; font-weight:bold;">${seatLabel}</span>
             </td>
           </tr>
           ${pricingRows || promoValidUntilHtml ? `
           <tr>
-            <td style="padding:6px 10px; background-color:#f9f9f9; border-bottom:1px solid ${def.color}22;">
+            <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">
               ${pricingRows}
               ${promoValidUntilHtml}
             </td>
           </tr>` : ''}
           ${featureRows ? `
           <tr>
-            <td style="padding:8px 10px; background-color:#fff;">
+            <td style="padding:8px 10px;">
               ${featureRows}
             </td>
           </tr>` : ''}
@@ -348,29 +397,45 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
   const promo = slot.promo ?? null;
   const discounted = promo ? applyPromo(def.price, promo) : null;
   const promoLabel = promo ? (promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`) : '';
-  const priceHtml = discounted !== null
-    ? `<span style="text-decoration:line-through;color:#aaa;">${escapeHtml(def.price)}</span> <strong style="color:#b45309;">${escapeHtml(formatCurrency(discounted))}/mo</strong><div style="font-size:10px;color:#888;">${escapeHtml(promoLabel)} off for ${promo!.durationMonths} mo, then ${escapeHtml(def.price)}</div>`
-    : `<strong style="color:#1D2D44;">${escapeHtml(def.price)}</strong>`;
+  const headerPriceHtml = discounted !== null
+    ? `<span style="text-decoration:line-through;color:#aaa;font-size:11px;">${escapeHtml(def.price)}</span> <strong style="color:#b45309;font-size:12px;">${escapeHtml(formatCurrency(discounted))}/mo</strong><span style="display:block;font-size:10px;color:#888;text-align:right;">${escapeHtml(promoLabel)} off for ${promo!.durationMonths} mo, then ${escapeHtml(def.price)}</span>`
+    : `<strong style="color:#1D2D44;font-size:12px;">${escapeHtml(def.price)}</strong>`;
 
   const promoValidUntilHtml = promo && slot.promoValidUntil
-    ? `<div style="font-size:10px; color:#92400e; margin-top:2px;">Promotional pricing valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
+    ? `<div style="font-size:10px; color:#92400e; margin-top:2px;">Promo valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
     : '';
 
-  const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds, '#1F9839');
+  const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds);
 
   return `
     <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d1d5db; border-radius:6px; overflow:hidden;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px;">
         <tr>
-          <td style="background-color:#6b7280; padding:8px 10px;">
-            <strong style="color:#fff; font-size:14px; display:block;">${escapeHtml(def.name)}</strong>
-            <div style="font-size:12px; margin-top:2px;">${priceHtml}</div>
-            ${promoValidUntilHtml}
+          <td style="padding:8px 10px; background-color:#f9fafb;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="vertical-align:middle;">
+                  <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>
+                </td>
+                <td style="text-align:right; vertical-align:middle; padding-left:6px; white-space:nowrap;">
+                  ${headerPriceHtml}
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
+        <tr>
+          <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.description))}</td>
+        </tr>
+        ${promoValidUntilHtml ? `
+        <tr>
+          <td style="padding:2px 10px 4px;">
+            ${promoValidUntilHtml}
+          </td>
+        </tr>` : ''}
         ${featureRows ? `
         <tr>
-          <td style="padding:8px 10px; background-color:#fff;">
+          <td style="padding:6px 10px 10px; border-top:1px solid #f0f0f0;">
             ${featureRows}
           </td>
         </tr>` : ''}

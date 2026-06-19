@@ -4,8 +4,8 @@ export const ADDONS: AddonDefinition[] = [
   {
     id: 'receptionist',
     name: 'Receptionist',
-    description: 'Provide 24/7 customer service over call or text. When you\'re busy on a job, enjoying personal time, or your admin is focused on other work, your Receptionist is there.',
-    price: '$99/mo',
+    description: 'Provide 24/7 customer service over call or text. When you\'re busy on a job, enjoying personal time, or your admin is focused on other work, your Receptionist is there. Includes 30 conversations/mo — additional conversations charged at $0.79/conversation.',
+    price: '$29/mo',
     features: [
       { id: 'rec-1', label: 'Take time away from your phone without the risk of losing a lead to a competitor or damaging customer relationships.' },
       { id: 'rec-2', label: 'Responds to customer calls and texts 24/7 — can create work requests, book jobs, or answer questions. You control what it can and can\'t do.' },

@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { AdminAction } from '../../store/adminStore';
-import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPricingKey } from '../../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPriceTier } from '../../types';
 import { ALL_ADDON_PRICING_KEYS } from '../../types';
 import { ADDON_PRICING_LABELS } from '../../utils/priceUtils';
 import type { Dispatch } from 'react';
@@ -729,6 +729,56 @@ function SortableAddonFeatureRow({ addonId, feature, dispatch }: SortableAddonFe
   );
 }
 
+// ─── Addon tier row ───────────────────────────────────────────────────────────
+
+interface AddonTierRowProps {
+  addonId: string;
+  tier: AddonPriceTier;
+  tierIndex: number;
+  dispatch: Dispatch<AdminAction>;
+  canRemove: boolean;
+}
+
+function AddonTierRow({ addonId, tier, tierIndex, dispatch, canRemove }: AddonTierRowProps) {
+  return (
+    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-gray-500">Tier label:</span>
+          <input
+            type="text"
+            value={tier.label}
+            onChange={e => dispatch({ type: 'UPDATE_ADDON_TIER_LABEL', addonId, tierIndex, label: e.target.value })}
+            className="w-36 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+            placeholder="e.g. Standard"
+          />
+        </div>
+        {canRemove && (
+          <button
+            onClick={() => dispatch({ type: 'REMOVE_ADDON_TIER', addonId, tierIndex })}
+            className="text-xs text-red-400 hover:text-red-600 font-medium"
+          >
+            Remove tier
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+        {ALL_ADDON_PRICING_KEYS.map(key => (
+          <div key={key}>
+            <label className="text-xs text-gray-400 block mb-0.5">{ADDON_PRICING_LABELS[key]}</label>
+            <input
+              value={tier.pricing[key]}
+              onChange={e => dispatch({ type: 'UPDATE_ADDON_TIER_PRICING', addonId, tierIndex, key, value: e.target.value })}
+              placeholder="$0/mo"
+              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Addon editor ─────────────────────────────────────────────────────────────
 
 interface AddonEditorProps {
@@ -741,6 +791,7 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
   const [newFeatureLabel, setNewFeatureLabel] = useState('');
   const [activeDragLabel, setActiveDragLabel] = useState<string | null>(null);
   const [showDescLinkForm, setShowDescLinkForm] = useState(false);
+  const [pricingExpanded, setPricingExpanded] = useState(false);
   const descRef = useRef<HTMLTextAreaElement>(null);
   const descSelRef = useRef({ start: 0, end: 0 });
 
@@ -840,24 +891,35 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
         )}
       </div>
 
-      {/* Pricing section */}
-      <div className="border-b border-gray-100 px-4 py-3">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Pricing</p>
-        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-            {ALL_ADDON_PRICING_KEYS.map((key: AddonPricingKey) => (
-              <div key={key}>
-                <label className="text-xs text-gray-400 block mb-0.5">{ADDON_PRICING_LABELS[key]}</label>
-                <input
-                  value={addon.pricing[key]}
-                  onChange={e => dispatch({ type: 'UPDATE_ADDON_PRICING', addonId: addon.id, key, value: e.target.value })}
-                  placeholder="$0/mo"
-                  className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
-                />
-              </div>
+      {/* Pricing tiers — collapsible */}
+      <div className="border-b border-gray-100">
+        <button
+          onClick={() => setPricingExpanded(x => !x)}
+          className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wide hover:bg-gray-50"
+        >
+          <span>Pricing Tiers ({addon.tiers.length})</span>
+          <span className="text-gray-300">{pricingExpanded ? '▲' : '▼'}</span>
+        </button>
+        {pricingExpanded && (
+          <div className="px-4 pb-3 space-y-2">
+            {addon.tiers.map((tier, i) => (
+              <AddonTierRow
+                key={i}
+                addonId={addon.id}
+                tier={tier}
+                tierIndex={i}
+                dispatch={dispatch}
+                canRemove={addon.tiers.length > 1}
+              />
             ))}
+            <button
+              onClick={() => dispatch({ type: 'ADD_ADDON_TIER', addonId: addon.id })}
+              className="text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1 mt-1"
+            >
+              + Add tier
+            </button>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Features */}

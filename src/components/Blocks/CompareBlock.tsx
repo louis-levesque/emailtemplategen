@@ -41,7 +41,7 @@ function SlotPicker({ onSelect, onClose }: SlotPickerProps) {
       selectedSeats: plan.tiers[0].seats,
       visibleFeatureIds: plan.features.map(f => f.id),
       keyFeatureIds: [],
-      visiblePricingKeys: ['monthlyNoCommitment'],
+      visiblePricingKeys: [...ALL_PRICING_KEYS],
       promotions: {},
     });
   }

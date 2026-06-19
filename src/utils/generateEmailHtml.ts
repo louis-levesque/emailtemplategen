@@ -321,6 +321,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
           <tr>
             <td style="background-color:${def.color}; padding:8px 10px;">
               <strong style="color:#fff; font-size:14px; display:block;">${escapeHtml(def.title)}</strong>
+              <span style="color:rgba(255,255,255,0.85); font-size:11px;">${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}</span>
             </td>
           </tr>
           ${pricingRows || promoValidUntilHtml ? `

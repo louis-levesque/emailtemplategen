@@ -56,7 +56,7 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
           </div>
           <div>
             <h1 className="text-sm font-bold text-gray-900">Email Template Builder</h1>
-            <p className="text-xs text-gray-400">Build and copy email templates for Salesforce</p>
+            <p className="text-xs text-gray-400">Build and copy email templates for Gmail</p>
           </div>
         </div>
 

@@ -333,38 +333,36 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
       : '';
 
     return `
-      <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%; height:100%;">
-        <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px; height:100%;">
-          ${planSlotRecommendedRow}
-          <tr>
-            <td style="padding:8px 10px; background-color:#f9fafb;">
-              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:${def.color};margin-right:5px;vertical-align:middle;"></span>
-              <strong style="font-size:13px; color:#111; vertical-align:middle;">${escapeHtml(def.title)}</strong>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.tagline))}</td>
-          </tr>
-          <tr>
-            <td style="padding:4px 10px; background-color:#f9fafb; border-top:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0; font-size:11px; color:#555;">
-              <strong>User seats:</strong> <span style="color:${def.color}; font-weight:bold;">${seatLabel}</span>
-            </td>
-          </tr>
-          ${pricingRows || promoValidUntilHtml ? `
-          <tr>
-            <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">
-              ${pricingRows}
-              ${promoValidUntilHtml}
-            </td>
-          </tr>` : ''}
-          ${featureRows ? `
-          <tr>
-            <td style="padding:8px 10px;">
-              ${featureRows}
-            </td>
-          </tr>` : ''}
-        </table>
-      </td>`;
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        ${planSlotRecommendedRow}
+        <tr>
+          <td style="padding:8px 10px; background-color:#f9fafb;">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:${def.color};margin-right:5px;vertical-align:middle;"></span>
+            <strong style="font-size:13px; color:#111; vertical-align:middle;">${escapeHtml(def.title)}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.tagline))}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 10px; background-color:#f9fafb; border-top:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0; font-size:11px; color:#555;">
+            <strong>User seats:</strong> <span style="color:${def.color}; font-weight:bold;">${seatLabel}</span>
+          </td>
+        </tr>
+        ${pricingRows || promoValidUntilHtml ? `
+        <tr>
+          <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">
+            ${pricingRows}
+            ${promoValidUntilHtml}
+          </td>
+        </tr>` : ''}
+        ${featureRows ? `
+        <tr>
+          <td style="padding:8px 10px;">
+            ${featureRows}
+          </td>
+        </tr>` : ''}
+      </table>`;
   }
 
   // addon
@@ -389,40 +387,38 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
     : '';
 
   return `
-    <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%; height:100%;">
-      <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px; height:100%;">
-        ${addonSlotRecommendedRow}
-        <tr>
-          <td style="padding:8px 10px; background-color:#f9fafb;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="vertical-align:middle;">
-                  <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>
-                </td>
-                <td style="text-align:right; vertical-align:middle; padding-left:6px; white-space:nowrap;">
-                  ${headerPriceHtml}
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.description))}</td>
-        </tr>
-        ${promoValidUntilHtml ? `
-        <tr>
-          <td style="padding:2px 10px 4px;">
-            ${promoValidUntilHtml}
-          </td>
-        </tr>` : ''}
-        ${featureRows ? `
-        <tr>
-          <td style="padding:6px 10px 10px; border-top:1px solid #f0f0f0;">
-            ${featureRows}
-          </td>
-        </tr>` : ''}
-      </table>
-    </td>`;
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      ${addonSlotRecommendedRow}
+      <tr>
+        <td style="padding:8px 10px; background-color:#f9fafb;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="vertical-align:middle;">
+                <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>
+              </td>
+              <td style="text-align:right; vertical-align:middle; padding-left:6px; white-space:nowrap;">
+                ${headerPriceHtml}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.description))}</td>
+      </tr>
+      ${promoValidUntilHtml ? `
+      <tr>
+        <td style="padding:2px 10px 4px;">
+          ${promoValidUntilHtml}
+        </td>
+      </tr>` : ''}
+      ${featureRows ? `
+      <tr>
+        <td style="padding:6px 10px 10px; border-top:1px solid #f0f0f0;">
+          ${featureRows}
+        </td>
+      </tr>` : ''}
+    </table>`;
 }
 
 function renderCompareBlock(block: CompareBlock, plans: PlanDefinition[], addons: AddonDefinition[]): string {
@@ -430,10 +426,17 @@ function renderCompareBlock(block: CompareBlock, plans: PlanDefinition[], addons
   if (filledSlots.length === 0) return '';
 
   const anyRecommended = filledSlots.some(s => s.isRecommended);
+  const slotWidth = Math.floor(100 / filledSlots.length);
 
   const cells = filledSlots
-    .map(slot => renderCompareSlotCell(slot, plans, addons, anyRecommended))
-    .join('');
+    .map((slot, i) => {
+      const innerTable = renderCompareSlotCell(slot, plans, addons, anyRecommended);
+      const spacer = i < filledSlots.length - 1
+        ? `\n      <td style="width:12px; padding:0;"></td>`
+        : '';
+      return `<td style="vertical-align:top; width:${slotWidth}%; border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px; overflow:hidden; padding:0;">${innerTable}</td>${spacer}`;
+    })
+    .join('\n      ');
 
   return `
 <div style="${SECTION_STYLE}">

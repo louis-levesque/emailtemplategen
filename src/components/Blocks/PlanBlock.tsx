@@ -82,9 +82,6 @@ export function PlanBlock({ block, dispatch }: Props) {
             </div>
           </div>
 
-          {/* Tagline */}
-          <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.tagline)}</div>
-
           {/* Seat selector */}
           {def.tiers.length > 1 && (
             <div className="px-4 py-2 border-t border-gray-100">
@@ -107,6 +104,9 @@ export function PlanBlock({ block, dispatch }: Props) {
               </div>
             </div>
           )}
+
+          {/* Tagline */}
+          <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.tagline)}</div>
 
           {/* Pricing rows */}
           <div className="px-4 py-3 border-t border-gray-100">

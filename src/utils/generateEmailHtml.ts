@@ -155,12 +155,12 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
       </td>
     </tr>
     <tr>
-      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px;">${processTextContent(def.tagline)}</td>
-    </tr>
-    <tr>
       <td style="padding: 6px 14px; background-color: #f9fafb; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #555;">
         <strong>User seats:</strong> <span style="color: ${def.color}; font-weight: bold;">${seatLabel}</span>
       </td>
+    </tr>
+    <tr>
+      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px;">${processTextContent(def.tagline)}</td>
     </tr>
     <tr>
       <td style="padding: 8px 14px;">

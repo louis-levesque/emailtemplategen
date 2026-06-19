@@ -1,7 +1,7 @@
 import { useReducer, useState } from 'react';
 import { PLANS as DEFAULT_PLANS } from '../data/plans';
 import { ADDONS as DEFAULT_ADDONS } from '../data/addons';
-import type { PlanDefinition, AddonDefinition, PriceTier, AddonPricingKey, AddonPriceTier } from '../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, AddonPriceTier } from '../types';
 
 const STORAGE_KEY = 'jobber-email-builder-admin-v1';
 
@@ -26,8 +26,7 @@ export type AdminAction =
   | { type: 'UPDATE_ADDON_META'; addonId: string; field: 'name' | 'description'; value: string }
   | { type: 'ADD_ADDON_TIER'; addonId: string }
   | { type: 'REMOVE_ADDON_TIER'; addonId: string; tierIndex: number }
-  | { type: 'UPDATE_ADDON_TIER_LABEL'; addonId: string; tierIndex: number; label: string }
-  | { type: 'UPDATE_ADDON_TIER_PRICING'; addonId: string; tierIndex: number; key: AddonPricingKey; value: string }
+  | { type: 'UPDATE_ADDON_TIER'; addonId: string; tierIndex: number; field: 'label' | 'price' | 'monthlyEquivalent'; value: string }
   | { type: 'ADD_ADDON_FEATURE'; addonId: string; label: string }
   | { type: 'UPDATE_ADDON_FEATURE'; addonId: string; featureId: string; label: string }
   | { type: 'DELETE_ADDON_FEATURE'; addonId: string; featureId: string }
@@ -190,9 +189,11 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
       };
 
     case 'ADD_ADDON_TIER': {
-      const addon = state.addons.find(a => a.id === action.addonId);
-      if (!addon) return state;
-      const newTier: AddonPriceTier = { label: 'New tier', pricing: { monthly: '$0/mo' } };
+      const newTier: AddonPriceTier = {
+        id: `${action.addonId}-tier-${Date.now()}`,
+        label: 'New pricing option',
+        price: '$0/mo',
+      };
       return {
         ...state,
         addons: state.addons.map(a =>
@@ -212,27 +213,14 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
         ),
       };
 
-    case 'UPDATE_ADDON_TIER_LABEL':
+    case 'UPDATE_ADDON_TIER':
       return {
         ...state,
         addons: state.addons.map(a =>
           a.id !== action.addonId ? a : {
             ...a,
             tiers: a.tiers.map((t, i) =>
-              i !== action.tierIndex ? t : { ...t, label: action.label }
-            ),
-          }
-        ),
-      };
-
-    case 'UPDATE_ADDON_TIER_PRICING':
-      return {
-        ...state,
-        addons: state.addons.map(a =>
-          a.id !== action.addonId ? a : {
-            ...a,
-            tiers: a.tiers.map((t, i) =>
-              i !== action.tierIndex ? t : { ...t, pricing: { ...t.pricing, [action.key]: action.value } }
+              i !== action.tierIndex ? t : { ...t, [action.field]: action.value }
             ),
           }
         ),
@@ -293,7 +281,7 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
         id: newId,
         name: 'New Add-on',
         description: 'Describe what this add-on does.',
-        tiers: [{ label: 'Standard', pricing: { monthly: '$0/mo' } }],
+        tiers: [{ id: `${newId}-tier-0`, label: 'Monthly, no commitment', price: '$0/mo' }],
         features: [],
       };
       return { ...state, addons: [...state.addons, newAddon] };
@@ -314,17 +302,31 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
 
 function migrateAdminState(raw: AdminState): AdminState {
   const addons = raw.addons.map((a: any) => {
-    // Already has tiers — no migration needed
-    if (Array.isArray(a.tiers)) return a;
-    // Had pricing map (from last refactor)
+    // Already new format (tiers with id+label+price)
+    if (Array.isArray(a.tiers) && a.tiers.length > 0 && 'id' in a.tiers[0] && 'price' in a.tiers[0]) {
+      return a;
+    }
+    // Previous format: tiers with label + nested pricing map
+    if (Array.isArray(a.tiers)) {
+      const { tiers, ...rest } = a;
+      return {
+        ...rest,
+        tiers: tiers.map((t: any, i: number) => ({
+          id: `${a.id}-tier-${i}`,
+          label: t.label ?? 'Monthly, no commitment',
+          price: t.pricing?.monthly ?? '$0/mo',
+        })),
+      };
+    }
+    // Older format: pricing map
     if (a.pricing) {
       const { pricing, ...rest } = a;
-      return { ...rest, tiers: [{ label: 'Standard', pricing }] };
+      return { ...rest, tiers: [{ id: `${a.id}-tier-0`, label: 'Monthly, no commitment', price: pricing.monthly ?? '$0/mo' }] };
     }
-    // Had old price string
+    // Oldest format: price string
     if (a.price) {
       const { price, ...rest } = a;
-      return { ...rest, tiers: [{ label: 'Standard', pricing: { monthly: price } }] };
+      return { ...rest, tiers: [{ id: `${a.id}-tier-0`, label: 'Monthly, no commitment', price }] };
     }
     return a;
   });

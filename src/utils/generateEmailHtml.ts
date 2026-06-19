@@ -1,8 +1,7 @@
 import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition } from '../types';
-import { ALL_PRICING_KEYS, ALL_ADDON_PRICING_KEYS } from '../types';
+import { ALL_PRICING_KEYS } from '../types';
 import {
   PRICING_LABELS,
-  ADDON_PRICING_LABELS,
   applyPromo,
   formatCurrency,
   formatValidUntil,
@@ -186,41 +185,42 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
 function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string {
   const def = addons.find(a => a.id === block.definitionId);
   if (!def) return '';
-  const tier = def.tiers.find(t => t.label === block.selectedTierLabel) ?? def.tiers[0];
   const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? []);
   const hasFeatures = featureRows.length > 0;
 
-  const visiblePricingKeys = block.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const visibleTierIds = block.visibleTierIds ?? def.tiers.map(t => t.id);
   const promotions = block.promotions ?? {};
+  const visibleTiers = def.tiers.filter(t => visibleTierIds.includes(t.id));
 
-  const pricingRows = ALL_ADDON_PRICING_KEYS
-    .filter(key => visiblePricingKeys.includes(key))
-    .map(key => {
-      const original = tier.pricing[key];
-      const promo = promotions[key];
-      const label = ADDON_PRICING_LABELS[key];
+  const pricingRows = visibleTiers.map(tier => {
+    const promo = promotions[tier.id];
+    const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
 
-      if (promo) {
-        const discounted = applyPromo(original, promo);
-        const discStr = formatCurrency(discounted);
-        return `
-    <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
-      <td style="padding: 4px 0; text-align: right; font-size: 13px;">
-        <span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${original}</span>
-        <strong style="color: #b45309;">${discStr}/mo</strong>
-        <span style="display:block; font-size:11px; color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${original}</span>
-      </td>
-    </tr>`;
-      }
-
+    if (promo) {
+      const discounted = applyPromo(tier.price, promo);
+      const discStr = formatCurrency(discounted);
+      const monthlyDisc = tier.monthlyEquivalent ? formatCurrency(Math.round((discounted / 12) * 100) / 100) : null;
       return `
     <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
-      <td style="padding: 4px 0; text-align: right; font-weight: bold; color: #9DC63F; font-size: 13px;">${original}</td>
+      <td style="padding: 4px 0; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
+      <td style="padding: 4px 0; text-align: right; font-size: 13px;">
+        <span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${escapeHtml(tier.price)}</span>
+        <strong style="color: #b45309;">${escapeHtml(discStr)}${unit}</strong>
+        ${monthlyDisc ? `<span style="display:block; font-size:11px; color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}
+        <span style="display:block; font-size:11px; color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(tier.price)}</span>
+      </td>
     </tr>`;
-    })
-    .join('');
+    }
+
+    return `
+    <tr>
+      <td style="padding: 4px 0; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
+      <td style="padding: 4px 0; text-align: right; font-weight: bold; color: #9DC63F; font-size: 13px;">
+        ${escapeHtml(tier.price)}
+        ${tier.monthlyEquivalent ? `<span style="display:block; font-size:11px; font-weight:normal; color:#888;">${escapeHtml(tier.monthlyEquivalent)}</span>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
 
   const addonRecommendedBadge = block.isRecommended
     ? `<span style="display:inline-block;background-color:#ecfccb;color:#4d7c0f;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;">Recommended</span>`
@@ -234,12 +234,6 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
         <strong style="font-size: 15px; color: #111;">${def.name}</strong>${addonRecommendedBadge}
       </td>
     </tr>
-    ${def.tiers.length > 1 ? `
-    <tr>
-      <td style="padding: 4px 14px 6px; background-color: #f9fafb; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #555;">
-        <strong>Tier:</strong> <span style="color: #9DC63F; font-weight: bold;">${escapeHtml(tier.label)}</span>
-      </td>
-    </tr>` : ''}
     <tr>
       <td style="padding: 4px 14px 8px; color: #555; font-size: 13px; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}</td>
     </tr>
@@ -401,34 +395,27 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return '';
 
-  const tier = def.tiers.find(t => t.label === slot.selectedTierLabel) ?? def.tiers[0];
-
-  const slotVisiblePricingKeys = slot.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const visibleTierIds = slot.visibleTierIds ?? def.tiers.map(t => t.id);
   const slotPromotions = slot.promotions ?? {};
+  const visibleTiers = def.tiers.filter(t => visibleTierIds.includes(t.id));
 
-  const addonPricingRows = ALL_ADDON_PRICING_KEYS
-    .filter(key => slotVisiblePricingKeys.includes(key))
-    .map(key => {
-      const original = tier.pricing[key];
-      const promo = slotPromotions[key];
-      const label = ADDON_PRICING_LABELS[key];
-
-      if (promo) {
-        const discounted = applyPromo(original, promo);
-        const discStr = formatCurrency(discounted);
-        return `<div style="padding:3px 0 6px;">
-          <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
-          <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}/mo</strong></div>
-          <div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(original)}</div>
-        </div>`;
-      }
-
+  const addonPricingRows = visibleTiers.map(tier => {
+    const promo = slotPromotions[tier.id];
+    if (promo) {
+      const discounted = applyPromo(tier.price, promo);
+      const discStr = formatCurrency(discounted);
+      const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
       return `<div style="padding:3px 0 6px;">
-        <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
-        <div style="font-size:11px; font-weight:bold; color:#9DC63F;">${escapeHtml(original)}</div>
+        <div style="font-size:10px; color:#888;">${escapeHtml(tier.label)}</div>
+        <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(tier.price)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${unit}</strong></div>
+        <div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(tier.price)}</div>
       </div>`;
-    })
-    .join('');
+    }
+    return `<div style="padding:3px 0 6px;">
+      <div style="font-size:10px; color:#888;">${escapeHtml(tier.label)}</div>
+      <div style="font-size:11px; font-weight:bold; color:#9DC63F;">${escapeHtml(tier.price)}${tier.monthlyEquivalent ? ` <span style="font-size:10px; font-weight:normal; color:#888;">${escapeHtml(tier.monthlyEquivalent)}</span>` : ''}</div>
+    </div>`;
+  }).join('');
 
   const promoValidUntilHtml = Object.keys(slotPromotions).length > 0 && slot.promoValidUntil
     ? `<div style="font-size:10px; color:#92400e; margin-top:2px;">Promo valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
@@ -572,7 +559,6 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
       case 'addon': {
         const def = addons.find(a => a.id === block.definitionId);
         if (!def) return '';
-        const addonTier = def.tiers.find(t => t.label === block.selectedTierLabel) ?? def.tiers[0];
         const addonKeyIds = block.keyFeatureIds ?? [];
         const addonKeyText = def.features
           .filter(f => addonKeyIds.includes(f.id) && block.visibleFeatureIds.includes(f.id))
@@ -587,24 +573,23 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
           addonOtherText ? (addonKeyText ? `Other features included:\n${addonOtherText}` : addonOtherText) : '',
         ].filter(Boolean).join('\n');
         const addonPromotions = block.promotions ?? {};
-        const addonVisibleKeys = block.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
-        const tierLabel = def.tiers.length > 1 ? `Tier: ${addonTier.label}\n` : '';
-        const pricing = ALL_ADDON_PRICING_KEYS
-          .filter(key => addonVisibleKeys.includes(key))
-          .map(key => {
-            const promo = addonPromotions[key];
-            const original = addonTier.pricing[key];
+        const addonVisibleTierIds = block.visibleTierIds ?? def.tiers.map(t => t.id);
+        const visibleTiers = def.tiers.filter(t => addonVisibleTierIds.includes(t.id));
+        const pricing = visibleTiers
+          .map(tier => {
+            const promo = addonPromotions[tier.id];
             if (promo) {
               const promoLbl = promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`;
-              return `  ${ADDON_PRICING_LABELS[key]}: ${formatCurrency(applyPromo(original, promo))}/mo (${promoLbl} off for ${promo.durationMonths} mo, then ${original})`;
+              const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
+              return `  ${tier.label}: ${formatCurrency(applyPromo(tier.price, promo))}${unit} (${promoLbl} off for ${promo.durationMonths} mo, then ${tier.price})`;
             }
-            return `  ${ADDON_PRICING_LABELS[key]}: ${original}`;
+            return `  ${tier.label}: ${tier.price}${tier.monthlyEquivalent ? ` ${tier.monthlyEquivalent}` : ''}`;
           })
           .join('\n');
         const validUntilAddon = Object.keys(addonPromotions).length > 0 && block.promoValidUntil
           ? `Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
           : '';
-        return [def.name, stripLinkSyntax(def.description), tierLabel + pricing, validUntilAddon, features].filter(Boolean).join('\n');
+        return [def.name, stripLinkSyntax(def.description), pricing, validUntilAddon, features].filter(Boolean).join('\n');
       }
       case 'signature':
         return '{{{Sender.Email_Signature_Rich_Text__c}}}';

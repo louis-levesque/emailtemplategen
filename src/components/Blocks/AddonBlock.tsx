@@ -1,16 +1,11 @@
 import { useState, type Dispatch } from 'react';
-import type { AddonBlock as AddonBlockType, AddonPricingKey } from '../../types';
-import { ALL_ADDON_PRICING_KEYS } from '../../types';
+import type { AddonBlock as AddonBlockType } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { PromoModal, type PromoRow } from './PromoModal';
 import { FeatureBuckets } from './FeatureBuckets';
-import { ADDON_PRICING_LABELS, applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
+import { applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
-
-const ADDON_PRICING_PILL_LABELS: Record<AddonPricingKey, string> = {
-  monthly: 'Monthly',
-};
 
 interface Props {
   block: AddonBlockType;
@@ -23,17 +18,14 @@ export function AddonBlock({ block, dispatch }: Props) {
   const def = addons.find(a => a.id === block.definitionId);
   if (!def) return null;
 
-  // Resolve selected tier (default to first)
-  const selectedTier = def.tiers.find(t => t.label === block.selectedTierLabel) ?? def.tiers[0];
-
-  const visiblePricingKeys: AddonPricingKey[] = block.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const visibleTierIds: string[] = block.visibleTierIds ?? def.tiers.map(t => t.id);
   const promotions = block.promotions ?? {};
   const hasAnyPromo = Object.keys(promotions).length > 0;
 
-  const promoRows: PromoRow[] = ALL_ADDON_PRICING_KEYS.map(key => ({
-    key,
-    label: ADDON_PRICING_LABELS[key],
-    originalPrice: selectedTier.pricing[key],
+  const promoRows: PromoRow[] = def.tiers.map(tier => ({
+    key: tier.id,
+    label: tier.label,
+    originalPrice: tier.price,
   }));
 
   return (
@@ -72,46 +64,22 @@ export function AddonBlock({ block, dispatch }: Props) {
             </div>
           </div>
 
-          {/* Tier selector */}
-          {def.tiers.length > 1 && (
-            <div className="px-4 py-2 border-t border-gray-100">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Pricing tier</p>
-              <div className="flex gap-1.5 flex-wrap">
-                {def.tiers.map(tier => (
-                  <button
-                    key={tier.label}
-                    onClick={() => dispatch({ type: 'SET_ADDON_TIER', instanceId: block.instanceId, label: tier.label })}
-                    className="px-3 py-1 rounded-full text-xs font-semibold border transition-colors"
-                    style={
-                      selectedTier.label === tier.label
-                        ? { backgroundColor: '#9DC63F', borderColor: '#9DC63F', color: '#fff' }
-                        : { backgroundColor: '#fff', borderColor: '#9DC63F66', color: '#9DC63F' }
-                    }
-                  >
-                    {tier.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Description */}
           <div className="px-4 py-2 border-b border-gray-100 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
 
           {/* Pricing rows */}
           <div className="px-4 py-3">
             <div className="space-y-2">
-              {ALL_ADDON_PRICING_KEYS.map(key => {
-                const isVisible = visiblePricingKeys.includes(key);
-                const promo = promotions[key];
-                const original = selectedTier.pricing[key];
-                const discounted = promo ? applyPromo(original, promo) : null;
-                const unit = '/mo';
+              {def.tiers.map(tier => {
+                const isVisible = visibleTierIds.includes(tier.id);
+                const promo = promotions[tier.id];
+                const discounted = promo ? applyPromo(tier.price, promo) : null;
+                const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
 
                 return (
-                  <div key={key} className="flex items-start gap-2">
+                  <div key={tier.id} className="flex items-start gap-2">
                     <button
-                      onClick={() => dispatch({ type: 'TOGGLE_ADDON_PRICING_KEY', instanceId: block.instanceId, key })}
+                      onClick={() => dispatch({ type: 'TOGGLE_ADDON_TIER_VISIBILITY', instanceId: block.instanceId, tierId: tier.id })}
                       className="px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors flex-shrink-0 mt-0.5"
                       style={
                         isVisible
@@ -119,26 +87,31 @@ export function AddonBlock({ block, dispatch }: Props) {
                           : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
                       }
                     >
-                      {ADDON_PRICING_PILL_LABELS[key]}
+                      {tier.label}
                     </button>
                     <div className="ml-auto text-right flex-shrink-0">
                       {discounted !== null ? (
                         <>
                           <div className="flex items-center gap-1.5 justify-end flex-wrap">
-                            <span className="text-xs text-gray-400 line-through">{original}</span>
+                            <span className="text-xs text-gray-400 line-through">{tier.price}</span>
                             <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
                           </div>
+                          {tier.monthlyEquivalent && (
+                            <div className="text-xs text-amber-500">({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)</div>
+                          )}
                           <div className="text-xs text-gray-400">
-                            {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {original}
+                            {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {tier.price}
                           </div>
                         </>
                       ) : (
-                        <span
-                          className="text-sm font-semibold"
-                          style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}
-                        >
-                          {original}
-                        </span>
+                        <>
+                          <span className="text-sm font-semibold" style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}>
+                            {tier.price}
+                          </span>
+                          {tier.monthlyEquivalent && isVisible && (
+                            <div className="text-xs text-gray-400">{tier.monthlyEquivalent}</div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -176,7 +149,7 @@ export function AddonBlock({ block, dispatch }: Props) {
           onSave={(promos, validUntil) => dispatch({
             type: 'SET_ADDON_PROMOTIONS',
             instanceId: block.instanceId,
-            promotions: promos as Partial<Record<AddonPricingKey, import('../../types').PromoConfig>>,
+            promotions: promos as Partial<Record<string, import('../../types').PromoConfig>>,
             validUntil,
           })}
           onClose={() => setShowPromoModal(false)}

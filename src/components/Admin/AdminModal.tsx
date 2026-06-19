@@ -18,8 +18,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { AdminAction } from '../../store/adminStore';
 import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPriceTier } from '../../types';
-import { ALL_ADDON_PRICING_KEYS } from '../../types';
-import { ADDON_PRICING_LABELS } from '../../utils/priceUtils';
 import type { Dispatch } from 'react';
 
 interface Props {
@@ -743,16 +741,7 @@ function AddonTierRow({ addonId, tier, tierIndex, dispatch, canRemove }: AddonTi
   return (
     <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-gray-500">Tier label:</span>
-          <input
-            type="text"
-            value={tier.label}
-            onChange={e => dispatch({ type: 'UPDATE_ADDON_TIER_LABEL', addonId, tierIndex, label: e.target.value })}
-            className="w-36 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
-            placeholder="e.g. Standard"
-          />
-        </div>
+        <span className="text-xs font-semibold text-gray-500">Pricing option</span>
         {canRemove && (
           <button
             onClick={() => dispatch({ type: 'REMOVE_ADDON_TIER', addonId, tierIndex })}
@@ -763,17 +752,33 @@ function AddonTierRow({ addonId, tier, tierIndex, dispatch, canRemove }: AddonTi
         )}
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-        {ALL_ADDON_PRICING_KEYS.map(key => (
-          <div key={key}>
-            <label className="text-xs text-gray-400 block mb-0.5">{ADDON_PRICING_LABELS[key]}</label>
-            <input
-              value={tier.pricing[key]}
-              onChange={e => dispatch({ type: 'UPDATE_ADDON_TIER_PRICING', addonId, tierIndex, key, value: e.target.value })}
-              placeholder="$0/mo"
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
-            />
-          </div>
-        ))}
+        <div className="col-span-2">
+          <label className="text-xs text-gray-400 block mb-0.5">Label</label>
+          <input
+            value={tier.label}
+            onChange={e => dispatch({ type: 'UPDATE_ADDON_TIER', addonId, tierIndex, field: 'label', value: e.target.value })}
+            placeholder="e.g. Monthly, no commitment"
+            className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-400 block mb-0.5">Price</label>
+          <input
+            value={tier.price}
+            onChange={e => dispatch({ type: 'UPDATE_ADDON_TIER', addonId, tierIndex, field: 'price', value: e.target.value })}
+            placeholder="$29/mo"
+            className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-400 block mb-0.5">Monthly equiv. (annual)</label>
+          <input
+            value={tier.monthlyEquivalent ?? ''}
+            onChange={e => dispatch({ type: 'UPDATE_ADDON_TIER', addonId, tierIndex, field: 'monthlyEquivalent', value: e.target.value })}
+            placeholder="($24.17/mo)"
+            className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+          />
+        </div>
       </div>
     </div>
   );

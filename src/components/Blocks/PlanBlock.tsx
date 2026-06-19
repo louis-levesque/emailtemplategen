@@ -11,6 +11,12 @@ import {
   formatCurrency,
   formatValidUntil,
 } from '../../utils/priceUtils';
+
+const PRICING_PILL_LABELS: Record<string, string> = {
+  monthlyNoCommitment: 'Monthly',
+  monthlyAnnual: '1-yr monthly',
+  annualTotal: 'Annual',
+};
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
 
 interface Props {
@@ -104,7 +110,7 @@ export function PlanBlock({ block, dispatch }: Props) {
 
           {/* Pricing rows */}
           <div className="px-4 py-3 border-t border-gray-100">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {ALL_PRICING_KEYS.map(key => {
                 const isVisible = visiblePricingKeys.includes(key);
                 const promo = promotions[key];
@@ -114,29 +120,27 @@ export function PlanBlock({ block, dispatch }: Props) {
                 const isAnnualTotal = key === 'annualTotal';
 
                 return (
-                  <div key={key} className="flex items-start justify-between gap-2">
-                    {/* Visibility toggle */}
-                    <label className="flex items-center gap-1.5 cursor-pointer mt-0.5">
-                      <input
-                        type="checkbox"
-                        className="w-3.5 h-3.5 accent-jobber"
-                        checked={isVisible}
-                        onChange={() => dispatch({ type: 'TOGGLE_PRICING_KEY', instanceId: block.instanceId, key })}
-                      />
-                      <span className={`text-xs ${isVisible ? 'text-gray-500' : 'text-gray-300'}`}>
-                        {PRICING_LABELS[key]}
-                      </span>
-                    </label>
+                  <div key={key} className="flex items-start gap-2">
+                    {/* Pill toggle */}
+                    <button
+                      onClick={() => dispatch({ type: 'TOGGLE_PRICING_KEY', instanceId: block.instanceId, key })}
+                      className="px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors flex-shrink-0 mt-0.5"
+                      style={
+                        isVisible
+                          ? { backgroundColor: def.color, borderColor: def.color, color: '#fff' }
+                          : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
+                      }
+                    >
+                      {PRICING_PILL_LABELS[key]}
+                    </button>
 
                     {/* Price(s) */}
-                    <div className="text-right flex-shrink-0">
+                    <div className="text-sm min-w-0">
                       {discounted !== null ? (
                         <>
-                          <div className="flex items-center gap-1.5 justify-end">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-xs text-gray-400 line-through">{original}</span>
-                            <span className="text-sm font-bold text-amber-600">
-                              {formatCurrency(discounted)}{unit}
-                            </span>
+                            <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
                           </div>
                           {isAnnualTotal && (
                             <div className="text-xs text-amber-500">
@@ -156,9 +160,9 @@ export function PlanBlock({ block, dispatch }: Props) {
                             {original}
                           </span>
                           {isAnnualTotal && (
-                            <div className={`text-xs ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
+                            <span className={`text-xs ml-1 ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
                               ({selectedTier.annualMonthly})
-                            </div>
+                            </span>
                           )}
                         </>
                       )}

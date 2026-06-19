@@ -135,10 +135,10 @@ export function PlanBlock({ block, dispatch }: Props) {
                     </button>
 
                     {/* Price(s) */}
-                    <div className="text-sm min-w-0">
+                    <div className="ml-auto text-right flex-shrink-0">
                       {discounted !== null ? (
                         <>
-                          <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="flex items-center gap-1.5 justify-end flex-wrap">
                             <span className="text-xs text-gray-400 line-through">{original}</span>
                             <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
                           </div>
@@ -160,9 +160,9 @@ export function PlanBlock({ block, dispatch }: Props) {
                             {original}
                           </span>
                           {isAnnualTotal && (
-                            <span className={`text-xs ml-1 ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
+                            <div className={`text-xs ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
                               ({selectedTier.annualMonthly})
-                            </span>
+                            </div>
                           )}
                         </>
                       )}

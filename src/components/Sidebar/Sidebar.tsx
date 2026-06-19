@@ -92,11 +92,12 @@ export function Sidebar({ dispatch }: Props) {
               id={`addon-${addon.id}`}
               label={addon.name}
               description={addon.description}
-              price={addon.pricing.monthly}
+              price={addon.tiers[0]?.pricing.monthly}
               blockFactory={() => ({
                 instanceId: generateId(),
                 kind: 'addon',
                 definitionId: addon.id,
+                selectedTierLabel: addon.tiers[0]?.label,
                 visibleFeatureIds: addon.features.map(f => f.id),
                 keyFeatureIds: [],
                 visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
@@ -106,6 +107,7 @@ export function Sidebar({ dispatch }: Props) {
                 instanceId: generateId(),
                 kind: 'addon',
                 definitionId: addon.id,
+                selectedTierLabel: addon.tiers[0]?.label,
                 visibleFeatureIds: addon.features.map(f => f.id),
                 keyFeatureIds: [],
                 visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],

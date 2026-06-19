@@ -1,7 +1,7 @@
 import { useReducer, useState } from 'react';
 import { PLANS as DEFAULT_PLANS } from '../data/plans';
 import { ADDONS as DEFAULT_ADDONS } from '../data/addons';
-import type { PlanDefinition, AddonDefinition, PriceTier, AddonPricingKey } from '../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, AddonPricingKey, AddonPriceTier } from '../types';
 
 const STORAGE_KEY = 'jobber-email-builder-admin-v1';
 
@@ -24,7 +24,10 @@ export type AdminAction =
   | { type: 'ADD_PLAN' }
   | { type: 'DELETE_PLAN'; planId: string }
   | { type: 'UPDATE_ADDON_META'; addonId: string; field: 'name' | 'description'; value: string }
-  | { type: 'UPDATE_ADDON_PRICING'; addonId: string; key: AddonPricingKey; value: string }
+  | { type: 'ADD_ADDON_TIER'; addonId: string }
+  | { type: 'REMOVE_ADDON_TIER'; addonId: string; tierIndex: number }
+  | { type: 'UPDATE_ADDON_TIER_LABEL'; addonId: string; tierIndex: number; label: string }
+  | { type: 'UPDATE_ADDON_TIER_PRICING'; addonId: string; tierIndex: number; key: AddonPricingKey; value: string }
   | { type: 'ADD_ADDON_FEATURE'; addonId: string; label: string }
   | { type: 'UPDATE_ADDON_FEATURE'; addonId: string; featureId: string; label: string }
   | { type: 'DELETE_ADDON_FEATURE'; addonId: string; featureId: string }
@@ -186,13 +189,51 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
         ),
       };
 
-    case 'UPDATE_ADDON_PRICING':
+    case 'ADD_ADDON_TIER': {
+      const addon = state.addons.find(a => a.id === action.addonId);
+      if (!addon) return state;
+      const newTier: AddonPriceTier = { label: 'New tier', pricing: { monthly: '$0/mo' } };
+      return {
+        ...state,
+        addons: state.addons.map(a =>
+          a.id !== action.addonId ? a : { ...a, tiers: [...a.tiers, newTier] }
+        ),
+      };
+    }
+
+    case 'REMOVE_ADDON_TIER':
       return {
         ...state,
         addons: state.addons.map(a =>
           a.id !== action.addonId ? a : {
             ...a,
-            pricing: { ...a.pricing, [action.key]: action.value },
+            tiers: a.tiers.filter((_, i) => i !== action.tierIndex),
+          }
+        ),
+      };
+
+    case 'UPDATE_ADDON_TIER_LABEL':
+      return {
+        ...state,
+        addons: state.addons.map(a =>
+          a.id !== action.addonId ? a : {
+            ...a,
+            tiers: a.tiers.map((t, i) =>
+              i !== action.tierIndex ? t : { ...t, label: action.label }
+            ),
+          }
+        ),
+      };
+
+    case 'UPDATE_ADDON_TIER_PRICING':
+      return {
+        ...state,
+        addons: state.addons.map(a =>
+          a.id !== action.addonId ? a : {
+            ...a,
+            tiers: a.tiers.map((t, i) =>
+              i !== action.tierIndex ? t : { ...t, pricing: { ...t.pricing, [action.key]: action.value } }
+            ),
           }
         ),
       };
@@ -252,7 +293,7 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
         id: newId,
         name: 'New Add-on',
         description: 'Describe what this add-on does.',
-        pricing: { monthly: '$0/mo' },
+        tiers: [{ label: 'Standard', pricing: { monthly: '$0/mo' } }],
         features: [],
       };
       return { ...state, addons: [...state.addons, newAddon] };
@@ -273,9 +314,17 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
 
 function migrateAdminState(raw: AdminState): AdminState {
   const addons = raw.addons.map((a: any) => {
-    if (!a.pricing && a.price) {
+    // Already has tiers — no migration needed
+    if (Array.isArray(a.tiers)) return a;
+    // Had pricing map (from last refactor)
+    if (a.pricing) {
+      const { pricing, ...rest } = a;
+      return { ...rest, tiers: [{ label: 'Standard', pricing }] };
+    }
+    // Had old price string
+    if (a.price) {
       const { price, ...rest } = a;
-      return { ...rest, pricing: { monthly: price } };
+      return { ...rest, tiers: [{ label: 'Standard', pricing: { monthly: price } }] };
     }
     return a;
   });

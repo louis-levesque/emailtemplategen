@@ -62,6 +62,7 @@ function SlotPicker({ onSelect, onClose }: SlotPickerProps) {
     onSelect({
       kind: 'addon',
       definitionId: addon.id,
+      selectedTierLabel: addon.tiers[0]?.label,
       visibleFeatureIds: addon.features.map(f => f.id),
       keyFeatureIds: [],
       visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
@@ -370,6 +371,8 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return null;
 
+  const selectedTier = def.tiers.find(t => t.label === slot.selectedTierLabel) ?? def.tiers[0];
+
   const visiblePricingKeys: AddonPricingKey[] = slot.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
   const promotions = slot.promotions ?? {};
   const hasAnyPromo = Object.keys(promotions).length > 0;
@@ -377,7 +380,7 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
   const promoRows: PromoRow[] = ALL_ADDON_PRICING_KEYS.map(key => ({
     key,
     label: ADDON_PRICING_LABELS[key],
-    originalPrice: def.pricing[key],
+    originalPrice: selectedTier.pricing[key],
   }));
 
   function updateSlot(updates: Partial<typeof slot>) {
@@ -453,6 +456,29 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
           </div>
         </div>
 
+        {/* Tier selector */}
+        {def.tiers.length > 1 && (
+          <div className="px-4 py-2 border-t border-gray-100">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Pricing tier</p>
+            <div className="flex gap-1.5 flex-wrap">
+              {def.tiers.map(tier => (
+                <button
+                  key={tier.label}
+                  onClick={() => updateSlot({ selectedTierLabel: tier.label })}
+                  className="px-3 py-1 rounded-full text-xs font-semibold border transition-colors"
+                  style={
+                    selectedTier.label === tier.label
+                      ? { backgroundColor: '#9DC63F', borderColor: '#9DC63F', color: '#fff' }
+                      : { backgroundColor: '#fff', borderColor: '#9DC63F66', color: '#9DC63F' }
+                  }
+                >
+                  {tier.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
 
         {/* Pricing rows */}
@@ -461,7 +487,7 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
             {ALL_ADDON_PRICING_KEYS.map(key => {
               const isVisible = visiblePricingKeys.includes(key);
               const promo = promotions[key];
-              const original = def.pricing[key];
+              const original = selectedTier.pricing[key];
               const discounted = promo ? applyPromo(original, promo) : null;
               const unit = '/mo';
 

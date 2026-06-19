@@ -186,6 +186,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
 function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string {
   const def = addons.find(a => a.id === block.definitionId);
   if (!def) return '';
+  const tier = def.tiers.find(t => t.label === block.selectedTierLabel) ?? def.tiers[0];
   const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? []);
   const hasFeatures = featureRows.length > 0;
 
@@ -195,7 +196,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
   const pricingRows = ALL_ADDON_PRICING_KEYS
     .filter(key => visiblePricingKeys.includes(key))
     .map(key => {
-      const original = def.pricing[key];
+      const original = tier.pricing[key];
       const promo = promotions[key];
       const label = ADDON_PRICING_LABELS[key];
 
@@ -233,6 +234,12 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
         <strong style="font-size: 15px; color: #111;">${def.name}</strong>${addonRecommendedBadge}
       </td>
     </tr>
+    ${def.tiers.length > 1 ? `
+    <tr>
+      <td style="padding: 4px 14px 6px; background-color: #f9fafb; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #555;">
+        <strong>Tier:</strong> <span style="color: #9DC63F; font-weight: bold;">${escapeHtml(tier.label)}</span>
+      </td>
+    </tr>` : ''}
     <tr>
       <td style="padding: 4px 14px 8px; color: #555; font-size: 13px; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}</td>
     </tr>
@@ -394,13 +401,15 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return '';
 
+  const tier = def.tiers.find(t => t.label === slot.selectedTierLabel) ?? def.tiers[0];
+
   const slotVisiblePricingKeys = slot.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
   const slotPromotions = slot.promotions ?? {};
 
   const addonPricingRows = ALL_ADDON_PRICING_KEYS
     .filter(key => slotVisiblePricingKeys.includes(key))
     .map(key => {
-      const original = def.pricing[key];
+      const original = tier.pricing[key];
       const promo = slotPromotions[key];
       const label = ADDON_PRICING_LABELS[key];
 
@@ -563,6 +572,7 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
       case 'addon': {
         const def = addons.find(a => a.id === block.definitionId);
         if (!def) return '';
+        const addonTier = def.tiers.find(t => t.label === block.selectedTierLabel) ?? def.tiers[0];
         const addonKeyIds = block.keyFeatureIds ?? [];
         const addonKeyText = def.features
           .filter(f => addonKeyIds.includes(f.id) && block.visibleFeatureIds.includes(f.id))
@@ -578,11 +588,12 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         ].filter(Boolean).join('\n');
         const addonPromotions = block.promotions ?? {};
         const addonVisibleKeys = block.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+        const tierLabel = def.tiers.length > 1 ? `Tier: ${addonTier.label}\n` : '';
         const pricing = ALL_ADDON_PRICING_KEYS
           .filter(key => addonVisibleKeys.includes(key))
           .map(key => {
             const promo = addonPromotions[key];
-            const original = def.pricing[key];
+            const original = addonTier.pricing[key];
             if (promo) {
               const promoLbl = promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`;
               return `  ${ADDON_PRICING_LABELS[key]}: ${formatCurrency(applyPromo(original, promo))}/mo (${promoLbl} off for ${promo.durationMonths} mo, then ${original})`;
@@ -593,7 +604,7 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         const validUntilAddon = Object.keys(addonPromotions).length > 0 && block.promoValidUntil
           ? `Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
           : '';
-        return [def.name, stripLinkSyntax(def.description), pricing, validUntilAddon, features].filter(Boolean).join('\n');
+        return [def.name, stripLinkSyntax(def.description), tierLabel + pricing, validUntilAddon, features].filter(Boolean).join('\n');
       }
       case 'signature':
         return '{{{Sender.Email_Signature_Rich_Text__c}}}';

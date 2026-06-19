@@ -20,11 +20,16 @@ export interface PlanDefinition {
   features: PlanFeature[];
 }
 
+export interface AddonPriceTier {
+  label: string;   // free-form label, e.g. "Standard", "30 conversations"
+  pricing: Record<AddonPricingKey, string>;
+}
+
 export interface AddonDefinition {
   id: string;
   name: string;
   description: string;
-  pricing: Record<AddonPricingKey, string>;
+  tiers: AddonPriceTier[];
   features: PlanFeature[];
 }
 
@@ -67,6 +72,7 @@ export interface PlanBlock extends BaseBlock {
 export interface AddonBlock extends BaseBlock {
   kind: 'addon';
   definitionId: string;
+  selectedTierLabel?: string;
   visibleFeatureIds: string[];
   keyFeatureIds: string[];
   visiblePricingKeys?: AddonPricingKey[];
@@ -105,6 +111,7 @@ export type CompareSlot =
   | {
       kind: 'addon';
       definitionId: string;
+      selectedTierLabel?: string;
       visibleFeatureIds: string[];
       keyFeatureIds: string[];
       visiblePricingKeys?: AddonPricingKey[];

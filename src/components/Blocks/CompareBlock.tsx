@@ -1,19 +1,4 @@
-import { useState, useEffect, useRef, type CSSProperties, type Dispatch } from 'react';
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  useSortable,
-  horizontalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useState, useEffect, useRef, type Dispatch } from 'react';
 import type { CompareBlock as CompareBlockType, CompareSlot, PricingKey, PromoConfig } from '../../types';
 import { ALL_PRICING_KEYS } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
@@ -193,9 +178,13 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
     <>
       <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#9DC63F' }}>
         {/* Header */}
-        <div className="px-4 py-3 bg-gray-50 flex justify-between items-start gap-2">
+        <div className="px-3 py-3 bg-gray-50 flex justify-between items-start gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: def.color }} />
+            {/* Drag handle */}
+            <div className="flex-shrink-0 opacity-0 group-hover/slot:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" title="Drag to reorder">
+              <DragHandleIcon />
+            </div>
+            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: def.color }} />
             <span className="font-semibold text-gray-800 leading-snug">{def.title}</span>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -396,8 +385,14 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
     <>
       <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#9DC63F' }}>
         {/* Header */}
-        <div className="px-4 py-3 bg-gray-50 flex justify-between items-start gap-2">
-          <span className="font-semibold text-gray-800 leading-snug">{def.name}</span>
+        <div className="px-3 py-3 bg-gray-50 flex justify-between items-start gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {/* Drag handle */}
+            <div className="flex-shrink-0 opacity-0 group-hover/slot:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" title="Drag to reorder">
+              <DragHandleIcon />
+            </div>
+            <span className="font-semibold text-gray-800 leading-snug">{def.name}</span>
+          </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {discounted !== null ? (
               <div className="text-right">
@@ -476,46 +471,19 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
 }
 
 // ---------------------------------------------------------------------------
-// SortableSlotWrapper — provides drag handle + sortable behaviour per slot
+// Drag handle icon (shared between slot types)
 // ---------------------------------------------------------------------------
 
-interface SortableSlotWrapperProps {
-  id: string;
-  isFilled: boolean;
-  children: React.ReactNode;
-}
-
-function SortableSlotWrapper({ id, isFilled, children }: SortableSlotWrapperProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-
-  const style: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-
+function DragHandleIcon() {
   return (
-    <div ref={setNodeRef} style={style} className="flex-1 relative min-w-0 group/slot">
-      {/* Drag handle — only rendered for filled slots, visible on hover */}
-      {isFilled && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute top-1.5 left-1/2 -translate-x-1/2 z-20 flex items-center justify-center w-8 h-5 rounded cursor-grab active:cursor-grabbing opacity-0 group-hover/slot:opacity-100 transition-opacity hover:bg-black/5"
-          title="Drag to reorder"
-        >
-          <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
-            <circle cx="2" cy="2" r="1.3" fill="#9ca3af"/>
-            <circle cx="8" cy="2" r="1.3" fill="#9ca3af"/>
-            <circle cx="14" cy="2" r="1.3" fill="#9ca3af"/>
-            <circle cx="2" cy="6" r="1.3" fill="#9ca3af"/>
-            <circle cx="8" cy="6" r="1.3" fill="#9ca3af"/>
-            <circle cx="14" cy="6" r="1.3" fill="#9ca3af"/>
-          </svg>
-        </div>
-      )}
-      {children}
-    </div>
+    <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
+      <circle cx="2" cy="2" r="1.3" fill="#9ca3af"/>
+      <circle cx="8" cy="2" r="1.3" fill="#9ca3af"/>
+      <circle cx="14" cy="2" r="1.3" fill="#9ca3af"/>
+      <circle cx="2" cy="6" r="1.3" fill="#9ca3af"/>
+      <circle cx="8" cy="6" r="1.3" fill="#9ca3af"/>
+      <circle cx="14" cy="6" r="1.3" fill="#9ca3af"/>
+    </svg>
   );
 }
 
@@ -560,25 +528,48 @@ function SlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: SlotCardPr
 
 export function CompareBlock({ block, dispatch }: Props) {
   const [openPickerIndex, setOpenPickerIndex] = useState<number | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-  );
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   function setSlot(slotIndex: number, slot: CompareSlot | null) {
     dispatch({ type: 'SET_COMPARE_SLOT', instanceId: block.instanceId, slotIndex, slot });
   }
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = parseInt(active.id as string);
-    const newIndex = parseInt(over.id as string);
-    const newSlots = arrayMove(block.slots, oldIndex, newIndex);
-    dispatch({ type: 'REORDER_COMPARE_SLOTS', instanceId: block.instanceId, slots: newSlots });
+  function handleDragStart(i: number, e: React.DragEvent) {
+    setDraggingIdx(i);
+    e.dataTransfer.effectAllowed = 'move';
+    // Transparent drag image so the slot card itself fades rather than showing a ghost clone
+    const ghost = document.createElement('div');
+    ghost.style.cssText = 'position:fixed;top:-1000px;';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 0, 0);
+    setTimeout(() => document.body.removeChild(ghost), 0);
   }
 
-  const slotIds = block.slots.map((_, i) => String(i));
+  function handleDragEnter(i: number) {
+    if (draggingIdx !== null && i !== draggingIdx) setDragOverIdx(i);
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function handleDrop(i: number) {
+    if (draggingIdx !== null && draggingIdx !== i) {
+      const next = [...block.slots];
+      const [moved] = next.splice(draggingIdx, 1);
+      next.splice(i, 0, moved);
+      dispatch({ type: 'REORDER_COMPARE_SLOTS', instanceId: block.instanceId, slots: next });
+    }
+    setDraggingIdx(null);
+    setDragOverIdx(null);
+  }
+
+  function handleDragEnd() {
+    setDraggingIdx(null);
+    setDragOverIdx(null);
+  }
 
   return (
     <div className="p-3">
@@ -590,44 +581,57 @@ export function CompareBlock({ block, dispatch }: Props) {
         </div>
 
         {/* Slots */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={slotIds} strategy={horizontalListSortingStrategy}>
-            <div className="flex gap-3 p-3 items-start">
-              {block.slots.map((slot, i) => (
-                <SortableSlotWrapper key={i} id={String(i)} isFilled={slot !== null}>
-                  {slot === null ? (
-                    <>
-                      <button
-                        onClick={() => setOpenPickerIndex(openPickerIndex === i ? null : i)}
-                        className="w-full h-24 rounded-lg border-2 border-dashed border-jobber/50 hover:border-jobber flex items-center justify-center transition-colors bg-white hover:bg-jobber/5 group"
-                        title="Add item to compare"
-                      >
-                        <span className="text-2xl font-light text-jobber/50 group-hover:text-jobber transition-colors">+</span>
-                      </button>
-                      {openPickerIndex === i && (
-                        <SlotPicker
-                          onSelect={selected => {
-                            setSlot(i, selected);
-                            setOpenPickerIndex(null);
-                          }}
-                          onClose={() => setOpenPickerIndex(null)}
-                        />
-                      )}
-                    </>
-                  ) : (
-                    <SlotCard
-                      slot={slot}
-                      slotIndex={i}
-                      instanceId={block.instanceId}
-                      dispatch={dispatch}
-                      onClear={() => setSlot(i, null)}
+        <div className="flex gap-3 p-3 items-start">
+          {block.slots.map((slot, i) => (
+            <div
+              key={i}
+              className={[
+                'flex-1 relative min-w-0 group/slot transition-opacity',
+                draggingIdx === i ? 'opacity-40' : '',
+              ].join(' ')}
+              draggable={slot !== null}
+              onDragStart={slot !== null ? (e) => handleDragStart(i, e) : undefined}
+              onDragEnter={() => handleDragEnter(i)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(i)}
+              onDragEnd={handleDragEnd}
+            >
+              {/* Drop-target highlight ring */}
+              {dragOverIdx === i && draggingIdx !== i && (
+                <div className="absolute inset-0 ring-2 ring-jobber rounded-lg pointer-events-none z-10" />
+              )}
+
+              {slot === null ? (
+                <>
+                  <button
+                    onClick={() => setOpenPickerIndex(openPickerIndex === i ? null : i)}
+                    className="w-full h-24 rounded-lg border-2 border-dashed border-jobber/50 hover:border-jobber flex items-center justify-center transition-colors bg-white hover:bg-jobber/5 group"
+                    title="Add item to compare"
+                  >
+                    <span className="text-2xl font-light text-jobber/50 group-hover:text-jobber transition-colors">+</span>
+                  </button>
+                  {openPickerIndex === i && (
+                    <SlotPicker
+                      onSelect={selected => {
+                        setSlot(i, selected);
+                        setOpenPickerIndex(null);
+                      }}
+                      onClose={() => setOpenPickerIndex(null)}
                     />
                   )}
-                </SortableSlotWrapper>
-              ))}
+                </>
+              ) : (
+                <SlotCard
+                  slot={slot}
+                  slotIndex={i}
+                  instanceId={block.instanceId}
+                  dispatch={dispatch}
+                  onClear={() => setSlot(i, null)}
+                />
+              )}
             </div>
-          </SortableContext>
-        </DndContext>
+          ))}
+        </div>
       </div>
     </div>
   );

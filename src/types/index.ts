@@ -21,8 +21,10 @@ export interface PlanDefinition {
 }
 
 export interface AddonPriceTier {
-  label: string;   // free-form label, e.g. "Standard", "30 conversations"
-  pricing: Record<AddonPricingKey, string>;
+  id: string;                  // stable generated ID
+  label: string;               // "Monthly, no commitment"
+  price: string;               // "$29/mo"
+  monthlyEquivalent?: string;  // for annual tiers: "($24.17/mo)" — optional
 }
 
 export interface AddonDefinition {
@@ -43,8 +45,6 @@ export const ALL_PRICING_KEYS: PricingKey[] = [
   'annualTotal',
 ];
 
-export type AddonPricingKey = 'monthly';
-export const ALL_ADDON_PRICING_KEYS: AddonPricingKey[] = ['monthly'];
 
 export interface PromoConfig {
   type: 'percent' | 'dollar';
@@ -72,11 +72,10 @@ export interface PlanBlock extends BaseBlock {
 export interface AddonBlock extends BaseBlock {
   kind: 'addon';
   definitionId: string;
-  selectedTierLabel?: string;
   visibleFeatureIds: string[];
   keyFeatureIds: string[];
-  visiblePricingKeys?: AddonPricingKey[];
-  promotions?: Partial<Record<AddonPricingKey, PromoConfig>>;
+  visibleTierIds: string[];
+  promotions: Partial<Record<string, PromoConfig>>;
   promoValidUntil?: string;
   isRecommended?: boolean;
 }
@@ -111,11 +110,10 @@ export type CompareSlot =
   | {
       kind: 'addon';
       definitionId: string;
-      selectedTierLabel?: string;
       visibleFeatureIds: string[];
       keyFeatureIds: string[];
-      visiblePricingKeys?: AddonPricingKey[];
-      promotions?: Partial<Record<AddonPricingKey, PromoConfig>>;
+      visibleTierIds: string[];
+      promotions: Partial<Record<string, PromoConfig>>;
       promoValidUntil?: string;
       isRecommended?: boolean;
     };

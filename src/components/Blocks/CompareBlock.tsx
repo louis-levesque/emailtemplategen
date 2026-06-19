@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, type Dispatch } from 'react';
-import type { CompareBlock as CompareBlockType, CompareSlot, PricingKey, PromoConfig, AddonPricingKey } from '../../types';
-import { ALL_PRICING_KEYS, ALL_ADDON_PRICING_KEYS } from '../../types';
+import type { CompareBlock as CompareBlockType, CompareSlot, PricingKey, PromoConfig } from '../../types';
+import { ALL_PRICING_KEYS } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
 import { FeatureBuckets } from './FeatureBuckets';
 import { PromoModal, type PromoRow } from './PromoModal';
-import { PRICING_LABELS, ADDON_PRICING_LABELS, applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
+import { PRICING_LABELS, applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 
 const PRICING_PILL_LABELS: Record<string, string> = {
   monthlyNoCommitment: 'Monthly',
@@ -62,11 +62,10 @@ function SlotPicker({ onSelect, onClose }: SlotPickerProps) {
     onSelect({
       kind: 'addon',
       definitionId: addon.id,
-      selectedTierLabel: addon.tiers[0]?.label,
+      visibleTierIds: addon.tiers.map(t => t.id),
+      promotions: {},
       visibleFeatureIds: addon.features.map(f => f.id),
       keyFeatureIds: [],
-      visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
-      promotions: {},
     });
   }
 
@@ -371,16 +370,14 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return null;
 
-  const selectedTier = def.tiers.find(t => t.label === slot.selectedTierLabel) ?? def.tiers[0];
-
-  const visiblePricingKeys: AddonPricingKey[] = slot.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const visibleTierIds: string[] = slot.visibleTierIds ?? def.tiers.map(t => t.id);
   const promotions = slot.promotions ?? {};
   const hasAnyPromo = Object.keys(promotions).length > 0;
 
-  const promoRows: PromoRow[] = ALL_ADDON_PRICING_KEYS.map(key => ({
-    key,
-    label: ADDON_PRICING_LABELS[key],
-    originalPrice: selectedTier.pricing[key],
+  const promoRows: PromoRow[] = def.tiers.map(tier => ({
+    key: tier.id,
+    label: tier.label,
+    originalPrice: tier.price,
   }));
 
   function updateSlot(updates: Partial<typeof slot>) {
@@ -456,49 +453,25 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
           </div>
         </div>
 
-        {/* Tier selector */}
-        {def.tiers.length > 1 && (
-          <div className="px-4 py-2 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Pricing tier</p>
-            <div className="flex gap-1.5 flex-wrap">
-              {def.tiers.map(tier => (
-                <button
-                  key={tier.label}
-                  onClick={() => updateSlot({ selectedTierLabel: tier.label })}
-                  className="px-3 py-1 rounded-full text-xs font-semibold border transition-colors"
-                  style={
-                    selectedTier.label === tier.label
-                      ? { backgroundColor: '#9DC63F', borderColor: '#9DC63F', color: '#fff' }
-                      : { backgroundColor: '#fff', borderColor: '#9DC63F66', color: '#9DC63F' }
-                  }
-                >
-                  {tier.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
 
         {/* Pricing rows */}
         <div className="px-4 py-3 border-t border-gray-100">
           <div className="space-y-2">
-            {ALL_ADDON_PRICING_KEYS.map(key => {
-              const isVisible = visiblePricingKeys.includes(key);
-              const promo = promotions[key];
-              const original = selectedTier.pricing[key];
-              const discounted = promo ? applyPromo(original, promo) : null;
-              const unit = '/mo';
+            {def.tiers.map(tier => {
+              const isVisible = visibleTierIds.includes(tier.id);
+              const promo = promotions[tier.id];
+              const discounted = promo ? applyPromo(tier.price, promo) : null;
+              const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
 
               return (
-                <div key={key} className="flex items-start gap-1.5">
+                <div key={tier.id} className="flex items-start gap-1.5">
                   <button
                     onClick={() => {
-                      const newKeys = isVisible
-                        ? visiblePricingKeys.filter(k => k !== key)
-                        : [...visiblePricingKeys, key];
-                      updateSlot({ visiblePricingKeys: newKeys });
+                      const newIds = isVisible
+                        ? visibleTierIds.filter(id => id !== tier.id)
+                        : [...visibleTierIds, tier.id];
+                      updateSlot({ visibleTierIds: newIds });
                     }}
                     className="px-2 py-0.5 rounded-full text-[9px] font-semibold border transition-colors flex-shrink-0 mt-0.5"
                     style={
@@ -507,20 +480,28 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
                         : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
                     }
                   >
-                    Monthly
+                    {tier.label}
                   </button>
                   <div className="text-[10px] min-w-0">
                     {discounted !== null ? (
                       <>
-                        <span className="text-gray-400 line-through">{original}</span>
+                        <span className="text-gray-400 line-through">{tier.price}</span>
                         {' '}
                         <span className="font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
+                        {tier.monthlyEquivalent && (
+                          <div className="text-amber-500">({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)</div>
+                        )}
                         <div className="text-gray-400">{promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo</div>
                       </>
                     ) : (
-                      <span className="font-semibold" style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}>
-                        {original}
-                      </span>
+                      <>
+                        <span className="font-semibold" style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}>
+                          {tier.price}
+                        </span>
+                        {tier.monthlyEquivalent && isVisible && (
+                          <div className="text-gray-400">{tier.monthlyEquivalent}</div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -552,7 +533,7 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
           initialValidUntil={slot.promoValidUntil}
           onSave={(promos, validUntil) => {
             updateSlot({
-              promotions: promos as Partial<Record<AddonPricingKey, PromoConfig>>,
+              promotions: promos as Partial<Record<string, PromoConfig>>,
               promoValidUntil: validUntil ?? undefined,
             });
           }}

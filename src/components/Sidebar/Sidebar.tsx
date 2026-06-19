@@ -1,7 +1,7 @@
 import type { Dispatch } from 'react';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasBlock } from '../../types';
-import { ALL_PRICING_KEYS, ALL_ADDON_PRICING_KEYS } from '../../types';
+import { ALL_PRICING_KEYS } from '../../types';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { generateId } from '../../utils/generateId';
 import { SidebarSection } from './SidebarSection';
@@ -92,26 +92,24 @@ export function Sidebar({ dispatch }: Props) {
               id={`addon-${addon.id}`}
               label={addon.name}
               description={addon.description}
-              price={addon.tiers[0]?.pricing.monthly}
+              price={addon.tiers[0]?.price}
               blockFactory={() => ({
                 instanceId: generateId(),
                 kind: 'addon',
                 definitionId: addon.id,
-                selectedTierLabel: addon.tiers[0]?.label,
+                visibleTierIds: addon.tiers.map(t => t.id),
+                promotions: {},
                 visibleFeatureIds: addon.features.map(f => f.id),
                 keyFeatureIds: [],
-                visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
-                promotions: {},
               })}
               onAdd={() => addBlock({
                 instanceId: generateId(),
                 kind: 'addon',
                 definitionId: addon.id,
-                selectedTierLabel: addon.tiers[0]?.label,
+                visibleTierIds: addon.tiers.map(t => t.id),
+                promotions: {},
                 visibleFeatureIds: addon.features.map(f => f.id),
                 keyFeatureIds: [],
-                visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
-                promotions: {},
               })}
             />
           ))}

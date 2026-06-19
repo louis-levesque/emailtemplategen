@@ -1,11 +1,16 @@
 import { useState, type Dispatch } from 'react';
-import type { AddonBlock as AddonBlockType } from '../../types';
+import type { AddonBlock as AddonBlockType, AddonPricingKey } from '../../types';
+import { ALL_ADDON_PRICING_KEYS } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasAction } from '../../store/canvasReducer';
-import { PromoModal } from './PromoModal';
+import { PromoModal, type PromoRow } from './PromoModal';
 import { FeatureBuckets } from './FeatureBuckets';
-import { applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
+import { ADDON_PRICING_LABELS, applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
+
+const ADDON_PRICING_PILL_LABELS: Record<AddonPricingKey, string> = {
+  monthly: 'Monthly',
+};
 
 interface Props {
   block: AddonBlockType;
@@ -18,16 +23,24 @@ export function AddonBlock({ block, dispatch }: Props) {
   const def = addons.find(a => a.id === block.definitionId);
   if (!def) return null;
 
-  const promo = block.promo ?? null;
-  const discounted = promo ? applyPromo(def.price, promo) : null;
+  const visiblePricingKeys: AddonPricingKey[] = block.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const promotions = block.promotions ?? {};
+  const hasAnyPromo = Object.keys(promotions).length > 0;
+
+  const promoRows: PromoRow[] = ALL_ADDON_PRICING_KEYS.map(key => ({
+    key,
+    label: ADDON_PRICING_LABELS[key],
+    originalPrice: def.pricing[key],
+  }));
 
   return (
     <>
       <div className="p-3">
         <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#9DC63F' }}>
+          {/* Header — name + recommended + promo button only */}
           <div className="px-4 py-3 bg-gray-50 flex justify-between items-start gap-2">
             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-              <span className="font-semibold text-gray-800">{def.name}</span>
+              <span className="font-semibold text-gray-800 leading-snug">{def.name}</span>
               <button
                 onClick={() => dispatch({ type: 'TOGGLE_RECOMMENDED', instanceId: block.instanceId })}
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${
@@ -39,26 +52,11 @@ export function AddonBlock({ block, dispatch }: Props) {
                 Recommended
               </button>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Discounted price */}
-              {discounted !== null ? (
-                <div className="text-right">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-400 line-through">{def.price}</span>
-                    <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}/mo</span>
-                  </div>
-                  <div className="text-xs text-gray-400 text-right">
-                    {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {def.price}
-                  </div>
-                </div>
-              ) : (
-                <span className="text-sm font-bold text-jobber-dark">{def.price}</span>
-              )}
-              {/* Promo button */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 onClick={() => setShowPromoModal(true)}
                 className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
-                  promo
+                  hasAnyPromo
                     ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
                     : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
                 }`}
@@ -66,20 +64,71 @@ export function AddonBlock({ block, dispatch }: Props) {
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                   <path d="M1 5h8M5 1v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
-                {promo ? 'Promo' : 'Promo'}
+                Promo
               </button>
             </div>
           </div>
 
-          {promo && block.promoValidUntil && (
-            <div className="px-4 pt-1.5">
-              <p className="text-xs text-amber-700">
+          {/* Description */}
+          <div className="px-4 py-2 border-b border-gray-100 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
+
+          {/* Pricing rows */}
+          <div className="px-4 py-3">
+            <div className="space-y-2">
+              {ALL_ADDON_PRICING_KEYS.map(key => {
+                const isVisible = visiblePricingKeys.includes(key);
+                const promo = promotions[key];
+                const original = def.pricing[key];
+                const discounted = promo ? applyPromo(original, promo) : null;
+                const unit = '/mo';
+
+                return (
+                  <div key={key} className="flex items-start gap-2">
+                    <button
+                      onClick={() => dispatch({ type: 'TOGGLE_ADDON_PRICING_KEY', instanceId: block.instanceId, key })}
+                      className="px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors flex-shrink-0 mt-0.5"
+                      style={
+                        isVisible
+                          ? { backgroundColor: '#9DC63F', borderColor: '#9DC63F', color: '#fff' }
+                          : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
+                      }
+                    >
+                      {ADDON_PRICING_PILL_LABELS[key]}
+                    </button>
+                    <div className="ml-auto text-right flex-shrink-0">
+                      {discounted !== null ? (
+                        <>
+                          <div className="flex items-center gap-1.5 justify-end flex-wrap">
+                            <span className="text-xs text-gray-400 line-through">{original}</span>
+                            <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {original}
+                          </div>
+                        </>
+                      ) : (
+                        <span
+                          className="text-sm font-semibold"
+                          style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}
+                        >
+                          {original}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {hasAnyPromo && block.promoValidUntil && (
+              <p className="text-xs text-amber-700 mt-2">
                 Promotional pricing valid until {formatValidUntil(block.promoValidUntil)}.
               </p>
-            </div>
-          )}
-          <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
-          <div className="px-4 py-3">
+            )}
+          </div>
+
+          {/* Feature buckets */}
+          <div className="px-4 py-3 border-t border-gray-100">
             <FeatureBuckets
               allFeatures={def.features}
               visibleFeatureIds={block.visibleFeatureIds}
@@ -95,13 +144,15 @@ export function AddonBlock({ block, dispatch }: Props) {
       {showPromoModal && (
         <PromoModal
           title={def.name}
-          rows={[{ key: 'price', label: def.name, originalPrice: def.price }]}
-          initialPromos={promo ? { price: promo } : {}}
+          rows={promoRows}
+          initialPromos={promotions}
           initialValidUntil={block.promoValidUntil}
-          onSave={(promos, validUntil) => {
-            const p = promos['price'] ?? null;
-            dispatch({ type: 'SET_ADDON_PROMO', instanceId: block.instanceId, promo: p as typeof block.promo, validUntil });
-          }}
+          onSave={(promos, validUntil) => dispatch({
+            type: 'SET_ADDON_PROMOTIONS',
+            instanceId: block.instanceId,
+            promotions: promos as Partial<Record<AddonPricingKey, import('../../types').PromoConfig>>,
+            validUntil,
+          })}
           onClose={() => setShowPromoModal(false)}
         />
       )}

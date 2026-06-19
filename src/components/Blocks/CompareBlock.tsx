@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, type Dispatch } from 'react';
-import type { CompareBlock as CompareBlockType, CompareSlot, PricingKey, PromoConfig } from '../../types';
-import { ALL_PRICING_KEYS } from '../../types';
+import type { CompareBlock as CompareBlockType, CompareSlot, PricingKey, PromoConfig, AddonPricingKey } from '../../types';
+import { ALL_PRICING_KEYS, ALL_ADDON_PRICING_KEYS } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
 import { FeatureBuckets } from './FeatureBuckets';
 import { PromoModal, type PromoRow } from './PromoModal';
-import { PRICING_LABELS, applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
+import { PRICING_LABELS, ADDON_PRICING_LABELS, applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 
 const PRICING_PILL_LABELS: Record<string, string> = {
   monthlyNoCommitment: 'Monthly',
@@ -64,7 +64,8 @@ function SlotPicker({ onSelect, onClose }: SlotPickerProps) {
       definitionId: addon.id,
       visibleFeatureIds: addon.features.map(f => f.id),
       keyFeatureIds: [],
-      promo: null,
+      visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
+      promotions: {},
     });
   }
 
@@ -369,8 +370,15 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return null;
 
-  const promo = slot.promo ?? null;
-  const discounted = promo ? applyPromo(def.price, promo) : null;
+  const visiblePricingKeys: AddonPricingKey[] = slot.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const promotions = slot.promotions ?? {};
+  const hasAnyPromo = Object.keys(promotions).length > 0;
+
+  const promoRows: PromoRow[] = ALL_ADDON_PRICING_KEYS.map(key => ({
+    key,
+    label: ADDON_PRICING_LABELS[key],
+    originalPrice: def.pricing[key],
+  }));
 
   function updateSlot(updates: Partial<typeof slot>) {
     dispatch({
@@ -429,44 +437,76 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
                 ×
               </button>
             </div>
-            {/* Row 2: price + promo button */}
-            <div className="mt-1.5 pl-5 flex items-center gap-2 flex-wrap">
-              {discounted !== null ? (
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-400 line-through">{def.price}</span>
-                    <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}/mo</span>
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {def.price}
-                  </div>
-                </div>
-              ) : (
-                <span className="text-sm font-bold text-jobber-dark">{def.price}</span>
-              )}
+            {/* Row 2: promo button */}
+            <div className="mt-2 pl-5">
               <button
                 onClick={() => setShowPromoModal(true)}
                 className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
-                  promo
+                  hasAnyPromo
                     ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
                     : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
                 }`}
               >
-                {promo ? 'Edit Promo' : '+ Promo'}
+                {hasAnyPromo ? 'Edit Promo' : '+ Promo'}
               </button>
             </div>
           </div>
         </div>
 
-        {promo && slot.promoValidUntil && (
-          <div className="px-4 pt-1.5">
-            <p className="text-xs text-amber-700">
+        <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
+
+        {/* Pricing rows */}
+        <div className="px-4 py-3 border-t border-gray-100">
+          <div className="space-y-2">
+            {ALL_ADDON_PRICING_KEYS.map(key => {
+              const isVisible = visiblePricingKeys.includes(key);
+              const promo = promotions[key];
+              const original = def.pricing[key];
+              const discounted = promo ? applyPromo(original, promo) : null;
+              const unit = '/mo';
+
+              return (
+                <div key={key} className="flex items-start gap-1.5">
+                  <button
+                    onClick={() => {
+                      const newKeys = isVisible
+                        ? visiblePricingKeys.filter(k => k !== key)
+                        : [...visiblePricingKeys, key];
+                      updateSlot({ visiblePricingKeys: newKeys });
+                    }}
+                    className="px-2 py-0.5 rounded-full text-[9px] font-semibold border transition-colors flex-shrink-0 mt-0.5"
+                    style={
+                      isVisible
+                        ? { backgroundColor: '#9DC63F', borderColor: '#9DC63F', color: '#fff' }
+                        : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
+                    }
+                  >
+                    Monthly
+                  </button>
+                  <div className="text-[10px] min-w-0">
+                    {discounted !== null ? (
+                      <>
+                        <span className="text-gray-400 line-through">{original}</span>
+                        {' '}
+                        <span className="font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
+                        <div className="text-gray-400">{promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo</div>
+                      </>
+                    ) : (
+                      <span className="font-semibold" style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}>
+                        {original}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {hasAnyPromo && slot.promoValidUntil && (
+            <p className="text-[10px] text-amber-700 mt-2">
               Promo valid until {formatValidUntil(slot.promoValidUntil)}.
             </p>
-          </div>
-        )}
-
-        <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
+          )}
+        </div>
 
         <div className="px-4 py-3 border-t border-gray-100">
           <FeatureBuckets
@@ -481,13 +521,12 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
       {showPromoModal && (
         <PromoModal
           title={def.name}
-          rows={[{ key: 'price', label: def.name, originalPrice: def.price }]}
-          initialPromos={promo ? { price: promo } : {}}
+          rows={promoRows}
+          initialPromos={promotions}
           initialValidUntil={slot.promoValidUntil}
           onSave={(promos, validUntil) => {
-            const p = (promos['price'] ?? null) as PromoConfig | null;
             updateSlot({
-              promo: p,
+              promotions: promos as Partial<Record<AddonPricingKey, PromoConfig>>,
               promoValidUntil: validUntil ?? undefined,
             });
           }}

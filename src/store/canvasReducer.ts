@@ -1,4 +1,4 @@
-import type { AppState, CanvasBlock, CompareSlot, EmailHeader, PricingKey, PromoConfig } from '../types';
+import type { AppState, CanvasBlock, CompareSlot, EmailHeader, PricingKey, PromoConfig, AddonPricingKey } from '../types';
 
 export type CanvasAction =
   | { type: 'ADD_BLOCK'; block: CanvasBlock }
@@ -10,7 +10,8 @@ export type CanvasAction =
   | { type: 'SET_PLAN_SEATS'; instanceId: string; seats: number }
   | { type: 'TOGGLE_PRICING_KEY'; instanceId: string; key: PricingKey }
   | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<PricingKey, PromoConfig>>; validUntil: string | null }
-  | { type: 'SET_ADDON_PROMO'; instanceId: string; promo: PromoConfig | null; validUntil: string | null }
+  | { type: 'SET_ADDON_PROMOTIONS'; instanceId: string; promotions: Partial<Record<AddonPricingKey, PromoConfig>>; validUntil: string | null }
+  | { type: 'TOGGLE_ADDON_PRICING_KEY'; instanceId: string; key: AddonPricingKey }
   | { type: 'UPDATE_TEXT'; instanceId: string; content: string }
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
   | { type: 'SET_COMPARE_SLOT'; instanceId: string; slotIndex: number; slot: CompareSlot | null }
@@ -145,14 +146,29 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
       };
     }
 
-    case 'SET_ADDON_PROMO': {
+    case 'SET_ADDON_PROMOTIONS': {
       return {
         ...state,
         blocks: state.blocks.map(b =>
           b.instanceId === action.instanceId && b.kind === 'addon'
-            ? { ...b, promo: action.promo, promoValidUntil: action.validUntil ?? undefined }
+            ? { ...b, promotions: action.promotions, promoValidUntil: action.validUntil ?? undefined }
             : b
         ),
+      };
+    }
+
+    case 'TOGGLE_ADDON_PRICING_KEY': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b => {
+          if (b.instanceId !== action.instanceId || b.kind !== 'addon') return b;
+          const keys = b.visiblePricingKeys ?? [];
+          const has = keys.includes(action.key);
+          return {
+            ...b,
+            visiblePricingKeys: has ? keys.filter(k => k !== action.key) : [...keys, action.key],
+          };
+        }),
       };
     }
 

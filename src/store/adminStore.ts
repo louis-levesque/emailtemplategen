@@ -1,7 +1,7 @@
 import { useReducer, useState } from 'react';
 import { PLANS as DEFAULT_PLANS } from '../data/plans';
 import { ADDONS as DEFAULT_ADDONS } from '../data/addons';
-import type { PlanDefinition, AddonDefinition, PriceTier } from '../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, AddonPricingKey } from '../types';
 
 const STORAGE_KEY = 'jobber-email-builder-admin-v1';
 
@@ -23,7 +23,8 @@ export type AdminAction =
   | { type: 'REORDER_ADDON_FEATURES'; addonId: string; fromIndex: number; toIndex: number }
   | { type: 'ADD_PLAN' }
   | { type: 'DELETE_PLAN'; planId: string }
-  | { type: 'UPDATE_ADDON_META'; addonId: string; field: 'name' | 'description' | 'price'; value: string }
+  | { type: 'UPDATE_ADDON_META'; addonId: string; field: 'name' | 'description'; value: string }
+  | { type: 'UPDATE_ADDON_PRICING'; addonId: string; key: AddonPricingKey; value: string }
   | { type: 'ADD_ADDON_FEATURE'; addonId: string; label: string }
   | { type: 'UPDATE_ADDON_FEATURE'; addonId: string; featureId: string; label: string }
   | { type: 'DELETE_ADDON_FEATURE'; addonId: string; featureId: string }
@@ -185,6 +186,17 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
         ),
       };
 
+    case 'UPDATE_ADDON_PRICING':
+      return {
+        ...state,
+        addons: state.addons.map(a =>
+          a.id !== action.addonId ? a : {
+            ...a,
+            pricing: { ...a.pricing, [action.key]: action.value },
+          }
+        ),
+      };
+
     case 'ADD_ADDON_FEATURE': {
       const newId = `${action.addonId}-f${Date.now()}`;
       return {
@@ -240,7 +252,7 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
         id: newId,
         name: 'New Add-on',
         description: 'Describe what this add-on does.',
-        price: '$0/mo',
+        pricing: { monthly: '$0/mo' },
         features: [],
       };
       return { ...state, addons: [...state.addons, newAddon] };
@@ -259,10 +271,21 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
   }
 }
 
+function migrateAdminState(raw: AdminState): AdminState {
+  const addons = raw.addons.map((a: any) => {
+    if (!a.pricing && a.price) {
+      const { price, ...rest } = a;
+      return { ...rest, pricing: { monthly: price } };
+    }
+    return a;
+  });
+  return { ...raw, addons };
+}
+
 function loadFromStorage(): AdminState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as AdminState;
+    if (raw) return migrateAdminState(JSON.parse(raw) as AdminState);
   } catch {}
   return { plans: DEFAULT_PLANS, addons: DEFAULT_ADDONS };
 }

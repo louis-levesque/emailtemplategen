@@ -17,7 +17,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { AdminAction } from '../../store/adminStore';
-import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature } from '../../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPricingKey } from '../../types';
+import { ALL_ADDON_PRICING_KEYS } from '../../types';
+import { ADDON_PRICING_LABELS } from '../../utils/priceUtils';
 import type { Dispatch } from 'react';
 
 interface Props {
@@ -803,15 +805,6 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
             onChange={e => dispatch({ type: 'UPDATE_ADDON_META', addonId: addon.id, field: 'name', value: e.target.value })}
             className="font-semibold text-sm text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-gray-500 outline-none flex-1"
           />
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="text-xs text-gray-400">Price:</span>
-            <input
-              value={addon.price}
-              onChange={e => dispatch({ type: 'UPDATE_ADDON_META', addonId: addon.id, field: 'price', value: e.target.value })}
-              className="w-24 text-xs font-bold text-jobber-dark bg-transparent border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber text-right"
-              placeholder="$0/mo"
-            />
-          </div>
           <button
             onClick={handleDeleteAddon}
             className="flex-shrink-0 text-xs text-red-400 hover:text-red-600 font-medium px-2 py-0.5 rounded border border-transparent hover:border-red-200 hover:bg-red-50 transition-colors"
@@ -845,6 +838,26 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
             <InsertLinkInline onInsert={handleDescLinkInsert} onClose={() => setShowDescLinkForm(false)} />
           </div>
         )}
+      </div>
+
+      {/* Pricing section */}
+      <div className="border-b border-gray-100 px-4 py-3">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Pricing</p>
+        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            {ALL_ADDON_PRICING_KEYS.map((key: AddonPricingKey) => (
+              <div key={key}>
+                <label className="text-xs text-gray-400 block mb-0.5">{ADDON_PRICING_LABELS[key]}</label>
+                <input
+                  value={addon.pricing[key]}
+                  onChange={e => dispatch({ type: 'UPDATE_ADDON_PRICING', addonId: addon.id, key, value: e.target.value })}
+                  placeholder="$0/mo"
+                  className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Features */}

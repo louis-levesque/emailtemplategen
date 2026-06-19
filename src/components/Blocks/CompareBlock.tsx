@@ -178,49 +178,48 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
     <>
       <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#9DC63F' }}>
         {/* Header */}
-        <div className="px-3 pt-3 pb-2 bg-gray-50">
-          {/* Row 1: drag handle + name + badge + × */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <div className="flex-shrink-0 opacity-0 group-hover/slot:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" title="Drag to reorder">
-              <DragHandleIcon />
+        <div className="pb-2 bg-gray-50">
+          {/* Recommended badge — always visible above the name, click to toggle */}
+          <button
+            onClick={() => updateSlot({ isRecommended: !slot.isRecommended })}
+            className={`w-full text-center text-[10px] font-semibold py-1.5 transition-colors ${
+              slot.isRecommended
+                ? 'bg-lime-100 text-lime-700 hover:bg-lime-200'
+                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+            }`}
+          >
+            Recommended
+          </button>
+
+          <div className="px-3 pt-2.5">
+            {/* Row 1: drag handle + name + × */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex-shrink-0 opacity-0 group-hover/slot:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" title="Drag to reorder">
+                <DragHandleIcon />
+              </div>
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: def.color }} />
+              <span className="font-semibold text-gray-800 leading-snug truncate flex-1 min-w-0">{def.title}</span>
+              <button
+                onClick={onClear}
+                className="w-5 h-5 rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0 ml-auto"
+                title="Remove"
+              >
+                ×
+              </button>
             </div>
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: def.color }} />
-            <span className="font-semibold text-gray-800 leading-snug truncate flex-1 min-w-0">{def.title}</span>
-            {slot.isRecommended && (
-              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-lime-100 text-lime-700 flex-shrink-0 whitespace-nowrap">
-                Recommended
-              </span>
-            )}
-            <button
-              onClick={onClear}
-              className="w-5 h-5 rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0 ml-auto"
-              title="Remove"
-            >
-              ×
-            </button>
-          </div>
-          {/* Row 2: recommended toggle + promo button */}
-          <div className="mt-2 pl-5 flex items-center gap-1.5 flex-wrap">
-            <button
-              onClick={() => updateSlot({ isRecommended: !slot.isRecommended })}
-              className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
-                slot.isRecommended
-                  ? 'bg-lime-50 border-lime-300 text-lime-700 hover:bg-lime-100'
-                  : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              ★
-            </button>
-            <button
-              onClick={() => setShowPromoModal(true)}
-              className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
-                hasAnyPromo
-                  ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
-                  : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              {hasAnyPromo ? 'Edit Promo' : '+ Promo'}
-            </button>
+            {/* Row 2: promo button */}
+            <div className="mt-2 pl-5">
+              <button
+                onClick={() => setShowPromoModal(true)}
+                className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
+                  hasAnyPromo
+                    ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                {hasAnyPromo ? 'Edit Promo' : '+ Promo'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -398,61 +397,60 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
     <>
       <div className="rounded-lg overflow-hidden border border-gray-200 border-l-4" style={{ borderLeftColor: '#9DC63F' }}>
         {/* Header */}
-        <div className="px-3 pt-3 pb-2 bg-gray-50">
-          {/* Row 1: drag handle + name + badge + × */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <div className="flex-shrink-0 opacity-0 group-hover/slot:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" title="Drag to reorder">
-              <DragHandleIcon />
-            </div>
-            <span className="font-semibold text-gray-800 leading-snug truncate flex-1 min-w-0">{def.name}</span>
-            {slot.isRecommended && (
-              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-lime-100 text-lime-700 flex-shrink-0 whitespace-nowrap">
-                Recommended
-              </span>
-            )}
-            <button
-              onClick={onClear}
-              className="w-5 h-5 rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0 ml-auto"
-              title="Remove"
-            >
-              ×
-            </button>
-          </div>
-          {/* Row 2: price + recommended toggle + promo button */}
-          <div className="mt-1.5 pl-5 flex items-center gap-2 flex-wrap">
-            {discounted !== null ? (
-              <div>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400 line-through">{def.price}</span>
-                  <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}/mo</span>
-                </div>
-                <div className="text-xs text-gray-400">
-                  {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {def.price}
-                </div>
+        <div className="pb-2 bg-gray-50">
+          {/* Recommended badge — always visible above the name, click to toggle */}
+          <button
+            onClick={() => updateSlot({ isRecommended: !slot.isRecommended })}
+            className={`w-full text-center text-[10px] font-semibold py-1.5 transition-colors ${
+              slot.isRecommended
+                ? 'bg-lime-100 text-lime-700 hover:bg-lime-200'
+                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+            }`}
+          >
+            Recommended
+          </button>
+
+          <div className="px-3 pt-2.5">
+            {/* Row 1: drag handle + name + × */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex-shrink-0 opacity-0 group-hover/slot:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" title="Drag to reorder">
+                <DragHandleIcon />
               </div>
-            ) : (
-              <span className="text-sm font-bold text-jobber-dark">{def.price}</span>
-            )}
-            <button
-              onClick={() => updateSlot({ isRecommended: !slot.isRecommended })}
-              className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
-                slot.isRecommended
-                  ? 'bg-lime-50 border-lime-300 text-lime-700 hover:bg-lime-100'
-                  : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              ★
-            </button>
-            <button
-              onClick={() => setShowPromoModal(true)}
-              className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
-                promo
-                  ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
-                  : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              {promo ? 'Edit Promo' : '+ Promo'}
-            </button>
+              <span className="font-semibold text-gray-800 leading-snug truncate flex-1 min-w-0">{def.name}</span>
+              <button
+                onClick={onClear}
+                className="w-5 h-5 rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 flex items-center justify-center text-sm font-bold transition-colors flex-shrink-0 ml-auto"
+                title="Remove"
+              >
+                ×
+              </button>
+            </div>
+            {/* Row 2: price + promo button */}
+            <div className="mt-1.5 pl-5 flex items-center gap-2 flex-wrap">
+              {discounted !== null ? (
+                <div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-gray-400 line-through">{def.price}</span>
+                    <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}/mo</span>
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo, then {def.price}
+                  </div>
+                </div>
+              ) : (
+                <span className="text-sm font-bold text-jobber-dark">{def.price}</span>
+              )}
+              <button
+                onClick={() => setShowPromoModal(true)}
+                className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
+                  promo
+                    ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                {promo ? 'Edit Promo' : '+ Promo'}
+              </button>
+            </div>
           </div>
         </div>
 

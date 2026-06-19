@@ -15,6 +15,7 @@ export type CanvasAction =
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
   | { type: 'SET_COMPARE_SLOT'; instanceId: string; slotIndex: number; slot: CompareSlot | null }
   | { type: 'REORDER_COMPARE_SLOTS'; instanceId: string; slots: (CompareSlot | null)[] }
+  | { type: 'TOGGLE_RECOMMENDED'; instanceId: string }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
 
 export const initialState: AppState = {
@@ -184,6 +185,17 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
             : b
         ),
       };
+
+    case 'TOGGLE_RECOMMENDED': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b => {
+          if (b.instanceId !== action.instanceId) return b;
+          if (b.kind !== 'plan' && b.kind !== 'addon') return b;
+          return { ...b, isRecommended: !b.isRecommended };
+        }),
+      };
+    }
 
     case 'SET_HEADER':
       return { ...state, header: { ...state.header, [action.field]: action.value } };

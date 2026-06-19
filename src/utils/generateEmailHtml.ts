@@ -141,13 +141,17 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
     })
     .join('');
 
+  const recommendedBadgeHtml = block.isRecommended
+    ? `<span style="display:inline-block;background-color:#ecfccb;color:#4d7c0f;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;">Recommended</span>`
+    : '';
+
   return `
 <div style="${SECTION_STYLE}">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #9DC63F; border-radius: 4px;">
     <tr>
       <td style="padding: 10px 14px; background-color: #f9fafb;">
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${def.color};margin-right:6px;vertical-align:middle;"></span>
-        <strong style="font-size: 15px; color: #111; vertical-align: middle;">${def.title}</strong>
+        <strong style="font-size: 15px; color: #111; vertical-align: middle;">${def.title}</strong>${recommendedBadgeHtml}
       </td>
     </tr>
     <tr>
@@ -192,6 +196,10 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
     ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px;margin-right:4px;">${def.price}</span><strong style="color:#b45309;font-size:14px;">${formatCurrency(discounted)}/mo</strong><span style="display:block;font-size:11px;color:#888;text-align:right;">${promoLabel} off for ${promo!.durationMonths} mo, then ${def.price}</span>`
     : `<strong style="color:#1D2D44;font-size:14px;">${def.price}</strong>`;
 
+  const addonRecommendedBadgeHtml = block.isRecommended
+    ? `<span style="display:inline-block;background-color:#ecfccb;color:#4d7c0f;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;">Recommended</span>`
+    : '';
+
   return `
 <div style="${SECTION_STYLE}">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #9DC63F; border-radius: 4px;">
@@ -200,7 +208,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
         <table width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td style="vertical-align: middle;">
-              <strong style="font-size: 15px; color: #111;">${def.name}</strong>
+              <strong style="font-size: 15px; color: #111;">${def.name}</strong>${addonRecommendedBadgeHtml}
             </td>
             <td style="text-align: right; vertical-align: middle; white-space: nowrap; padding-left: 8px;">
               ${headerPriceHtml}
@@ -320,13 +328,17 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
     const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds);
     const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
 
+    const planSlotRecommendedBadge = slot.isRecommended
+      ? `<span style="display:inline-block;background-color:#ecfccb;color:#4d7c0f;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;margin-left:5px;vertical-align:middle;">Recommended</span>`
+      : '';
+
     return `
       <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px;">
           <tr>
             <td style="padding:8px 10px; background-color:#f9fafb;">
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:${def.color};margin-right:5px;vertical-align:middle;"></span>
-              <strong style="font-size:13px; color:#111; vertical-align:middle;">${escapeHtml(def.title)}</strong>
+              <strong style="font-size:13px; color:#111; vertical-align:middle;">${escapeHtml(def.title)}</strong>${planSlotRecommendedBadge}
             </td>
           </tr>
           <tr>
@@ -371,6 +383,10 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
 
   const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds);
 
+  const addonSlotRecommendedBadge = slot.isRecommended
+    ? `<span style="display:inline-block;background-color:#ecfccb;color:#4d7c0f;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;margin-left:5px;vertical-align:middle;">Recommended</span>`
+    : '';
+
   return `
     <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px;">
@@ -379,7 +395,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td style="vertical-align:middle;">
-                  <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>
+                  <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>${addonSlotRecommendedBadge}
                 </td>
                 <td style="text-align:right; vertical-align:middle; padding-left:6px; white-space:nowrap;">
                   ${headerPriceHtml}

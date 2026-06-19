@@ -42,14 +42,29 @@ export function PlanBlock({ block, dispatch }: Props) {
 
           {/* Header */}
           <div className="px-4 py-3 bg-gray-50 flex justify-between items-start gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
               <span
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-0.5"
                 style={{ backgroundColor: def.color }}
               />
               <span className="font-semibold text-gray-800 leading-snug">{def.title}</span>
+              {block.isRecommended && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-lime-100 text-lime-700 flex-shrink-0">
+                  Recommended
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                onClick={() => dispatch({ type: 'TOGGLE_RECOMMENDED', instanceId: block.instanceId })}
+                className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
+                  block.isRecommended
+                    ? 'bg-lime-50 border-lime-300 text-lime-700 hover:bg-lime-100'
+                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                ★
+              </button>
               <button
                 onClick={() => setShowPromoModal(true)}
                 className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${

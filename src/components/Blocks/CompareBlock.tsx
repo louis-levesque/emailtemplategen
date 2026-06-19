@@ -198,15 +198,12 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
           <div className="mt-2 pl-5">
             <button
               onClick={() => setShowPromoModal(true)}
-              className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
+              className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
                 hasAnyPromo
                   ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
                   : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
               }`}
             >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5h8M5 1v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
               {hasAnyPromo ? 'Edit Promo' : '+ Promo'}
             </button>
           </div>
@@ -418,15 +415,12 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
             )}
             <button
               onClick={() => setShowPromoModal(true)}
-              className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
+              className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
                 promo
                   ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
                   : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
               }`}
             >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 5h8M5 1v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
               {promo ? 'Edit Promo' : '+ Promo'}
             </button>
           </div>

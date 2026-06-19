@@ -349,12 +349,12 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
           </td>
         </tr>
         <tr>
-          <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.tagline))}</td>
-        </tr>
-        <tr>
           <td style="padding:4px 10px; background-color:#f9fafb; border-top:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0; font-size:11px; color:#555;">
             <strong>User seats:</strong> <span style="color:${def.color}; font-weight:bold;">${seatLabel}</span>
           </td>
+        </tr>
+        <tr>
+          <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.tagline))}</td>
         </tr>
         ${pricingRows || promoValidUntilHtml ? `
         <tr>

@@ -106,10 +106,10 @@ export function PlanBlock({ block, dispatch }: Props) {
           )}
 
           {/* Tagline */}
-          <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.tagline)}</div>
+          <div className="px-4 py-2 border-b border-gray-100 text-sm text-gray-600">{stripLinkSyntax(def.tagline)}</div>
 
           {/* Pricing rows */}
-          <div className="px-4 py-3 border-t border-gray-100">
+          <div className="px-4 py-3">
             <div className="space-y-2">
               {ALL_PRICING_KEYS.map(key => {
                 const isVisible = visiblePricingKeys.includes(key);

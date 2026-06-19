@@ -328,9 +328,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
     const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds);
     const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
 
-    const planSlotRecommendedRow = slot.isRecommended
-      ? `<tr><td style="padding:4px 10px; background-color:#ecfccb; text-align:center; font-size:10px; font-weight:600; color:#4d7c0f; letter-spacing:0.03em;">Recommended</td></tr>`
-      : '';
+    const planSlotRecommendedRow = `<tr><td style="padding:4px 10px; background-color:${slot.isRecommended ? '#ecfccb' : 'transparent'}; text-align:center; font-size:10px; font-weight:600; color:${slot.isRecommended ? '#4d7c0f' : 'transparent'}; letter-spacing:0.03em;">${slot.isRecommended ? 'Recommended' : '&nbsp;'}</td></tr>`;
 
     return `
       <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
@@ -384,9 +382,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
 
   const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds);
 
-  const addonSlotRecommendedRow = slot.isRecommended
-    ? `<tr><td style="padding:4px 10px; background-color:#ecfccb; text-align:center; font-size:10px; font-weight:600; color:#4d7c0f; letter-spacing:0.03em;">Recommended</td></tr>`
-    : '';
+  const addonSlotRecommendedRow = `<tr><td style="padding:4px 10px; background-color:${slot.isRecommended ? '#ecfccb' : 'transparent'}; text-align:center; font-size:10px; font-weight:600; color:${slot.isRecommended ? '#4d7c0f' : 'transparent'}; letter-spacing:0.03em;">${slot.isRecommended ? 'Recommended' : '&nbsp;'}</td></tr>`;
 
   return `
     <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">

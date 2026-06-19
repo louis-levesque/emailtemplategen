@@ -8,7 +8,7 @@ export const PLANS: PlanDefinition[] = [
     color: '#1F9839',
     pricingOptions: [
       { id: 'core-opt-0', label: 'Monthly, no commitment' },
-      { id: 'core-opt-1', label: 'Monthly, annual plan' },
+      { id: 'core-opt-1', label: 'Monthly, 1-year commitment' },
       { id: 'core-opt-2', label: 'Annual, paid upfront' },
     ],
     tiers: [
@@ -51,7 +51,7 @@ export const PLANS: PlanDefinition[] = [
     color: '#0A6FD1',
     pricingOptions: [
       { id: 'connect-opt-0', label: 'Monthly, no commitment' },
-      { id: 'connect-opt-1', label: 'Monthly, annual plan' },
+      { id: 'connect-opt-1', label: 'Monthly, 1-year commitment' },
       { id: 'connect-opt-2', label: 'Annual, paid upfront' },
     ],
     tiers: [
@@ -116,7 +116,7 @@ export const PLANS: PlanDefinition[] = [
     color: '#7C3AED',
     pricingOptions: [
       { id: 'grow-opt-0', label: 'Monthly, no commitment' },
-      { id: 'grow-opt-1', label: 'Monthly, annual plan' },
+      { id: 'grow-opt-1', label: 'Monthly, 1-year commitment' },
       { id: 'grow-opt-2', label: 'Annual, paid upfront' },
     ],
     tiers: [
@@ -172,7 +172,7 @@ export const PLANS: PlanDefinition[] = [
     color: '#D97706',
     pricingOptions: [
       { id: 'plus-opt-0', label: 'Monthly, no commitment' },
-      { id: 'plus-opt-1', label: 'Monthly, annual plan' },
+      { id: 'plus-opt-1', label: 'Monthly, 1-year commitment' },
       { id: 'plus-opt-2', label: 'Annual, paid upfront' },
     ],
     tiers: [

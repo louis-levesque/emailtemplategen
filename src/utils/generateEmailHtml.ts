@@ -1,7 +1,8 @@
 import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition } from '../types';
-import { ALL_PRICING_KEYS } from '../types';
+import { ALL_PRICING_KEYS, ALL_ADDON_PRICING_KEYS } from '../types';
 import {
   PRICING_LABELS,
+  ADDON_PRICING_LABELS,
   applyPromo,
   formatCurrency,
   formatValidUntil,
@@ -188,13 +189,37 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
   const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? []);
   const hasFeatures = featureRows.length > 0;
 
-  const promo = block.promo ?? null;
-  const discounted = promo ? applyPromo(def.price, promo) : null;
-  const promoLabel = promo ? (promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`) : '';
+  const visiblePricingKeys = block.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const promotions = block.promotions ?? {};
 
-  const headerPriceHtml = discounted !== null
-    ? `<span style="text-decoration:line-through;color:#aaa;font-size:12px;margin-right:4px;">${def.price}</span><strong style="color:#b45309;font-size:14px;">${formatCurrency(discounted)}/mo</strong><span style="display:block;font-size:11px;color:#888;text-align:right;">${promoLabel} off for ${promo!.durationMonths} mo, then ${def.price}</span>`
-    : `<strong style="color:#1D2D44;font-size:14px;">${def.price}</strong>`;
+  const pricingRows = ALL_ADDON_PRICING_KEYS
+    .filter(key => visiblePricingKeys.includes(key))
+    .map(key => {
+      const original = def.pricing[key];
+      const promo = promotions[key];
+      const label = ADDON_PRICING_LABELS[key];
+
+      if (promo) {
+        const discounted = applyPromo(original, promo);
+        const discStr = formatCurrency(discounted);
+        return `
+    <tr>
+      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
+      <td style="padding: 4px 0; text-align: right; font-size: 13px;">
+        <span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${original}</span>
+        <strong style="color: #b45309;">${discStr}/mo</strong>
+        <span style="display:block; font-size:11px; color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${original}</span>
+      </td>
+    </tr>`;
+      }
+
+      return `
+    <tr>
+      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
+      <td style="padding: 4px 0; text-align: right; font-weight: bold; color: #9DC63F; font-size: 13px;">${original}</td>
+    </tr>`;
+    })
+    .join('');
 
   const addonRecommendedBadge = block.isRecommended
     ? `<span style="display:inline-block;background-color:#ecfccb;color:#4d7c0f;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;">Recommended</span>`
@@ -205,27 +230,20 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #9DC63F; border-radius: 4px;">
     <tr>
       <td style="padding: 10px 14px; background-color: #f9fafb;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td style="vertical-align: middle;">
-              <strong style="font-size: 15px; color: #111;">${def.name}</strong>${addonRecommendedBadge}
-            </td>
-            <td style="text-align: right; vertical-align: middle; white-space: nowrap; padding-left: 8px;">
-              ${headerPriceHtml}
-            </td>
-          </tr>
+        <strong style="font-size: 15px; color: #111;">${def.name}</strong>${addonRecommendedBadge}
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px 14px;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          ${pricingRows}
         </table>
+        ${block.promoValidUntil && Object.keys(promotions).length > 0 ? `<p style="margin: 6px 0 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>` : ''}
       </td>
     </tr>
-    <tr>
-      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px;">${processTextContent(def.description)}</td>
-    </tr>
-    ${promo && block.promoValidUntil ? `
-    <tr>
-      <td style="padding: 4px 14px 6px;">
-        <p style="margin: 0; font-size: 11px; color: #92400e;">Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.</p>
-      </td>
-    </tr>` : ''}
     ${hasFeatures ? `
     <tr>
       <td style="padding: 8px 14px 12px; border-top: 1px solid #f0f0f0;">
@@ -376,14 +394,34 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return '';
 
-  const promo = slot.promo ?? null;
-  const discounted = promo ? applyPromo(def.price, promo) : null;
-  const promoLabel = promo ? (promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`) : '';
-  const headerPriceHtml = discounted !== null
-    ? `<span style="text-decoration:line-through;color:#aaa;font-size:11px;">${escapeHtml(def.price)}</span> <strong style="color:#b45309;font-size:12px;">${escapeHtml(formatCurrency(discounted))}/mo</strong><span style="display:block;font-size:10px;color:#888;text-align:right;">${escapeHtml(promoLabel)} off for ${promo!.durationMonths} mo, then ${escapeHtml(def.price)}</span>`
-    : `<strong style="color:#1D2D44;font-size:12px;">${escapeHtml(def.price)}</strong>`;
+  const slotVisiblePricingKeys = slot.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+  const slotPromotions = slot.promotions ?? {};
 
-  const promoValidUntilHtml = promo && slot.promoValidUntil
+  const addonPricingRows = ALL_ADDON_PRICING_KEYS
+    .filter(key => slotVisiblePricingKeys.includes(key))
+    .map(key => {
+      const original = def.pricing[key];
+      const promo = slotPromotions[key];
+      const label = ADDON_PRICING_LABELS[key];
+
+      if (promo) {
+        const discounted = applyPromo(original, promo);
+        const discStr = formatCurrency(discounted);
+        return `<div style="padding:3px 0 6px;">
+          <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
+          <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}/mo</strong></div>
+          <div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(original)}</div>
+        </div>`;
+      }
+
+      return `<div style="padding:3px 0 6px;">
+        <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
+        <div style="font-size:11px; font-weight:bold; color:#9DC63F;">${escapeHtml(original)}</div>
+      </div>`;
+    })
+    .join('');
+
+  const promoValidUntilHtml = Object.keys(slotPromotions).length > 0 && slot.promoValidUntil
     ? `<div style="font-size:10px; color:#92400e; margin-top:2px;">Promo valid until ${formatValidUntil(slot.promoValidUntil)}.</div>`
     : '';
 
@@ -398,24 +436,16 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
       ${addonSlotRecommendedRow}
       <tr>
         <td style="padding:8px 10px; background-color:#f9fafb;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              <td style="vertical-align:middle;">
-                <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>
-              </td>
-              <td style="text-align:right; vertical-align:middle; padding-left:6px; white-space:nowrap;">
-                ${headerPriceHtml}
-              </td>
-            </tr>
-          </table>
+          <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>
         </td>
       </tr>
       <tr>
         <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.description))}</td>
       </tr>
-      ${promoValidUntilHtml ? `
+      ${addonPricingRows || promoValidUntilHtml ? `
       <tr>
-        <td style="padding:2px 10px 4px;">
+        <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">
+          ${addonPricingRows}
           ${promoValidUntilHtml}
         </td>
       </tr>` : ''}
@@ -546,14 +576,24 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
           addonKeyText ? `Key Features:\n${addonKeyText}` : '',
           addonOtherText ? (addonKeyText ? `Other features included:\n${addonOtherText}` : addonOtherText) : '',
         ].filter(Boolean).join('\n');
-        const promo = block.promo ?? null;
-        const priceLine = promo
-          ? `${def.name} — ${formatCurrency(applyPromo(def.price, promo))}/mo (${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${def.price})`
-          : `${def.name} — ${def.price}`;
-        const validUntilAddon = promo && block.promoValidUntil
+        const addonPromotions = block.promotions ?? {};
+        const addonVisibleKeys = block.visiblePricingKeys ?? ALL_ADDON_PRICING_KEYS;
+        const pricing = ALL_ADDON_PRICING_KEYS
+          .filter(key => addonVisibleKeys.includes(key))
+          .map(key => {
+            const promo = addonPromotions[key];
+            const original = def.pricing[key];
+            if (promo) {
+              const promoLbl = promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`;
+              return `  ${ADDON_PRICING_LABELS[key]}: ${formatCurrency(applyPromo(original, promo))}/mo (${promoLbl} off for ${promo.durationMonths} mo, then ${original})`;
+            }
+            return `  ${ADDON_PRICING_LABELS[key]}: ${original}`;
+          })
+          .join('\n');
+        const validUntilAddon = Object.keys(addonPromotions).length > 0 && block.promoValidUntil
           ? `Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
           : '';
-        return [priceLine, stripLinkSyntax(def.description), validUntilAddon, features].filter(Boolean).join('\n');
+        return [def.name, stripLinkSyntax(def.description), pricing, validUntilAddon, features].filter(Boolean).join('\n');
       }
       case 'signature':
         return '{{{Sender.Email_Signature_Rich_Text__c}}}';

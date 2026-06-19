@@ -24,7 +24,7 @@ export interface AddonDefinition {
   id: string;
   name: string;
   description: string;
-  price: string;
+  pricing: Record<AddonPricingKey, string>;
   features: PlanFeature[];
 }
 
@@ -37,6 +37,9 @@ export const ALL_PRICING_KEYS: PricingKey[] = [
   'monthlyAnnual',
   'annualTotal',
 ];
+
+export type AddonPricingKey = 'monthly';
+export const ALL_ADDON_PRICING_KEYS: AddonPricingKey[] = ['monthly'];
 
 export interface PromoConfig {
   type: 'percent' | 'dollar';
@@ -66,7 +69,8 @@ export interface AddonBlock extends BaseBlock {
   definitionId: string;
   visibleFeatureIds: string[];
   keyFeatureIds: string[];
-  promo: PromoConfig | null;
+  visiblePricingKeys?: AddonPricingKey[];
+  promotions?: Partial<Record<AddonPricingKey, PromoConfig>>;
   promoValidUntil?: string;
   isRecommended?: boolean;
 }
@@ -103,7 +107,8 @@ export type CompareSlot =
       definitionId: string;
       visibleFeatureIds: string[];
       keyFeatureIds: string[];
-      promo: PromoConfig | null;
+      visiblePricingKeys?: AddonPricingKey[];
+      promotions?: Partial<Record<AddonPricingKey, PromoConfig>>;
       promoValidUntil?: string;
       isRecommended?: boolean;
     };

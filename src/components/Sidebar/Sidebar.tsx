@@ -1,7 +1,7 @@
 import type { Dispatch } from 'react';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasBlock } from '../../types';
-import { ALL_PRICING_KEYS } from '../../types';
+import { ALL_PRICING_KEYS, ALL_ADDON_PRICING_KEYS } from '../../types';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { generateId } from '../../utils/generateId';
 import { SidebarSection } from './SidebarSection';
@@ -92,14 +92,15 @@ export function Sidebar({ dispatch }: Props) {
               id={`addon-${addon.id}`}
               label={addon.name}
               description={addon.description}
-              price={addon.price}
+              price={addon.pricing.monthly}
               blockFactory={() => ({
                 instanceId: generateId(),
                 kind: 'addon',
                 definitionId: addon.id,
                 visibleFeatureIds: addon.features.map(f => f.id),
                 keyFeatureIds: [],
-                promo: null,
+                visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
+                promotions: {},
               })}
               onAdd={() => addBlock({
                 instanceId: generateId(),
@@ -107,7 +108,8 @@ export function Sidebar({ dispatch }: Props) {
                 definitionId: addon.id,
                 visibleFeatureIds: addon.features.map(f => f.id),
                 keyFeatureIds: [],
-                promo: null,
+                visiblePricingKeys: [...ALL_ADDON_PRICING_KEYS],
+                promotions: {},
               })}
             />
           ))}

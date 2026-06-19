@@ -1,9 +1,13 @@
-import type { PricingKey, PromoConfig } from '../types';
+import type { AddonPricingKey, PricingKey, PromoConfig } from '../types';
 
 export const PRICING_LABELS: Record<PricingKey, string> = {
   monthlyNoCommitment: 'Monthly, no commitment',
   monthlyAnnual: 'Monthly, 1-year commitment',
   annualTotal: 'Annual, paid upfront',
+};
+
+export const ADDON_PRICING_LABELS: Record<AddonPricingKey, string> = {
+  monthly: 'Monthly',
 };
 
 /** Strip '$', commas, '/mo', '/yr' and return the numeric value */

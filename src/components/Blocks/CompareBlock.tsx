@@ -166,15 +166,12 @@ function SlotCard({ slot, onClear, onEdit }: SlotCardProps) {
         </div>
         {/* Features */}
         <div className="px-2 py-2 bg-white flex-1">
-          {visibleFeatures.slice(0, 5).map(f => (
+          {visibleFeatures.map(f => (
             <div key={f.id} className="flex items-start gap-1 py-0.5">
               <span className="text-xs mt-0.5" style={{ color: def.color }}>✓</span>
               <span className="text-xs text-gray-600 leading-snug">{stripLinkSyntax(f.label)}</span>
             </div>
           ))}
-          {visibleFeatures.length > 5 && (
-            <div className="text-xs text-gray-400 mt-1">+{visibleFeatures.length - 5} more</div>
-          )}
           {visibleFeatures.length === 0 && (
             <div className="text-xs text-gray-400 italic">No features shown</div>
           )}
@@ -218,15 +215,12 @@ function SlotCard({ slot, onClear, onEdit }: SlotCardProps) {
       </div>
       {/* Features */}
       <div className="px-2 py-2 bg-white flex-1">
-        {visibleFeatures.slice(0, 5).map(f => (
+        {visibleFeatures.map(f => (
           <div key={f.id} className="flex items-start gap-1 py-0.5">
             <span className="text-xs mt-0.5 text-gray-500">✓</span>
             <span className="text-xs text-gray-600 leading-snug">{stripLinkSyntax(f.label)}</span>
           </div>
         ))}
-        {visibleFeatures.length > 5 && (
-          <div className="text-xs text-gray-400 mt-1">+{visibleFeatures.length - 5} more</div>
-        )}
         {visibleFeatures.length === 0 && (
           <div className="text-xs text-gray-400 italic">No features shown</div>
         )}

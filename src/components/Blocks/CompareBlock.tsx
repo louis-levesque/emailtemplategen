@@ -247,7 +247,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
         )}
 
         {/* Tagline */}
-        <div className="px-4 pt-2 pb-1 text-sm text-gray-600">{stripLinkSyntax(def.tagline)}</div>
+        <div className="px-4 pt-2 pb-1 text-xs text-gray-600">{stripLinkSyntax(def.tagline)}</div>
 
         {/* Pricing rows */}
         <div className="px-4 py-3 border-t border-gray-100">
@@ -261,11 +261,11 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
               const isAnnualTotal = key === 'annualTotal';
 
               return (
-                <div key={key} className="flex items-start justify-between gap-2">
-                  <label className="flex items-center gap-1.5 cursor-pointer mt-0.5">
+                <div key={key} className="flex items-start justify-between gap-1">
+                  <label className="flex items-center gap-1 cursor-pointer mt-0.5 min-w-0">
                     <input
                       type="checkbox"
-                      className="w-3.5 h-3.5 accent-jobber"
+                      className="w-3 h-3 accent-jobber flex-shrink-0"
                       checked={isVisible}
                       onChange={() => {
                         const newKeys = isVisible
@@ -274,31 +274,31 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
                         updateSlot({ visiblePricingKeys: newKeys });
                       }}
                     />
-                    <span className={`text-xs ${isVisible ? 'text-gray-500' : 'text-gray-300'}`}>
+                    <span className={`text-[10px] leading-tight ${isVisible ? 'text-gray-500' : 'text-gray-300'}`}>
                       {PRICING_LABELS[key]}
                     </span>
                   </label>
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right shrink-0">
                     {discounted !== null ? (
                       <>
-                        <div className="flex items-center gap-1 justify-end">
-                          <span className="text-xs text-gray-400 line-through">{original}</span>
-                          <span className="text-xs font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
+                        <div className="flex items-center gap-0.5 justify-end flex-wrap">
+                          <span className="text-[10px] text-gray-400 line-through">{original}</span>
+                          <span className="text-[10px] font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
                         </div>
                         {isAnnualTotal && (
-                          <div className="text-xs text-amber-500">({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)</div>
+                          <div className="text-[10px] text-amber-500">({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)</div>
                         )}
-                        <div className="text-xs text-gray-400">
+                        <div className="text-[10px] text-gray-400">
                           {promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo
                         </div>
                       </>
                     ) : (
                       <>
-                        <span className="text-xs font-semibold" style={{ color: isVisible ? def.color : '#d1d5db' }}>
+                        <span className="text-[10px] font-semibold" style={{ color: isVisible ? def.color : '#d1d5db' }}>
                           {original}
                         </span>
                         {isAnnualTotal && (
-                          <div className={`text-xs ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
+                          <div className={`text-[10px] ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
                             ({selectedTier.annualMonthly})
                           </div>
                         )}
@@ -310,7 +310,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
             })}
           </div>
           {hasAnyPromo && slot.promoValidUntil && (
-            <p className="text-xs text-amber-700 mt-2">
+            <p className="text-[10px] text-amber-700 mt-2">
               Promo valid until {formatValidUntil(slot.promoValidUntil)}.
             </p>
           )}

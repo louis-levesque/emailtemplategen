@@ -43,7 +43,7 @@ export default function App() {
 
   function handleDragOver(event: DragOverEvent) {
     if (!draggedFactoryRef.current) return; // not a sidebar drag
-    const { over } = event;
+    const { over, active } = event;
     if (!over) {
       setInsertIndex(null);
       insertIndexRef.current = null;
@@ -54,7 +54,17 @@ export default function App() {
       insertIndexRef.current = state.blocks.length;
     } else {
       const idx = state.blocks.findIndex(b => b.instanceId === String(over.id));
-      const resolved = idx >= 0 ? idx : null;
+      if (idx < 0) {
+        setInsertIndex(null);
+        insertIndexRef.current = null;
+        return;
+      }
+      // Insert before or after the hovered block based on which half the cursor is in.
+      // If the dragged item's midpoint is below the hovered block's midpoint, insert after.
+      const overMidY = over.rect.top + over.rect.height / 2;
+      const translated = active.rect.current.translated;
+      const activeMidY = translated ? translated.top + translated.height / 2 : null;
+      const resolved = activeMidY !== null && activeMidY > overMidY ? idx + 1 : idx;
       setInsertIndex(resolved);
       insertIndexRef.current = resolved;
     }

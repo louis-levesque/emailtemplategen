@@ -73,12 +73,6 @@ export function PreviewModal({ html, onClose }: Props) {
           </div>
         </div>
 
-        {/* Footer note */}
-        <div className="px-5 py-2.5 border-t border-gray-100 bg-gray-50 flex-shrink-0">
-          <p className="text-xs text-gray-400 text-center">
-            Salesforce merge fields (e.g. <code className="font-mono bg-gray-200 px-1 rounded">&#123;&#123;Recipient.FirstName&#125;&#125;</code>) will resolve when sent — they appear as-is in this preview.
-          </p>
-        </div>
       </div>
     </div>
   );

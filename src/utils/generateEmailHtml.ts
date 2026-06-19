@@ -333,8 +333,8 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
       : '';
 
     return `
-      <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px;">
+      <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%; height:100%;">
+        <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px; height:100%;">
           ${planSlotRecommendedRow}
           <tr>
             <td style="padding:8px 10px; background-color:#f9fafb;">
@@ -389,8 +389,8 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
     : '';
 
   return `
-    <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px;">
+    <td style="vertical-align:top; padding:0 6px; width:${Math.floor(100 / 3)}%; height:100%;">
+      <table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e5e7eb; border-left:4px solid #9DC63F; border-radius:4px; height:100%;">
         ${addonSlotRecommendedRow}
         <tr>
           <td style="padding:8px 10px; background-color:#f9fafb;">

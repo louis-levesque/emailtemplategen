@@ -314,10 +314,17 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
           const discStr = formatCurrency(discounted);
           const unit = original.includes('/yr') ? '/yr' : '/mo';
           const monthlyDisc = isAnnualTotal ? formatCurrency(Math.round((discounted / 12) * 100) / 100) : null;
-          return `<div style="font-size:11px; color:#555; padding:1px 0;">${escapeHtml(label)}: <span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${isAnnualTotal && monthlyDisc ? ` <span style="color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}<span style="display:block;font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(original)}</span></div>`;
+          return `<div style="padding:3px 0 1px;">
+            <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
+            <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${isAnnualTotal && monthlyDisc ? ` <span style="font-size:10px; color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}</div>
+            <div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(original)}</div>
+          </div>`;
         }
 
-        return `<div style="font-size:11px; color:#555; padding:1px 0;">${escapeHtml(label)}: <strong style="color:${def.color};">${escapeHtml(original)}</strong>${isAnnualTotal ? ` <span style="color:#888;">(${escapeHtml(tier.annualMonthly)})</span>` : ''}</div>`;
+        return `<div style="padding:3px 0 1px;">
+          <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
+          <div style="font-size:11px; font-weight:bold; color:${def.color};">${escapeHtml(original)}${isAnnualTotal ? ` <span style="font-size:10px; font-weight:normal; color:#888;">(${escapeHtml(tier.annualMonthly)})</span>` : ''}</div>
+        </div>`;
       })
       .join('');
 

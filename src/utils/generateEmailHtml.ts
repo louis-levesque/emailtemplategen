@@ -160,7 +160,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
       </td>
     </tr>
     <tr>
-      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px;">${processTextContent(def.tagline)}</td>
+      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.tagline)}</td>
     </tr>
     <tr>
       <td style="padding: 8px 14px;">

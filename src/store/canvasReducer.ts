@@ -1,4 +1,4 @@
-import type { AppState, CanvasBlock, CompareSlot, EmailHeader, PricingKey, PromoConfig } from '../types';
+import type { AppState, CanvasBlock, CompareSlot, EmailHeader, PromoConfig } from '../types';
 
 export type CanvasAction =
   | { type: 'ADD_BLOCK'; block: CanvasBlock }
@@ -8,8 +8,8 @@ export type CanvasAction =
   | { type: 'TOGGLE_FEATURE'; instanceId: string; featureId: string }
   | { type: 'SET_FEATURE_BUCKET'; instanceId: string; featureId: string; bucket: 'key' | 'included' | 'hidden' }
   | { type: 'SET_PLAN_SEATS'; instanceId: string; seats: number }
-  | { type: 'TOGGLE_PRICING_KEY'; instanceId: string; key: PricingKey }
-  | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<PricingKey, PromoConfig>>; validUntil: string | null }
+  | { type: 'TOGGLE_PLAN_PRICING_OPTION'; instanceId: string; optionId: string }
+  | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<string, PromoConfig>>; validUntil: string | null }
   | { type: 'SET_ADDON_PROMOTIONS'; instanceId: string; promotions: Partial<Record<string, PromoConfig>>; validUntil: string | null }
   | { type: 'TOGGLE_ADDON_TIER_VISIBILITY'; instanceId: string; tierId: string }
   | { type: 'UPDATE_TEXT'; instanceId: string; content: string }
@@ -120,16 +120,16 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         ),
       };
 
-    case 'TOGGLE_PRICING_KEY': {
+    case 'TOGGLE_PLAN_PRICING_OPTION': {
       return {
         ...state,
         blocks: state.blocks.map(b => {
           if (b.instanceId !== action.instanceId || b.kind !== 'plan') return b;
-          const keys = b.visiblePricingKeys ?? [];
-          const has = keys.includes(action.key);
+          const ids = b.visiblePricingOptionIds ?? [];
+          const has = ids.includes(action.optionId);
           return {
             ...b,
-            visiblePricingKeys: has ? keys.filter(k => k !== action.key) : [...keys, action.key],
+            visiblePricingOptionIds: has ? ids.filter(id => id !== action.optionId) : [...ids, action.optionId],
           };
         }),
       };

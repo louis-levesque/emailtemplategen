@@ -1,22 +1,15 @@
 import { useState, type Dispatch } from 'react';
-import type { PlanBlock as PlanBlockType, PricingKey } from '../../types';
-import { ALL_PRICING_KEYS } from '../../types';
+import type { PlanBlock as PlanBlockType } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { PromoModal, type PromoRow } from './PromoModal';
 import { FeatureBuckets } from './FeatureBuckets';
 import {
-  PRICING_LABELS,
   applyPromo,
   formatCurrency,
   formatValidUntil,
 } from '../../utils/priceUtils';
 
-const PRICING_PILL_LABELS: Record<string, string> = {
-  monthlyNoCommitment: 'Monthly',
-  monthlyAnnual: '1-yr monthly',
-  annualTotal: 'Annual',
-};
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
 
 interface Props {
@@ -31,14 +24,14 @@ export function PlanBlock({ block, dispatch }: Props) {
   if (!def) return null;
 
   const selectedTier = def.tiers.find(t => t.seats === block.selectedSeats) ?? def.tiers[0];
-  const visiblePricingKeys: PricingKey[] = block.visiblePricingKeys ?? ALL_PRICING_KEYS;
+  const visiblePricingOptionIds: string[] = block.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
   const promotions = block.promotions ?? {};
   const hasAnyPromo = Object.keys(promotions).length > 0;
 
-  const promoRows: PromoRow[] = ALL_PRICING_KEYS.map(key => ({
-    key,
-    label: PRICING_LABELS[key],
-    originalPrice: selectedTier[key],
+  const promoRows: PromoRow[] = def.pricingOptions.map(opt => ({
+    key: opt.id,
+    label: opt.label,
+    originalPrice: selectedTier.prices[opt.id]?.price ?? '$0/mo',
   }));
 
   return (
@@ -111,19 +104,20 @@ export function PlanBlock({ block, dispatch }: Props) {
           {/* Pricing rows */}
           <div className="px-4 py-3">
             <div className="space-y-2">
-              {ALL_PRICING_KEYS.map(key => {
-                const isVisible = visiblePricingKeys.includes(key);
-                const promo = promotions[key];
-                const original = selectedTier[key];
+              {def.pricingOptions.map(opt => {
+                const isVisible = visiblePricingOptionIds.includes(opt.id);
+                const promo = promotions[opt.id];
+                const priceEntry = selectedTier.prices[opt.id];
+                const original = priceEntry?.price ?? '$0/mo';
+                const monthlyEquivalent = priceEntry?.monthlyEquivalent;
                 const discounted = promo ? applyPromo(original, promo) : null;
                 const unit = original.includes('/yr') ? '/yr' : '/mo';
-                const isAnnualTotal = key === 'annualTotal';
 
                 return (
-                  <div key={key} className="flex items-start gap-2">
+                  <div key={opt.id} className="flex items-start gap-2">
                     {/* Pill toggle */}
                     <button
-                      onClick={() => dispatch({ type: 'TOGGLE_PRICING_KEY', instanceId: block.instanceId, key })}
+                      onClick={() => dispatch({ type: 'TOGGLE_PLAN_PRICING_OPTION', instanceId: block.instanceId, optionId: opt.id })}
                       className="px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors flex-shrink-0 mt-0.5"
                       style={
                         isVisible
@@ -131,7 +125,7 @@ export function PlanBlock({ block, dispatch }: Props) {
                           : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
                       }
                     >
-                      {PRICING_PILL_LABELS[key]}
+                      {opt.label}
                     </button>
 
                     {/* Price(s) */}
@@ -142,7 +136,7 @@ export function PlanBlock({ block, dispatch }: Props) {
                             <span className="text-xs text-gray-400 line-through">{original}</span>
                             <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
                           </div>
-                          {isAnnualTotal && (
+                          {monthlyEquivalent && (
                             <div className="text-xs text-amber-500">
                               ({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)
                             </div>
@@ -159,9 +153,9 @@ export function PlanBlock({ block, dispatch }: Props) {
                           >
                             {original}
                           </span>
-                          {isAnnualTotal && (
+                          {monthlyEquivalent && (
                             <div className={`text-xs ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
-                              ({selectedTier.annualMonthly})
+                              ({monthlyEquivalent})
                             </div>
                           )}
                         </>

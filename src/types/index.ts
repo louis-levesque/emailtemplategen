@@ -3,18 +3,21 @@ export interface PlanFeature {
   label: string;
 }
 
+export interface PlanPricingOption {
+  id: string;
+  label: string;
+}
+
 export interface PriceTier {
   seats: number;
-  monthlyNoCommitment: string;
-  monthlyAnnual: string;
-  annualMonthly: string;
-  annualTotal: string;
+  prices: Record<string, { price: string; monthlyEquivalent?: string }>;
 }
 
 export interface PlanDefinition {
   id: string;
   title: string;
   tagline: string;
+  pricingOptions: PlanPricingOption[];
   tiers: PriceTier[];
   color: string;
   features: PlanFeature[];
@@ -37,15 +40,6 @@ export interface AddonDefinition {
 
 export type BlockKind = 'plan' | 'addon' | 'signature' | 'text' | 'checkout' | 'compare';
 
-export type PricingKey = 'monthlyNoCommitment' | 'monthlyAnnual' | 'annualTotal';
-
-export const ALL_PRICING_KEYS: PricingKey[] = [
-  'monthlyNoCommitment',
-  'monthlyAnnual',
-  'annualTotal',
-];
-
-
 export interface PromoConfig {
   type: 'percent' | 'dollar';
   value: number;
@@ -63,8 +57,8 @@ export interface PlanBlock extends BaseBlock {
   selectedSeats: number;
   visibleFeatureIds: string[];
   keyFeatureIds: string[];
-  visiblePricingKeys: PricingKey[];
-  promotions: Partial<Record<PricingKey, PromoConfig>>;
+  visiblePricingOptionIds: string[];
+  promotions: Partial<Record<string, PromoConfig>>;
   promoValidUntil?: string;
   isRecommended?: boolean;
 }
@@ -102,8 +96,8 @@ export type CompareSlot =
       selectedSeats: number;
       visibleFeatureIds: string[];
       keyFeatureIds: string[];
-      visiblePricingKeys: PricingKey[];
-      promotions: Partial<Record<PricingKey, PromoConfig>>;
+      visiblePricingOptionIds: string[];
+      promotions: Partial<Record<string, PromoConfig>>;
       promoValidUntil?: string;
       isRecommended?: boolean;
     }

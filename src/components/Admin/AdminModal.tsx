@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { AdminAction } from '../../store/adminStore';
-import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPriceTier } from '../../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPriceTier, PlanPricingOption } from '../../types';
 import type { Dispatch } from 'react';
 
 interface Props {
@@ -301,18 +301,12 @@ interface TierRowProps {
   planId: string;
   tier: PriceTier;
   tierIndex: number;
+  pricingOptions: PlanPricingOption[];
   dispatch: Dispatch<AdminAction>;
   canRemove: boolean;
 }
 
-function TierRow({ planId, tier, tierIndex, dispatch, canRemove }: TierRowProps) {
-  const fields: { field: keyof PriceTier; label: string; placeholder: string }[] = [
-    { field: 'monthlyNoCommitment', label: 'Monthly (no commitment)', placeholder: '$99/mo' },
-    { field: 'monthlyAnnual',       label: 'Monthly (annual plan)',   placeholder: '$79/mo' },
-    { field: 'annualTotal',         label: 'Annual total',            placeholder: '$948/yr' },
-    { field: 'annualMonthly',       label: 'Annual (per-mo equiv.)',  placeholder: '($79/mo)' },
-  ];
-
+function TierRow({ planId, tier, tierIndex, pricingOptions, dispatch, canRemove }: TierRowProps) {
   return (
     <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
       <div className="flex items-center justify-between mb-2">
@@ -322,7 +316,7 @@ function TierRow({ planId, tier, tierIndex, dispatch, canRemove }: TierRowProps)
             type="number"
             min={1}
             value={tier.seats}
-            onChange={e => dispatch({ type: 'UPDATE_TIER_FIELD', planId, tierIndex, field: 'seats', value: Number(e.target.value) })}
+            onChange={e => dispatch({ type: 'UPDATE_TIER_SEATS', planId, tierIndex, seats: Number(e.target.value) })}
             className="w-16 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
           />
         </div>
@@ -335,18 +329,35 @@ function TierRow({ planId, tier, tierIndex, dispatch, canRemove }: TierRowProps)
           </button>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-        {fields.map(({ field, label, placeholder }) => (
-          <div key={field}>
-            <label className="text-xs text-gray-400 block mb-0.5">{label}</label>
-            <input
-              value={tier[field] as string}
-              onChange={e => dispatch({ type: 'UPDATE_TIER_FIELD', planId, tierIndex, field, value: e.target.value })}
-              placeholder={placeholder}
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
-            />
-          </div>
-        ))}
+      <div className="space-y-2">
+        {pricingOptions.map(opt => {
+          const entry = tier.prices[opt.id] ?? { price: '$0/mo' };
+          return (
+            <div key={opt.id} className="border border-gray-100 rounded p-2 bg-white">
+              <p className="text-xs font-semibold text-gray-500 mb-1.5 truncate">{opt.label}</p>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-0.5">Price</label>
+                  <input
+                    value={entry.price}
+                    onChange={e => dispatch({ type: 'UPDATE_TIER_PRICE', planId, tierIndex, optionId: opt.id, field: 'price', value: e.target.value })}
+                    placeholder="$99/mo"
+                    className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-0.5">Monthly equiv.</label>
+                  <input
+                    value={entry.monthlyEquivalent ?? ''}
+                    onChange={e => dispatch({ type: 'UPDATE_TIER_PRICE', planId, tierIndex, optionId: opt.id, field: 'monthlyEquivalent', value: e.target.value })}
+                    placeholder="$79/mo"
+                    className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -435,33 +446,72 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
         </div>
       )}
 
-      {/* Pricing tiers — collapsible */}
+      {/* Pricing Options — collapsible */}
       <div className="border-b border-gray-100">
         <button
           onClick={() => setTiersExpanded(x => !x)}
           className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wide hover:bg-gray-50"
         >
-          <span>Pricing Tiers ({plan.tiers.length})</span>
+          <span>Pricing Options &amp; Tiers ({plan.pricingOptions.length} options, {plan.tiers.length} seat {plan.tiers.length === 1 ? 'tier' : 'tiers'})</span>
           <span className="text-gray-300">{tiersExpanded ? '▲' : '▼'}</span>
         </button>
         {tiersExpanded && (
-          <div className="px-4 pb-3 space-y-2">
-            {plan.tiers.map((tier, i) => (
-              <TierRow
-                key={i}
-                planId={plan.id}
-                tier={tier}
-                tierIndex={i}
-                dispatch={dispatch}
-                canRemove={plan.tiers.length > 1}
-              />
-            ))}
-            <button
-              onClick={() => dispatch({ type: 'ADD_TIER', planId: plan.id })}
-              className="text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1 mt-1"
-            >
-              + Add tier
-            </button>
+          <div className="px-4 pb-3 space-y-3">
+            {/* Pricing Options section */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 mt-2">Pricing Options</p>
+              <div className="space-y-1.5">
+                {plan.pricingOptions.map(opt => (
+                  <div key={opt.id} className="flex items-center gap-1.5">
+                    <input
+                      value={opt.label}
+                      onChange={e => dispatch({ type: 'UPDATE_PRICING_OPTION', planId: plan.id, optionId: opt.id, label: e.target.value })}
+                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+                      placeholder="e.g. Monthly, no commitment"
+                    />
+                    {plan.pricingOptions.length > 1 && (
+                      <button
+                        onClick={() => dispatch({ type: 'REMOVE_PRICING_OPTION', planId: plan.id, optionId: opt.id })}
+                        className="text-xs text-red-400 hover:text-red-600 font-medium flex-shrink-0"
+                        title="Remove pricing option"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => dispatch({ type: 'ADD_PRICING_OPTION', planId: plan.id })}
+                className="mt-1.5 text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1"
+              >
+                + Add pricing option
+              </button>
+            </div>
+
+            {/* Seat tiers section */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Seat Tiers</p>
+              <div className="space-y-2">
+                {plan.tiers.map((tier, i) => (
+                  <TierRow
+                    key={i}
+                    planId={plan.id}
+                    tier={tier}
+                    tierIndex={i}
+                    pricingOptions={plan.pricingOptions}
+                    dispatch={dispatch}
+                    canRemove={plan.tiers.length > 1}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => dispatch({ type: 'ADD_TIER', planId: plan.id })}
+                className="text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1 mt-1"
+              >
+                + Add tier
+              </button>
+            </div>
           </div>
         )}
       </div>

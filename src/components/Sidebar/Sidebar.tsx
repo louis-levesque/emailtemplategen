@@ -1,7 +1,6 @@
 import type { Dispatch } from 'react';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasBlock } from '../../types';
-import { ALL_PRICING_KEYS } from '../../types';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { generateId } from '../../utils/generateId';
 import { SidebarSection } from './SidebarSection';
@@ -68,7 +67,7 @@ export function Sidebar({ dispatch }: Props) {
                 selectedSeats: plan.tiers[0].seats,
                 visibleFeatureIds: plan.features.map(f => f.id),
                 keyFeatureIds: [],
-                visiblePricingKeys: [...ALL_PRICING_KEYS],
+                visiblePricingOptionIds: plan.pricingOptions.map(o => o.id),
                 promotions: {},
               })}
               onAdd={() => addBlock({
@@ -78,7 +77,7 @@ export function Sidebar({ dispatch }: Props) {
                 selectedSeats: plan.tiers[0].seats,
                 visibleFeatureIds: plan.features.map(f => f.id),
                 keyFeatureIds: [],
-                visiblePricingKeys: [...ALL_PRICING_KEYS],
+                visiblePricingOptionIds: plan.pricingOptions.map(o => o.id),
                 promotions: {},
               })}
             />

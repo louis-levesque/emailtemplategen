@@ -1,18 +1,11 @@
 import { useState, useEffect, useRef, type Dispatch } from 'react';
-import type { CompareBlock as CompareBlockType, CompareSlot, PricingKey, PromoConfig } from '../../types';
-import { ALL_PRICING_KEYS } from '../../types';
+import type { CompareBlock as CompareBlockType, CompareSlot, PromoConfig } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasAction } from '../../store/canvasReducer';
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
 import { FeatureBuckets } from './FeatureBuckets';
 import { PromoModal, type PromoRow } from './PromoModal';
-import { PRICING_LABELS, applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
-
-const PRICING_PILL_LABELS: Record<string, string> = {
-  monthlyNoCommitment: 'Monthly',
-  monthlyAnnual: '1-yr mo',
-  annualTotal: 'Annual',
-};
+import { applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
 
 interface Props {
   block: CompareBlockType;
@@ -51,7 +44,7 @@ function SlotPicker({ onSelect, onClose }: SlotPickerProps) {
       selectedSeats: plan.tiers[0].seats,
       visibleFeatureIds: plan.features.map(f => f.id),
       keyFeatureIds: [],
-      visiblePricingKeys: [...ALL_PRICING_KEYS],
+      visiblePricingOptionIds: plan.pricingOptions.map(o => o.id),
       promotions: {},
     });
   }
@@ -146,14 +139,14 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
   if (!def) return null;
 
   const selectedTier = def.tiers.find(t => t.seats === slot.selectedSeats) ?? def.tiers[0];
-  const visiblePricingKeys: PricingKey[] = slot.visiblePricingKeys ?? ALL_PRICING_KEYS;
+  const visiblePricingOptionIds: string[] = slot.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
   const promotions = slot.promotions ?? {};
   const hasAnyPromo = Object.keys(promotions).length > 0;
 
-  const promoRows: PromoRow[] = ALL_PRICING_KEYS.map(key => ({
-    key,
-    label: PRICING_LABELS[key],
-    originalPrice: selectedTier[key],
+  const promoRows: PromoRow[] = def.pricingOptions.map(opt => ({
+    key: opt.id,
+    label: opt.label,
+    originalPrice: selectedTier.prices[opt.id]?.price ?? '$0/mo',
   }));
 
   function updateSlot(updates: Partial<typeof slot>) {
@@ -259,23 +252,24 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
         {/* Pricing rows */}
         <div className="px-4 py-3 border-t border-gray-100">
           <div className="space-y-2">
-            {ALL_PRICING_KEYS.map(key => {
-              const isVisible = visiblePricingKeys.includes(key);
-              const promo = promotions[key];
-              const original = selectedTier[key];
+            {def.pricingOptions.map(opt => {
+              const isVisible = visiblePricingOptionIds.includes(opt.id);
+              const promo = promotions[opt.id];
+              const priceEntry = selectedTier.prices[opt.id];
+              const original = priceEntry?.price ?? '$0/mo';
+              const monthlyEquivalent = priceEntry?.monthlyEquivalent;
               const discounted = promo ? applyPromo(original, promo) : null;
               const unit = original.includes('/yr') ? '/yr' : '/mo';
-              const isAnnualTotal = key === 'annualTotal';
 
               return (
-                <div key={key} className="flex items-start gap-1.5">
+                <div key={opt.id} className="flex items-start gap-1.5">
                   {/* Pill toggle */}
                   <button
                     onClick={() => {
-                      const newKeys = isVisible
-                        ? visiblePricingKeys.filter(k => k !== key)
-                        : [...visiblePricingKeys, key];
-                      updateSlot({ visiblePricingKeys: newKeys });
+                      const newIds = isVisible
+                        ? visiblePricingOptionIds.filter(id => id !== opt.id)
+                        : [...visiblePricingOptionIds, opt.id];
+                      updateSlot({ visiblePricingOptionIds: newIds });
                     }}
                     className="px-2 py-0.5 rounded-full text-[9px] font-semibold border transition-colors flex-shrink-0 mt-0.5"
                     style={
@@ -284,7 +278,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
                         : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
                     }
                   >
-                    {PRICING_PILL_LABELS[key]}
+                    {opt.label}
                   </button>
 
                   {/* Price value */}
@@ -294,7 +288,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
                         <span className="text-gray-400 line-through">{original}</span>
                         {' '}
                         <span className="font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
-                        {isAnnualTotal && <div className="text-amber-500">({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)</div>}
+                        {monthlyEquivalent && <div className="text-amber-500">({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)</div>}
                         <div className="text-gray-400">{promo!.type === 'percent' ? `${promo!.value}%` : `$${promo!.value}`} off for {promo!.durationMonths} mo</div>
                       </>
                     ) : (
@@ -302,10 +296,8 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
                         <span className="font-semibold" style={{ color: isVisible ? def.color : '#d1d5db' }}>
                           {original}
                         </span>
-                        {isAnnualTotal && (
-                          <span className={`ml-0.5 ${isVisible ? 'text-gray-400' : 'text-gray-200'}`}>
-                            ({selectedTier.annualMonthly})
-                          </span>
+                        {monthlyEquivalent && isVisible && (
+                          <div className="text-gray-400">({monthlyEquivalent})</div>
                         )}
                       </>
                     )}
@@ -340,7 +332,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
           initialValidUntil={slot.promoValidUntil}
           onSave={(promos, validUntil) => {
             updateSlot({
-              promotions: promos as Partial<Record<PricingKey, PromoConfig>>,
+              promotions: promos as Partial<Record<string, PromoConfig>>,
               promoValidUntil: validUntil ?? undefined,
             });
           }}

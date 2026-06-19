@@ -1,7 +1,7 @@
 import { useReducer, useState } from 'react';
 import { PLANS as DEFAULT_PLANS } from '../data/plans';
 import { ADDONS as DEFAULT_ADDONS } from '../data/addons';
-import type { PlanDefinition, AddonDefinition, PriceTier, AddonPriceTier } from '../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, AddonPriceTier, PlanPricingOption } from '../types';
 
 const STORAGE_KEY = 'jobber-email-builder-admin-v1';
 
@@ -12,9 +12,13 @@ export interface AdminState {
 
 export type AdminAction =
   | { type: 'UPDATE_PLAN_META'; planId: string; field: 'title' | 'tagline' | 'color'; value: string }
-  | { type: 'UPDATE_TIER_FIELD'; planId: string; tierIndex: number; field: keyof PriceTier; value: string | number }
+  | { type: 'UPDATE_TIER_SEATS'; planId: string; tierIndex: number; seats: number }
+  | { type: 'UPDATE_TIER_PRICE'; planId: string; tierIndex: number; optionId: string; field: 'price' | 'monthlyEquivalent'; value: string }
   | { type: 'ADD_TIER'; planId: string }
   | { type: 'REMOVE_TIER'; planId: string; tierIndex: number }
+  | { type: 'ADD_PRICING_OPTION'; planId: string }
+  | { type: 'REMOVE_PRICING_OPTION'; planId: string; optionId: string }
+  | { type: 'UPDATE_PRICING_OPTION'; planId: string; optionId: string; label: string }
   | { type: 'ADD_PLAN_FEATURE'; planId: string; label: string }
   | { type: 'UPDATE_PLAN_FEATURE'; planId: string; featureId: string; label: string }
   | { type: 'DELETE_PLAN_FEATURE'; planId: string; featureId: string }
@@ -44,16 +48,37 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
         ),
       };
 
-    case 'UPDATE_TIER_FIELD': {
-      const coerced = action.field === 'seats' ? Number(action.value) : action.value;
+    case 'UPDATE_TIER_SEATS': {
       return {
         ...state,
         plans: state.plans.map(p =>
           p.id !== action.planId ? p : {
             ...p,
             tiers: p.tiers.map((t, i) =>
-              i !== action.tierIndex ? t : { ...t, [action.field]: coerced }
+              i !== action.tierIndex ? t : { ...t, seats: action.seats }
             ),
+          }
+        ),
+      };
+    }
+
+    case 'UPDATE_TIER_PRICE': {
+      return {
+        ...state,
+        plans: state.plans.map(p =>
+          p.id !== action.planId ? p : {
+            ...p,
+            tiers: p.tiers.map((t, i) => {
+              if (i !== action.tierIndex) return t;
+              const existing = t.prices[action.optionId] ?? { price: '$0/mo' };
+              return {
+                ...t,
+                prices: {
+                  ...t.prices,
+                  [action.optionId]: { ...existing, [action.field]: action.value },
+                },
+              };
+            }),
           }
         ),
       };
@@ -63,12 +88,13 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
       const plan = state.plans.find(p => p.id === action.planId);
       if (!plan) return state;
       const maxSeats = Math.max(...plan.tiers.map(t => t.seats));
+      const seedPrices: PriceTier['prices'] = {};
+      for (const opt of plan.pricingOptions) {
+        seedPrices[opt.id] = { price: '$0/mo' };
+      }
       const newTier: PriceTier = {
         seats: maxSeats + 5,
-        monthlyNoCommitment: '$0/mo',
-        monthlyAnnual: '$0/mo',
-        annualMonthly: '($0/mo)',
-        annualTotal: '$0/yr',
+        prices: seedPrices,
       };
       return {
         ...state,
@@ -88,6 +114,56 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
           }
         ),
       };
+
+    case 'ADD_PRICING_OPTION': {
+      const newId = `${action.planId}-opt-${Date.now()}`;
+      return {
+        ...state,
+        plans: state.plans.map(p => {
+          if (p.id !== action.planId) return p;
+          const newOption: PlanPricingOption = { id: newId, label: 'New pricing option' };
+          return {
+            ...p,
+            pricingOptions: [...p.pricingOptions, newOption],
+            tiers: p.tiers.map(t => ({
+              ...t,
+              prices: { ...t.prices, [newId]: { price: '$0/mo' } },
+            })),
+          };
+        }),
+      };
+    }
+
+    case 'REMOVE_PRICING_OPTION': {
+      return {
+        ...state,
+        plans: state.plans.map(p => {
+          if (p.id !== action.planId) return p;
+          return {
+            ...p,
+            pricingOptions: p.pricingOptions.filter(o => o.id !== action.optionId),
+            tiers: p.tiers.map(t => {
+              const { [action.optionId]: _removed, ...rest } = t.prices;
+              return { ...t, prices: rest };
+            }),
+          };
+        }),
+      };
+    }
+
+    case 'UPDATE_PRICING_OPTION': {
+      return {
+        ...state,
+        plans: state.plans.map(p =>
+          p.id !== action.planId ? p : {
+            ...p,
+            pricingOptions: p.pricingOptions.map(o =>
+              o.id !== action.optionId ? o : { ...o, label: action.label }
+            ),
+          }
+        ),
+      };
+    }
 
     case 'ADD_PLAN_FEATURE': {
       const newId = `${action.planId}-f${Date.now()}`;
@@ -160,18 +236,22 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
 
     case 'ADD_PLAN': {
       const newId = `custom-plan-${Date.now()}`;
+      const defaultOptions: PlanPricingOption[] = [
+        { id: `${newId}-opt-0`, label: 'Monthly, no commitment' },
+        { id: `${newId}-opt-1`, label: 'Monthly, annual plan' },
+        { id: `${newId}-opt-2`, label: 'Annual, paid upfront' },
+      ];
+      const seedPrices: PriceTier['prices'] = {};
+      for (const opt of defaultOptions) {
+        seedPrices[opt.id] = { price: '$0/mo' };
+      }
       const newPlan: PlanDefinition = {
         id: newId,
         title: 'New Plan',
         tagline: 'Plan tagline here.',
         color: '#6366f1',
-        tiers: [{
-          seats: 1,
-          monthlyNoCommitment: '$0/mo',
-          monthlyAnnual: '$0/mo',
-          annualMonthly: '($0/mo)',
-          annualTotal: '$0/yr',
-        }],
+        pricingOptions: defaultOptions,
+        tiers: [{ seats: 1, prices: seedPrices }],
         features: [],
       };
       return { ...state, plans: [...state.plans, newPlan] };
@@ -301,6 +381,35 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
 }
 
 function migrateAdminState(raw: AdminState): AdminState {
+  const plans = raw.plans.map((plan: any) => {
+    // Already new format — has pricingOptions array and tiers with prices record
+    if (Array.isArray(plan.pricingOptions) && plan.tiers?.[0]?.prices) {
+      return plan as PlanDefinition;
+    }
+    // Old format: tiers have fixed fields (monthlyNoCommitment, monthlyAnnual, annualMonthly, annualTotal)
+    if (plan.tiers?.[0] && typeof plan.tiers[0].monthlyNoCommitment === 'string') {
+      const pricingOptions: PlanPricingOption[] = [
+        { id: `${plan.id}-opt-0`, label: 'Monthly, no commitment' },
+        { id: `${plan.id}-opt-1`, label: 'Monthly, annual plan' },
+        { id: `${plan.id}-opt-2`, label: 'Annual, paid upfront' },
+      ];
+      const tiers: PriceTier[] = (plan.tiers as any[]).map((t: any) => ({
+        seats: t.seats,
+        prices: {
+          [`${plan.id}-opt-0`]: { price: t.monthlyNoCommitment ?? '$0/mo' },
+          [`${plan.id}-opt-1`]: { price: t.monthlyAnnual ?? '$0/mo' },
+          [`${plan.id}-opt-2`]: {
+            price: t.annualTotal ?? '$0/yr',
+            ...(t.annualMonthly ? { monthlyEquivalent: t.annualMonthly } : {}),
+          },
+        },
+      }));
+      const { tiers: _oldTiers, ...rest } = plan;
+      return { ...rest, pricingOptions, tiers } as PlanDefinition;
+    }
+    return plan as PlanDefinition;
+  });
+
   const addons = raw.addons.map((a: any) => {
     // Already new format (tiers with id+label+price)
     if (Array.isArray(a.tiers) && a.tiers.length > 0 && 'id' in a.tiers[0] && 'price' in a.tiers[0]) {
@@ -330,7 +439,7 @@ function migrateAdminState(raw: AdminState): AdminState {
     }
     return a;
   });
-  return { ...raw, addons };
+  return { ...raw, plans, addons };
 }
 
 function loadFromStorage(): AdminState {

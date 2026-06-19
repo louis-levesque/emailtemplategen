@@ -1,7 +1,5 @@
 import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition } from '../types';
-import { ALL_PRICING_KEYS } from '../types';
 import {
-  PRICING_LABELS,
   applyPromo,
   formatCurrency,
   formatValidUntil,
@@ -97,23 +95,24 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
   const hasFeatures = featureRows.length > 0;
 
   const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
-  const visiblePricingKeys = block.visiblePricingKeys ?? ALL_PRICING_KEYS;
+  const visiblePricingOptionIds = block.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
   const promotions = block.promotions ?? {};
 
-  // Build pricing rows — only for visible keys
-  const pricingRows = ALL_PRICING_KEYS
-    .filter(key => visiblePricingKeys.includes(key))
-    .map(key => {
-      const original = tier[key];
-      const promo = promotions[key];
-      const label = PRICING_LABELS[key];
+  // Build pricing rows — only for visible options
+  const pricingRows = def.pricingOptions
+    .filter(opt => visiblePricingOptionIds.includes(opt.id))
+    .map(opt => {
+      const priceEntry = tier.prices[opt.id];
+      const original = priceEntry?.price ?? '$0/mo';
+      const monthlyEquivalent = priceEntry?.monthlyEquivalent;
+      const promo = promotions[opt.id];
+      const label = opt.label;
 
       if (promo) {
         const discounted = applyPromo(original, promo);
         const discStr = formatCurrency(discounted);
         const unit = original.includes('/yr') ? '/yr' : '/mo';
-        const isAnnualTotal = key === 'annualTotal';
-        const monthlyDisc = isAnnualTotal
+        const monthlyDisc = monthlyEquivalent
           ? formatCurrency(Math.round((discounted / 12) * 100) / 100)
           : null;
 
@@ -123,19 +122,18 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
       <td style="padding: 4px 0; text-align: right; font-size: 13px;">
         <span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${original}</span>
         <strong style="color: #b45309;">${discStr}${unit}</strong>
-        ${isAnnualTotal && monthlyDisc ? `<span style="display:block; font-size:11px; color:#b45309;">(${monthlyDisc}/mo)</span>` : ''}
+        ${monthlyDisc ? `<span style="display:block; font-size:11px; color:#b45309;">(${monthlyDisc}/mo)</span>` : ''}
         <span style="display:block; font-size:11px; color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${original}</span>
       </td>
     </tr>`;
       }
 
-      const isAnnualTotal = key === 'annualTotal';
       return `
     <tr>
       <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
       <td style="padding: 4px 0; text-align: right; font-weight: bold; color: ${def.color}; font-size: 13px;">
         ${original}
-        ${isAnnualTotal ? `<span style="display:block; font-size:11px; font-weight:normal; color:#888;">(${tier.annualMonthly})</span>` : ''}
+        ${monthlyEquivalent ? `<span style="display:block; font-size:11px; font-weight:normal; color:#888;">(${monthlyEquivalent})</span>` : ''}
       </td>
     </tr>`;
     })
@@ -316,33 +314,34 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
     const def = plans.find(p => p.id === slot.definitionId);
     if (!def) return '';
     const tier = def.tiers.find(t => t.seats === slot.selectedSeats) ?? def.tiers[0];
-    const visiblePricingKeys = slot.visiblePricingKeys ?? ALL_PRICING_KEYS;
+    const visiblePricingOptionIds = slot.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
     const promotions = slot.promotions ?? {};
 
     // All visible pricing rows
-    const pricingRows = ALL_PRICING_KEYS
-      .filter(key => visiblePricingKeys.includes(key))
-      .map(key => {
-        const original = tier[key];
-        const promo = promotions[key];
-        const label = PRICING_LABELS[key];
-        const isAnnualTotal = key === 'annualTotal';
+    const pricingRows = def.pricingOptions
+      .filter(opt => visiblePricingOptionIds.includes(opt.id))
+      .map(opt => {
+        const priceEntry = tier.prices[opt.id];
+        const original = priceEntry?.price ?? '$0/mo';
+        const monthlyEquivalent = priceEntry?.monthlyEquivalent;
+        const promo = promotions[opt.id];
+        const label = opt.label;
 
         if (promo) {
           const discounted = applyPromo(original, promo);
           const discStr = formatCurrency(discounted);
           const unit = original.includes('/yr') ? '/yr' : '/mo';
-          const monthlyDisc = isAnnualTotal ? formatCurrency(Math.round((discounted / 12) * 100) / 100) : null;
+          const monthlyDisc = monthlyEquivalent ? formatCurrency(Math.round((discounted / 12) * 100) / 100) : null;
           return `<div style="padding:3px 0 6px;">
             <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
-            <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${isAnnualTotal && monthlyDisc ? ` <span style="font-size:10px; color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}</div>
+            <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${monthlyDisc ? ` <span style="font-size:10px; color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}</div>
             <div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(original)}</div>
           </div>`;
         }
 
         return `<div style="padding:3px 0 6px;">
           <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
-          <div style="font-size:11px; font-weight:bold; color:${def.color};">${escapeHtml(original)}${isAnnualTotal ? ` <span style="font-size:10px; font-weight:normal; color:#888;">(${escapeHtml(tier.annualMonthly)})</span>` : ''}</div>
+          <div style="font-size:11px; font-weight:bold; color:${def.color};">${escapeHtml(original)}${monthlyEquivalent ? ` <span style="font-size:10px; font-weight:normal; color:#888;">(${escapeHtml(monthlyEquivalent)})</span>` : ''}</div>
         </div>`;
       })
       .join('');
@@ -515,7 +514,7 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         const def = plans.find(p => p.id === block.definitionId);
         if (!def) return '';
         const tier = def.tiers.find(t => t.seats === block.selectedSeats) ?? def.tiers[0];
-        const visiblePricingKeys = block.visiblePricingKeys ?? ALL_PRICING_KEYS;
+        const visiblePricingOptionIds = block.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
         const promotions = block.promotions ?? {};
         const keyIds = block.keyFeatureIds ?? [];
         const keyFeaturesText = def.features
@@ -530,20 +529,23 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
           keyFeaturesText ? `Key Features:\n${keyFeaturesText}` : '',
           otherFeaturesText ? (keyFeaturesText ? `Other features included:\n${otherFeaturesText}` : otherFeaturesText) : '',
         ].filter(Boolean).join('\n');
-        const pricing = ALL_PRICING_KEYS
-          .filter(key => visiblePricingKeys.includes(key))
-          .map(key => {
-            const promo = promotions[key];
+        const pricing = def.pricingOptions
+          .filter(opt => visiblePricingOptionIds.includes(opt.id))
+          .map(opt => {
+            const priceEntry = tier.prices[opt.id];
+            const original = priceEntry?.price ?? '$0/mo';
+            const monthlyEquivalent = priceEntry?.monthlyEquivalent;
+            const promo = promotions[opt.id];
             if (promo) {
-              const discounted = applyPromo(tier[key], promo);
-              const unit = tier[key].includes('/yr') ? '/yr' : '/mo';
+              const discounted = applyPromo(original, promo);
+              const unit = original.includes('/yr') ? '/yr' : '/mo';
               const promoLbl = promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`;
-              return `  ${PRICING_LABELS[key]}: ${formatCurrency(discounted)}${unit} (${promoLbl} off for ${promo.durationMonths} mo, then ${tier[key]})`;
+              return `  ${opt.label}: ${formatCurrency(discounted)}${unit} (${promoLbl} off for ${promo.durationMonths} mo, then ${original})`;
             }
-            if (key === 'annualTotal') {
-              return `  ${PRICING_LABELS[key]}: ${tier[key]} (${tier.annualMonthly})`;
+            if (monthlyEquivalent) {
+              return `  ${opt.label}: ${original} (${monthlyEquivalent})`;
             }
-            return `  ${PRICING_LABELS[key]}: ${tier[key]}`;
+            return `  ${opt.label}: ${original}`;
           })
           .join('\n');
         const validUntilPlan = block.promoValidUntil && Object.keys(promotions).length > 0

@@ -1,10 +1,4 @@
-import type { PricingKey, PromoConfig } from '../types';
-
-export const PRICING_LABELS: Record<PricingKey, string> = {
-  monthlyNoCommitment: 'Monthly, no commitment',
-  monthlyAnnual: 'Monthly, 1-year commitment',
-  annualTotal: 'Annual, paid upfront',
-};
+import type { PromoConfig } from '../types';
 
 /** Strip '$', commas, '/mo', '/yr' and return the numeric value */
 export function parsePrice(str: string): number {
@@ -55,7 +49,7 @@ export function formatDuration(months: number): string {
 
 /** Build the promotional sentence that appears in the email */
 export function buildPromoSentence(
-  pricingKey: PricingKey,
+  label: string,
   planTitle: string,
   originalStr: string,
   promo: PromoConfig,
@@ -66,18 +60,8 @@ export function buildPromoSentence(
   const promoLabel =
     promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`;
   const dur = formatDuration(promo.durationMonths);
-  const label = PRICING_LABELS[pricingKey];
 
-  if (pricingKey === 'annualTotal') {
-    const monthlyDisc = Math.round((discounted / 12) * 100) / 100;
-    const monthlyStr = formatCurrency(monthlyDisc);
-    return (
-      `For ${dur}, get ${promoLabel} off the ${planTitle} Annual, Paid Upfront Subscription Plan: ` +
-      `${discStr}/year (${monthlyStr} x 12)`
-    );
-  }
-
-  // Monthly variants and annualMonthly
+  // Monthly variants
   const unit = 'month';
   return (
     `For the first ${dur}, get ${promoLabel} off the ${planTitle} ${label} Subscription Plan: ` +

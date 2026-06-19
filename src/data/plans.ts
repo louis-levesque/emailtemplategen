@@ -6,13 +6,19 @@ export const PLANS: PlanDefinition[] = [
     title: 'Core',
     tagline: 'Get started with essential job management tools.',
     color: '#1F9839',
+    pricingOptions: [
+      { id: 'core-opt-0', label: 'Monthly, no commitment' },
+      { id: 'core-opt-1', label: 'Monthly, annual plan' },
+      { id: 'core-opt-2', label: 'Annual, paid upfront' },
+    ],
     tiers: [
       {
         seats: 1,
-        monthlyNoCommitment: '$49/mo',
-        monthlyAnnual: '$39/mo',
-        annualMonthly: '$29/mo',
-        annualTotal: '$348/yr',
+        prices: {
+          'core-opt-0': { price: '$49/mo' },
+          'core-opt-1': { price: '$39/mo' },
+          'core-opt-2': { price: '$348/yr', monthlyEquivalent: '$29/mo' },
+        },
       },
     ],
     features: [
@@ -43,34 +49,43 @@ export const PLANS: PlanDefinition[] = [
     title: 'Connect',
     tagline: 'Automate your workflow and grow your team.',
     color: '#0A6FD1',
+    pricingOptions: [
+      { id: 'connect-opt-0', label: 'Monthly, no commitment' },
+      { id: 'connect-opt-1', label: 'Monthly, annual plan' },
+      { id: 'connect-opt-2', label: 'Annual, paid upfront' },
+    ],
     tiers: [
       {
         seats: 1,
-        monthlyNoCommitment: '$139/mo',
-        monthlyAnnual: '$119/mo',
-        annualMonthly: '$99/mo',
-        annualTotal: '$1,188/yr',
+        prices: {
+          'connect-opt-0': { price: '$139/mo' },
+          'connect-opt-1': { price: '$119/mo' },
+          'connect-opt-2': { price: '$1,188/yr', monthlyEquivalent: '$99/mo' },
+        },
       },
       {
         seats: 5,
-        monthlyNoCommitment: '$199/mo',
-        monthlyAnnual: '$169/mo',
-        annualMonthly: '$149/mo',
-        annualTotal: '$1,788/yr',
+        prices: {
+          'connect-opt-0': { price: '$199/mo' },
+          'connect-opt-1': { price: '$169/mo' },
+          'connect-opt-2': { price: '$1,788/yr', monthlyEquivalent: '$149/mo' },
+        },
       },
       {
         seats: 10,
-        monthlyNoCommitment: '$299/mo',
-        monthlyAnnual: '$259/mo',
-        annualMonthly: '$229/mo',
-        annualTotal: '$2,748/yr',
+        prices: {
+          'connect-opt-0': { price: '$299/mo' },
+          'connect-opt-1': { price: '$259/mo' },
+          'connect-opt-2': { price: '$2,748/yr', monthlyEquivalent: '$229/mo' },
+        },
       },
       {
         seats: 15,
-        monthlyNoCommitment: '$399/mo',
-        monthlyAnnual: '$339/mo',
-        annualMonthly: '$299/mo',
-        annualTotal: '$3,588/yr',
+        prices: {
+          'connect-opt-0': { price: '$399/mo' },
+          'connect-opt-1': { price: '$339/mo' },
+          'connect-opt-2': { price: '$3,588/yr', monthlyEquivalent: '$299/mo' },
+        },
       },
     ],
     features: [
@@ -99,34 +114,43 @@ export const PLANS: PlanDefinition[] = [
     title: 'Grow',
     tagline: 'Win bigger jobs and scale your operations.',
     color: '#7C3AED',
+    pricingOptions: [
+      { id: 'grow-opt-0', label: 'Monthly, no commitment' },
+      { id: 'grow-opt-1', label: 'Monthly, annual plan' },
+      { id: 'grow-opt-2', label: 'Annual, paid upfront' },
+    ],
     tiers: [
       {
         seats: 1,
-        monthlyNoCommitment: '$199/mo',
-        monthlyAnnual: '$169/mo',
-        annualMonthly: '$149/mo',
-        annualTotal: '$1,788/yr',
+        prices: {
+          'grow-opt-0': { price: '$199/mo' },
+          'grow-opt-1': { price: '$169/mo' },
+          'grow-opt-2': { price: '$1,788/yr', monthlyEquivalent: '$149/mo' },
+        },
       },
       {
         seats: 5,
-        monthlyNoCommitment: '$299/mo',
-        monthlyAnnual: '$259/mo',
-        annualMonthly: '$229/mo',
-        annualTotal: '$2,748/yr',
+        prices: {
+          'grow-opt-0': { price: '$299/mo' },
+          'grow-opt-1': { price: '$259/mo' },
+          'grow-opt-2': { price: '$2,748/yr', monthlyEquivalent: '$229/mo' },
+        },
       },
       {
         seats: 10,
-        monthlyNoCommitment: '$399/mo',
-        monthlyAnnual: '$349/mo',
-        annualMonthly: '$299/mo',
-        annualTotal: '$3,588/yr',
+        prices: {
+          'grow-opt-0': { price: '$399/mo' },
+          'grow-opt-1': { price: '$349/mo' },
+          'grow-opt-2': { price: '$3,588/yr', monthlyEquivalent: '$299/mo' },
+        },
       },
       {
         seats: 15,
-        monthlyNoCommitment: '$499/mo',
-        monthlyAnnual: '$429/mo',
-        annualMonthly: '$399/mo',
-        annualTotal: '$4,788/yr',
+        prices: {
+          'grow-opt-0': { price: '$499/mo' },
+          'grow-opt-1': { price: '$429/mo' },
+          'grow-opt-2': { price: '$4,788/yr', monthlyEquivalent: '$399/mo' },
+        },
       },
     ],
     features: [
@@ -146,27 +170,35 @@ export const PLANS: PlanDefinition[] = [
     title: 'Plus',
     tagline: 'The complete package for ambitious home service businesses.',
     color: '#D97706',
+    pricingOptions: [
+      { id: 'plus-opt-0', label: 'Monthly, no commitment' },
+      { id: 'plus-opt-1', label: 'Monthly, annual plan' },
+      { id: 'plus-opt-2', label: 'Annual, paid upfront' },
+    ],
     tiers: [
       {
         seats: 5,
-        monthlyNoCommitment: '$499/mo',
-        monthlyAnnual: '$439/mo',
-        annualMonthly: '$399/mo',
-        annualTotal: '$4,788/yr',
+        prices: {
+          'plus-opt-0': { price: '$499/mo' },
+          'plus-opt-1': { price: '$439/mo' },
+          'plus-opt-2': { price: '$4,788/yr', monthlyEquivalent: '$399/mo' },
+        },
       },
       {
         seats: 10,
-        monthlyNoCommitment: '$599/mo',
-        monthlyAnnual: '$499/mo',
-        annualMonthly: '$449/mo',
-        annualTotal: '$5,388/yr',
+        prices: {
+          'plus-opt-0': { price: '$599/mo' },
+          'plus-opt-1': { price: '$499/mo' },
+          'plus-opt-2': { price: '$5,388/yr', monthlyEquivalent: '$449/mo' },
+        },
       },
       {
         seats: 15,
-        monthlyNoCommitment: '$699/mo',
-        monthlyAnnual: '$599/mo',
-        annualMonthly: '$529/mo',
-        annualTotal: '$6,348/yr',
+        prices: {
+          'plus-opt-0': { price: '$699/mo' },
+          'plus-opt-1': { price: '$599/mo' },
+          'plus-opt-2': { price: '$6,348/yr', monthlyEquivalent: '$529/mo' },
+        },
       },
     ],
     features: [

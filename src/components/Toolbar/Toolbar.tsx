@@ -101,24 +101,6 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
           </button>
 
           <button
-            onClick={handleSavePDF}
-            disabled={!hasBlocks}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all flex items-center gap-1.5 ${
-              hasBlocks
-                ? 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:scale-95'
-                : 'border-gray-200 text-gray-300 cursor-not-allowed bg-white'
-            }`}
-            title="Opens a print-ready version — choose 'Save as PDF' in the print dialog"
-          >
-            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 10v2.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V10"/>
-              <polyline points="4.5,6.5 7,9.5 9.5,6.5"/>
-              <line x1="7" y1="1" x2="7" y2="9.5"/>
-            </svg>
-            Save as PDF
-          </button>
-
-          <button
             onClick={handleOpenInGmail}
             disabled={!hasBlocks}
             className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all flex items-center gap-1.5 ${
@@ -148,6 +130,24 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
             }`}
           >
             {copiedRich ? '✓ Copied!' : 'Copy Only'}
+          </button>
+
+          <button
+            onClick={handleSavePDF}
+            disabled={!hasBlocks}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all flex items-center gap-1.5 ${
+              hasBlocks
+                ? 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50 active:scale-95'
+                : 'border-gray-200 text-gray-300 cursor-not-allowed bg-white'
+            }`}
+            title="Opens a print-ready version — choose 'Save as PDF' in the print dialog"
+          >
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 10v2.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V10"/>
+              <polyline points="4.5,6.5 7,9.5 9.5,6.5"/>
+              <line x1="7" y1="1" x2="7" y2="9.5"/>
+            </svg>
+            Save as PDF
           </button>
 
           <button

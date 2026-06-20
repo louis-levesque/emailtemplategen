@@ -68,9 +68,9 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
   }
 
   function clearAll() {
-    setRowStates(() => {
+    setRowStates(s => {
       const cleared: Record<string, RowState> = {};
-      rows.forEach(r => { cleared[r.key] = defaultRowState(); });
+      rows.forEach(r => { cleared[r.key] = { ...s[r.key], type: 'percent', value: '', durationMonths: '3' }; });
       return cleared;
     });
     setValidUntil('');

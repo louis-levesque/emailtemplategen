@@ -115,6 +115,20 @@ function renderFeaturedPricingBox(
 </table>`;
 }
 
+/** Compact variant of the featured pricing box for use inside compare slot cells. */
+function renderFeaturedPricingBoxCompact(label: string, priceHtml: string): string {
+  return `
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #1D2D44; border-radius:4px; border-collapse:separate; margin:4px 0;">
+  <tr>
+    <td colspan="2" style="background-color:#1D2D44; padding:2px 8px; text-align:center; font-size:9px; font-weight:700; color:#ffffff; font-family:Arial,Helvetica,sans-serif; letter-spacing:0.06em; border-radius:3px 3px 0 0;">RECOMMENDED</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 8px; color:#444; font-size:10px; border-top:1px solid #e5e7eb;">${label}</td>
+    <td style="padding:4px 8px; text-align:right; font-size:10px; border-top:1px solid #e5e7eb;">${priceHtml}</td>
+  </tr>
+</table>`;
+}
+
 function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
   const def = plans.find(p => p.id === block.definitionId);
   if (!def) return '';
@@ -377,7 +391,11 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
     const visiblePricingOptionIds = slot.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
     const promotions = slot.promotions ?? {};
 
-    // All visible pricing rows
+    // All visible pricing rows — featured option gets the compact recommended box
+    const featuredCompareOptId = slot.featuredPricingOptionId;
+    const hasFeaturedCompareOpt = !!featuredCompareOptId && visiblePricingOptionIds.includes(featuredCompareOptId);
+    const comparePad = hasFeaturedCompareOpt ? '3px 8px 6px' : '3px 0 6px';
+    let featuredCompareBox = '';
     const pricingRows = def.pricingOptions
       .filter(opt => visiblePricingOptionIds.includes(opt.id))
       .map(opt => {
@@ -386,22 +404,32 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
         const monthlyEquivalent = priceEntry?.monthlyEquivalent;
         const promo = promotions[opt.id];
         const label = opt.label;
+        const isFeatured = featuredCompareOptId === opt.id;
 
         if (promo) {
           const discounted = applyPromo(original, promo);
           const discStr = formatCurrency(discounted);
           const unit = original.includes('/yr') ? '/yr' : '/mo';
           const monthlyDisc = monthlyEquivalent ? formatCurrency(Math.round((discounted / 12) * 100) / 100) : null;
-          return `<div style="padding:3px 0 6px;">
+          const priceHtml = `<span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${monthlyDisc ? ` <span style="font-size:10px;color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}<div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo</div>`;
+          if (isFeatured) {
+            featuredCompareBox += renderFeaturedPricingBoxCompact(escapeHtml(label), priceHtml);
+            return '';
+          }
+          return `<div style="padding:${comparePad};">
             <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
-            <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(original)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${escapeHtml(unit)}</strong>${monthlyDisc ? ` <span style="font-size:10px; color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}</div>
-            <div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(original)}</div>
+            <div style="font-size:11px;">${priceHtml}</div>
           </div>`;
         }
 
-        return `<div style="padding:3px 0 6px;">
+        const priceHtml = `<strong style="color:${def.color};">${escapeHtml(original)}</strong>${monthlyEquivalent ? ` <span style="font-size:10px;font-weight:normal;color:#888;">(${escapeHtml(monthlyEquivalent)})</span>` : ''}`;
+        if (isFeatured) {
+          featuredCompareBox += renderFeaturedPricingBoxCompact(escapeHtml(label), priceHtml);
+          return '';
+        }
+        return `<div style="padding:${comparePad};">
           <div style="font-size:10px; color:#888;">${escapeHtml(label)}</div>
-          <div style="font-size:11px; font-weight:bold; color:${def.color};">${escapeHtml(original)}${monthlyEquivalent ? ` <span style="font-size:10px; font-weight:normal; color:#888;">(${escapeHtml(monthlyEquivalent)})</span>` : ''}</div>
+          <div style="font-size:11px;">${priceHtml}</div>
         </div>`;
       })
       .join('');
@@ -434,9 +462,10 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
         <tr>
           <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.tagline))}</td>
         </tr>
-        ${pricingRows || promoValidUntilHtml ? `
+        ${featuredCompareBox || pricingRows || promoValidUntilHtml ? `
         <tr>
           <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">
+            ${featuredCompareBox}
             ${pricingRows}
             ${promoValidUntilHtml}
           </td>
@@ -458,21 +487,35 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
   const slotPromotions = slot.promotions ?? {};
   const visibleTiers = def.tiers.filter(t => visibleTierIds.includes(t.id));
 
+  const featuredCompareTierId = slot.featuredTierId;
+  const hasFeaturedCompareTier = !!featuredCompareTierId && visibleTiers.some(t => t.id === featuredCompareTierId);
+  const addonComparePad = hasFeaturedCompareTier ? '3px 8px 6px' : '3px 0 6px';
+  let featuredAddonCompareBox = '';
   const addonPricingRows = visibleTiers.map(tier => {
     const promo = slotPromotions[tier.id];
+    const isFeatured = featuredCompareTierId === tier.id;
     if (promo) {
       const discounted = applyPromo(tier.price, promo);
       const discStr = formatCurrency(discounted);
       const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
-      return `<div style="padding:3px 0 6px;">
+      const priceHtml = `<span style="text-decoration:line-through;color:#aaa;">${escapeHtml(tier.price)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${unit}</strong><div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo</div>`;
+      if (isFeatured) {
+        featuredAddonCompareBox += renderFeaturedPricingBoxCompact(escapeHtml(tier.label), priceHtml);
+        return '';
+      }
+      return `<div style="padding:${addonComparePad};">
         <div style="font-size:10px; color:#888;">${escapeHtml(tier.label)}</div>
-        <div style="font-size:11px;"><span style="text-decoration:line-through;color:#aaa;">${escapeHtml(tier.price)}</span> <strong style="color:#b45309;">${escapeHtml(discStr)}${unit}</strong></div>
-        <div style="font-size:10px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(tier.price)}</div>
+        <div style="font-size:11px;">${priceHtml}</div>
       </div>`;
     }
-    return `<div style="padding:3px 0 6px;">
+    const priceHtml = `<strong style="color:#9DC63F;">${escapeHtml(tier.price)}</strong>${tier.monthlyEquivalent ? ` <span style="font-size:10px;font-weight:normal;color:#888;">${escapeHtml(tier.monthlyEquivalent)}</span>` : ''}`;
+    if (isFeatured) {
+      featuredAddonCompareBox += renderFeaturedPricingBoxCompact(escapeHtml(tier.label), priceHtml);
+      return '';
+    }
+    return `<div style="padding:${addonComparePad};">
       <div style="font-size:10px; color:#888;">${escapeHtml(tier.label)}</div>
-      <div style="font-size:11px; font-weight:bold; color:#9DC63F;">${escapeHtml(tier.price)}${tier.monthlyEquivalent ? ` <span style="font-size:10px; font-weight:normal; color:#888;">${escapeHtml(tier.monthlyEquivalent)}</span>` : ''}</div>
+      <div style="font-size:11px;">${priceHtml}</div>
     </div>`;
   }).join('');
 
@@ -497,9 +540,10 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
       <tr>
         <td style="padding:3px 10px 6px; color:#555; font-size:12px;">${escapeHtml(stripLinkSyntax(def.description))}</td>
       </tr>
-      ${addonPricingRows || promoValidUntilHtml ? `
+      ${featuredAddonCompareBox || addonPricingRows || promoValidUntilHtml ? `
       <tr>
         <td style="padding:6px 10px; border-bottom:1px solid #f0f0f0;">
+          ${featuredAddonCompareBox}
           ${addonPricingRows}
           ${promoValidUntilHtml}
         </td>

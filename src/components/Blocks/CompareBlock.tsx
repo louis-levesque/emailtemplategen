@@ -252,36 +252,19 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
         {/* Pricing rows */}
         <div className="px-4 py-3 border-t border-gray-100">
           <div className="space-y-2">
-            {def.pricingOptions.map(opt => {
-              const isVisible = visiblePricingOptionIds.includes(opt.id);
-              const promo = promotions[opt.id];
-              const priceEntry = selectedTier.prices[opt.id];
-              const original = priceEntry?.price ?? '$0/mo';
-              const monthlyEquivalent = priceEntry?.monthlyEquivalent;
-              const discounted = promo ? applyPromo(original, promo) : null;
-              const unit = original.includes('/yr') ? '/yr' : '/mo';
+            {(() => {
+              const hasFeaturedVisible = !!slot.featuredPricingOptionId && visiblePricingOptionIds.includes(slot.featuredPricingOptionId);
+              return def.pricingOptions.map(opt => {
+                const isVisible = visiblePricingOptionIds.includes(opt.id);
+                const isFeatured = slot.featuredPricingOptionId === opt.id;
+                const promo = promotions[opt.id];
+                const priceEntry = selectedTier.prices[opt.id];
+                const original = priceEntry?.price ?? '$0/mo';
+                const monthlyEquivalent = priceEntry?.monthlyEquivalent;
+                const discounted = promo ? applyPromo(original, promo) : null;
+                const unit = original.includes('/yr') ? '/yr' : '/mo';
 
-              return (
-                <div key={opt.id} className="space-y-0.5">
-                  {/* Full-width toggle button — label wraps naturally */}
-                  <button
-                    onClick={() => {
-                      const newIds = isVisible
-                        ? visiblePricingOptionIds.filter(id => id !== opt.id)
-                        : [...visiblePricingOptionIds, opt.id];
-                      updateSlot({ visiblePricingOptionIds: newIds });
-                    }}
-                    className="w-full text-left px-2 py-0.5 rounded text-[9px] font-semibold border transition-colors leading-snug"
-                    style={
-                      isVisible
-                        ? { backgroundColor: def.color, borderColor: def.color, color: '#fff' }
-                        : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
-                    }
-                  >
-                    {opt.label}
-                  </button>
-
-                  {/* Price value — stacked below the label */}
+                const priceDisplay = (
                   <div className="text-[10px] pl-1">
                     {discounted !== null ? (
                       <>
@@ -302,9 +285,64 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
                       </>
                     )}
                   </div>
-                </div>
-              );
-            })}
+                );
+
+                const row = (
+                  <div className="space-y-0.5">
+                    {/* Full-width toggle button */}
+                    <button
+                      onClick={() => {
+                        const newIds = isVisible
+                          ? visiblePricingOptionIds.filter(id => id !== opt.id)
+                          : [...visiblePricingOptionIds, opt.id];
+                        updateSlot({ visiblePricingOptionIds: newIds });
+                      }}
+                      className="w-full text-left px-2 py-0.5 rounded text-[9px] font-semibold border transition-colors leading-snug"
+                      style={
+                        isVisible
+                          ? { backgroundColor: def.color, borderColor: def.color, color: '#fff' }
+                          : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
+                      }
+                    >
+                      {opt.label}
+                    </button>
+                    {priceDisplay}
+                    {/* Recommended toggle */}
+                    {isVisible && (
+                      <button
+                        onClick={() => updateSlot({ featuredPricingOptionId: isFeatured ? undefined : opt.id })}
+                        className={`w-full text-center text-[8px] font-semibold py-0.5 rounded transition-colors ${
+                          isFeatured
+                            ? 'bg-lime-100 text-lime-700 hover:bg-lime-200'
+                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                        }`}
+                      >
+                        Recommended
+                      </button>
+                    )}
+                  </div>
+                );
+
+                if (isFeatured) {
+                  return (
+                    <div key={opt.id} className="rounded overflow-hidden" style={{ border: '1px solid #1D2D44' }}>
+                      <div className="text-center text-[8px] font-bold tracking-widest py-0.5" style={{ backgroundColor: '#1D2D44', color: '#fff' }}>
+                        RECOMMENDED
+                      </div>
+                      <div className="px-2 py-1.5 border-t" style={{ borderColor: '#e5e7eb' }}>
+                        {row}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={opt.id} className={hasFeaturedVisible ? 'px-2' : ''}>
+                    {row}
+                  </div>
+                );
+              });
+            })()}
           </div>
           {hasAnyPromo && slot.promoValidUntil && (
             <p className="text-[10px] text-amber-700 mt-2">
@@ -450,30 +488,16 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
         {/* Pricing rows */}
         <div className="px-4 py-3 border-t border-gray-100">
           <div className="space-y-2">
-            {def.tiers.map(tier => {
-              const isVisible = visibleTierIds.includes(tier.id);
-              const promo = promotions[tier.id];
-              const discounted = promo ? applyPromo(tier.price, promo) : null;
-              const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
+            {(() => {
+              const hasFeaturedVisible = !!slot.featuredTierId && visibleTierIds.includes(slot.featuredTierId);
+              return def.tiers.map(tier => {
+                const isVisible = visibleTierIds.includes(tier.id);
+                const isFeatured = slot.featuredTierId === tier.id;
+                const promo = promotions[tier.id];
+                const discounted = promo ? applyPromo(tier.price, promo) : null;
+                const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
 
-              return (
-                <div key={tier.id} className="space-y-0.5">
-                  <button
-                    onClick={() => {
-                      const newIds = isVisible
-                        ? visibleTierIds.filter(id => id !== tier.id)
-                        : [...visibleTierIds, tier.id];
-                      updateSlot({ visibleTierIds: newIds });
-                    }}
-                    className="w-full text-left px-2 py-0.5 rounded text-[9px] font-semibold border transition-colors leading-snug"
-                    style={
-                      isVisible
-                        ? { backgroundColor: '#9DC63F', borderColor: '#9DC63F', color: '#fff' }
-                        : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
-                    }
-                  >
-                    {tier.label}
-                  </button>
+                const priceDisplay = (
                   <div className="text-[10px] pl-1">
                     {discounted !== null ? (
                       <>
@@ -496,9 +520,63 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
                       </>
                     )}
                   </div>
-                </div>
-              );
-            })}
+                );
+
+                const row = (
+                  <div className="space-y-0.5">
+                    <button
+                      onClick={() => {
+                        const newIds = isVisible
+                          ? visibleTierIds.filter(id => id !== tier.id)
+                          : [...visibleTierIds, tier.id];
+                        updateSlot({ visibleTierIds: newIds });
+                      }}
+                      className="w-full text-left px-2 py-0.5 rounded text-[9px] font-semibold border transition-colors leading-snug"
+                      style={
+                        isVisible
+                          ? { backgroundColor: '#9DC63F', borderColor: '#9DC63F', color: '#fff' }
+                          : { backgroundColor: '#fff', borderColor: '#d1d5db', color: '#9ca3af' }
+                      }
+                    >
+                      {tier.label}
+                    </button>
+                    {priceDisplay}
+                    {/* Recommended toggle */}
+                    {isVisible && (
+                      <button
+                        onClick={() => updateSlot({ featuredTierId: isFeatured ? undefined : tier.id })}
+                        className={`w-full text-center text-[8px] font-semibold py-0.5 rounded transition-colors ${
+                          isFeatured
+                            ? 'bg-lime-100 text-lime-700 hover:bg-lime-200'
+                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                        }`}
+                      >
+                        Recommended
+                      </button>
+                    )}
+                  </div>
+                );
+
+                if (isFeatured) {
+                  return (
+                    <div key={tier.id} className="rounded overflow-hidden" style={{ border: '1px solid #1D2D44' }}>
+                      <div className="text-center text-[8px] font-bold tracking-widest py-0.5" style={{ backgroundColor: '#1D2D44', color: '#fff' }}>
+                        RECOMMENDED
+                      </div>
+                      <div className="px-2 py-1.5 border-t" style={{ borderColor: '#e5e7eb' }}>
+                        {row}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={tier.id} className={hasFeaturedVisible ? 'px-2' : ''}>
+                    {row}
+                  </div>
+                );
+              });
+            })()}
           </div>
           {hasAnyPromo && slot.promoValidUntil && (
             <p className="text-[10px] text-amber-700 mt-2">

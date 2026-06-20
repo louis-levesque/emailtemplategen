@@ -19,6 +19,8 @@ export type CanvasAction =
   | { type: 'REORDER_COMPARE_SLOTS'; instanceId: string; slots: (CompareSlot | null)[] }
   | { type: 'TOGGLE_RECOMMENDED'; instanceId: string }
   | { type: 'SET_BLOCK_ALIGNMENT'; instanceId: string; alignment: 'left' | 'center' | 'right' }
+  | { type: 'SET_PLAN_FEATURED_OPTION'; instanceId: string; optionId: string | null }
+  | { type: 'SET_ADDON_FEATURED_TIER'; instanceId: string; tierId: string | null }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
 
 export const initialState: AppState = {
@@ -228,6 +230,26 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         blocks: state.blocks.map(b =>
           b.instanceId === action.instanceId && (b.kind === 'text' || b.kind === 'heading')
             ? { ...b, alignment: action.alignment }
+            : b
+        ),
+      };
+
+    case 'SET_PLAN_FEATURED_OPTION':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'plan'
+            ? { ...b, featuredPricingOptionId: action.optionId ?? undefined }
+            : b
+        ),
+      };
+
+    case 'SET_ADDON_FEATURED_TIER':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'addon'
+            ? { ...b, featuredTierId: action.tierId ?? undefined }
             : b
         ),
       };

@@ -95,6 +95,35 @@ function buildFeatureRows(
   return rows;
 }
 
+/**
+ * Renders a single pricing option/tier as a "Recommended" featured box —
+ * a fine Jobber dark-blue border with "Recommended" centered on the top edge.
+ */
+function renderFeaturedPricingBox(
+  label: string,
+  priceHtml: string,
+): string {
+  const borderColor = '#1D2D44';
+  return `
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse; margin:8px 0 4px;">
+  <tr>
+    <td style="width:30%; border-bottom:1px solid ${borderColor}; padding:0; font-size:0; line-height:0;"></td>
+    <td style="padding:0 10px 3px; white-space:nowrap; text-align:center; vertical-align:bottom; font-size:11px; font-weight:700; color:${borderColor}; font-family:Arial,Helvetica,sans-serif; letter-spacing:0.04em;">Recommended</td>
+    <td style="width:30%; border-bottom:1px solid ${borderColor}; padding:0; font-size:0; line-height:0;"></td>
+  </tr>
+  <tr>
+    <td colspan="3" style="padding:0;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-left:1px solid ${borderColor}; border-right:1px solid ${borderColor}; border-bottom:1px solid ${borderColor}; border-radius:0 0 6px 6px;">
+        <tr>
+          <td style="padding:7px 12px; color:#555; font-size:13px;">${label}</td>
+          <td style="padding:7px 12px; text-align:right; font-size:13px;">${priceHtml}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;
+}
+
 function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
   const def = plans.find(p => p.id === block.definitionId);
   if (!def) return '';
@@ -107,6 +136,9 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
   const promotions = block.promotions ?? {};
 
   // Build pricing rows — only for visible options
+  // Featured option is pulled out as a standalone "Recommended" box; others go in the table.
+  const featuredOptId = block.featuredPricingOptionId;
+  let featuredPricingBox = '';
   const pricingRows = def.pricingOptions
     .filter(opt => visiblePricingOptionIds.includes(opt.id))
     .map(opt => {
@@ -115,6 +147,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
       const monthlyEquivalent = priceEntry?.monthlyEquivalent;
       const promo = promotions[opt.id];
       const label = opt.label;
+      const isFeatured = featuredOptId === opt.id;
 
       if (promo) {
         const discounted = applyPromo(original, promo);
@@ -124,16 +157,25 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
           ? formatCurrency(Math.round((discounted / 12) * 100) / 100)
           : null;
 
+        const priceHtml = `<span style="text-decoration:line-through;color:#aaa;margin-right:6px;">${original}</span><strong style="color:#b45309;">${discStr}${unit}</strong>${monthlyDisc ? `<span style="display:block;font-size:11px;color:#b45309;">(${monthlyDisc}/mo)</span>` : ''}<span style="display:block;font-size:11px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${original}</span>`;
+
+        if (isFeatured) {
+          featuredPricingBox += renderFeaturedPricingBox(label, priceHtml);
+          return '';
+        }
+
         return `
     <tr>
       <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
-      <td style="padding: 4px 0; text-align: right; font-size: 13px;">
-        <span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${original}</span>
-        <strong style="color: #b45309;">${discStr}${unit}</strong>
-        ${monthlyDisc ? `<span style="display:block; font-size:11px; color:#b45309;">(${monthlyDisc}/mo)</span>` : ''}
-        <span style="display:block; font-size:11px; color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${original}</span>
-      </td>
+      <td style="padding: 4px 0; text-align: right; font-size: 13px;">${priceHtml}</td>
     </tr>`;
+      }
+
+      const priceHtml = `<strong style="color:${def.color};">${original}</strong>${monthlyEquivalent ? `<span style="display:block;font-size:11px;font-weight:normal;color:#888;">(${monthlyEquivalent})</span>` : ''}`;
+
+      if (isFeatured) {
+        featuredPricingBox += renderFeaturedPricingBox(label, priceHtml);
+        return '';
       }
 
       return `
@@ -170,6 +212,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
     </tr>
     <tr>
       <td style="padding: 8px 14px;">
+        ${featuredPricingBox}
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           ${pricingRows}
         </table>
@@ -198,24 +241,36 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
   const promotions = block.promotions ?? {};
   const visibleTiers = def.tiers.filter(t => visibleTierIds.includes(t.id));
 
+  const featuredAddonTierId = block.featuredTierId;
+  let featuredAddonBox = '';
   const pricingRows = visibleTiers.map(tier => {
     const promo = promotions[tier.id];
     const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
+    const isFeatured = featuredAddonTierId === tier.id;
 
     if (promo) {
       const discounted = applyPromo(tier.price, promo);
       const discStr = formatCurrency(discounted);
       const monthlyDisc = tier.monthlyEquivalent ? formatCurrency(Math.round((discounted / 12) * 100) / 100) : null;
+      const priceHtml = `<span style="text-decoration:line-through;color:#aaa;margin-right:6px;">${escapeHtml(tier.price)}</span><strong style="color:#b45309;">${escapeHtml(discStr)}${unit}</strong>${monthlyDisc ? `<span style="display:block;font-size:11px;color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}<span style="display:block;font-size:11px;color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(tier.price)}</span>`;
+
+      if (isFeatured) {
+        featuredAddonBox += renderFeaturedPricingBox(escapeHtml(tier.label), priceHtml);
+        return '';
+      }
+
       return `
     <tr>
       <td style="padding: 4px 0; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
-      <td style="padding: 4px 0; text-align: right; font-size: 13px;">
-        <span style="text-decoration: line-through; color: #aaa; margin-right: 6px;">${escapeHtml(tier.price)}</span>
-        <strong style="color: #b45309;">${escapeHtml(discStr)}${unit}</strong>
-        ${monthlyDisc ? `<span style="display:block; font-size:11px; color:#b45309;">(${escapeHtml(monthlyDisc)}/mo)</span>` : ''}
-        <span style="display:block; font-size:11px; color:#888;">${promo.type === 'percent' ? `${promo.value}%` : `$${promo.value}`} off for ${promo.durationMonths} mo, then ${escapeHtml(tier.price)}</span>
-      </td>
+      <td style="padding: 4px 0; text-align: right; font-size: 13px;">${priceHtml}</td>
     </tr>`;
+    }
+
+    const priceHtml = `<strong style="color:#9DC63F;">${escapeHtml(tier.price)}</strong>${tier.monthlyEquivalent ? `<span style="display:block;font-size:11px;font-weight:normal;color:#888;">${escapeHtml(tier.monthlyEquivalent)}</span>` : ''}`;
+
+    if (isFeatured) {
+      featuredAddonBox += renderFeaturedPricingBox(escapeHtml(tier.label), priceHtml);
+      return '';
     }
 
     return `
@@ -245,6 +300,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
     </tr>
     <tr>
       <td style="padding: 8px 14px;">
+        ${featuredAddonBox}
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           ${pricingRows}
         </table>

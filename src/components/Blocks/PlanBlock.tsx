@@ -106,6 +106,7 @@ export function PlanBlock({ block, dispatch }: Props) {
             <div className="space-y-2">
               {def.pricingOptions.map(opt => {
                 const isVisible = visiblePricingOptionIds.includes(opt.id);
+                const isFeatured = block.featuredPricingOptionId === opt.id;
                 const promo = promotions[opt.id];
                 const priceEntry = selectedTier.prices[opt.id];
                 const original = priceEntry?.price ?? '$0/mo';
@@ -113,8 +114,8 @@ export function PlanBlock({ block, dispatch }: Props) {
                 const discounted = promo ? applyPromo(original, promo) : null;
                 const unit = original.includes('/yr') ? '/yr' : '/mo';
 
-                return (
-                  <div key={opt.id} className="flex items-start gap-2">
+                const rowContent = (
+                  <div className="flex items-start gap-2 w-full">
                     {/* Pill toggle */}
                     <button
                       onClick={() => dispatch({ type: 'TOGGLE_PLAN_PRICING_OPTION', instanceId: block.instanceId, optionId: opt.id })}
@@ -161,8 +162,40 @@ export function PlanBlock({ block, dispatch }: Props) {
                         </>
                       )}
                     </div>
+
+                    {/* Featured (star) toggle */}
+                    <button
+                      onClick={() => dispatch({
+                        type: 'SET_PLAN_FEATURED_OPTION',
+                        instanceId: block.instanceId,
+                        optionId: isFeatured ? null : opt.id,
+                      })}
+                      title={isFeatured ? 'Remove featured' : 'Feature this pricing option'}
+                      className="flex-shrink-0 mt-0.5 transition-colors"
+                      style={{ color: isFeatured ? '#1D2D44' : '#d1d5db' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill={isFeatured ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.2">
+                        <polygon points="7,1 8.8,5.2 13.4,5.6 10,8.6 11,13.2 7,10.8 3,13.2 4,8.6 0.6,5.6 5.2,5.2" />
+                      </svg>
+                    </button>
                   </div>
                 );
+
+                if (isFeatured) {
+                  return (
+                    <div key={opt.id} className="relative border rounded-lg px-3 py-2 mt-4" style={{ borderColor: '#1D2D44' }}>
+                      <span
+                        className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-2 text-[10px] font-semibold whitespace-nowrap"
+                        style={{ color: '#1D2D44' }}
+                      >
+                        Recommended
+                      </span>
+                      {rowContent}
+                    </div>
+                  );
+                }
+
+                return <div key={opt.id}>{rowContent}</div>;
               })}
             </div>
 

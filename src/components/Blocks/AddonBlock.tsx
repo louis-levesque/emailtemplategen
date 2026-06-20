@@ -72,12 +72,13 @@ export function AddonBlock({ block, dispatch }: Props) {
             <div className="space-y-2">
               {def.tiers.map(tier => {
                 const isVisible = visibleTierIds.includes(tier.id);
+                const isFeatured = block.featuredTierId === tier.id;
                 const promo = promotions[tier.id];
                 const discounted = promo ? applyPromo(tier.price, promo) : null;
                 const unit = tier.price.includes('/yr') ? '/yr' : '/mo';
 
-                return (
-                  <div key={tier.id} className="flex items-start gap-2">
+                const rowContent = (
+                  <div className="flex items-start gap-2 w-full">
                     <button
                       onClick={() => dispatch({ type: 'TOGGLE_ADDON_TIER_VISIBILITY', instanceId: block.instanceId, tierId: tier.id })}
                       className="px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors flex-shrink-0 mt-0.5"
@@ -114,8 +115,40 @@ export function AddonBlock({ block, dispatch }: Props) {
                         </>
                       )}
                     </div>
+
+                    {/* Featured (star) toggle */}
+                    <button
+                      onClick={() => dispatch({
+                        type: 'SET_ADDON_FEATURED_TIER',
+                        instanceId: block.instanceId,
+                        tierId: isFeatured ? null : tier.id,
+                      })}
+                      title={isFeatured ? 'Remove featured' : 'Feature this pricing tier'}
+                      className="flex-shrink-0 mt-0.5 transition-colors"
+                      style={{ color: isFeatured ? '#1D2D44' : '#d1d5db' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill={isFeatured ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.2">
+                        <polygon points="7,1 8.8,5.2 13.4,5.6 10,8.6 11,13.2 7,10.8 3,13.2 4,8.6 0.6,5.6 5.2,5.2" />
+                      </svg>
+                    </button>
                   </div>
                 );
+
+                if (isFeatured) {
+                  return (
+                    <div key={tier.id} className="relative border rounded-lg px-3 py-2 mt-4" style={{ borderColor: '#1D2D44' }}>
+                      <span
+                        className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-2 text-[10px] font-semibold whitespace-nowrap"
+                        style={{ color: '#1D2D44' }}
+                      >
+                        Recommended
+                      </span>
+                      {rowContent}
+                    </div>
+                  );
+                }
+
+                return <div key={tier.id}>{rowContent}</div>;
               })}
             </div>
 

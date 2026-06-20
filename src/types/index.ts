@@ -61,6 +61,7 @@ export interface PlanBlock extends BaseBlock {
   promotions: Partial<Record<string, PromoConfig>>;
   promoValidUntil?: string;
   isRecommended?: boolean;
+  featuredPricingOptionId?: string;
 }
 
 export interface AddonBlock extends BaseBlock {
@@ -72,6 +73,7 @@ export interface AddonBlock extends BaseBlock {
   promotions: Partial<Record<string, PromoConfig>>;
   promoValidUntil?: string;
   isRecommended?: boolean;
+  featuredTierId?: string;
 }
 
 export interface SignatureBlock extends BaseBlock {
@@ -107,6 +109,7 @@ export type CompareSlot =
       promotions: Partial<Record<string, PromoConfig>>;
       promoValidUntil?: string;
       isRecommended?: boolean;
+      featuredPricingOptionId?: string;
     }
   | {
       kind: 'addon';
@@ -117,6 +120,7 @@ export type CompareSlot =
       promotions: Partial<Record<string, PromoConfig>>;
       promoValidUntil?: string;
       isRecommended?: boolean;
+      featuredTierId?: string;
     };
 
 export interface CompareBlock extends BaseBlock {

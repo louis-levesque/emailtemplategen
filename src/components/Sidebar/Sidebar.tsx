@@ -119,8 +119,8 @@ export function Sidebar({ dispatch }: Props) {
             id="heading"
             label="Heading"
             description="Large bold section header"
-            blockFactory={() => ({ instanceId: generateId(), kind: 'heading', text: '' })}
-            onAdd={() => addBlock({ instanceId: generateId(), kind: 'heading', text: '' })}
+            blockFactory={() => ({ instanceId: generateId(), kind: 'heading', text: '', alignment: 'center' })}
+            onAdd={() => addBlock({ instanceId: generateId(), kind: 'heading', text: '', alignment: 'center' })}
           />
           <DraggableSidebarItem
             id="free-text"

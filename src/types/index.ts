@@ -82,11 +82,13 @@ export interface TextBlock extends BaseBlock {
   kind: 'text';
   content: string;
   displayLabel?: string;
+  alignment?: 'left' | 'center' | 'right';
 }
 
 export interface HeadingBlock extends BaseBlock {
   kind: 'heading';
   text: string;
+  alignment?: 'left' | 'center' | 'right';
 }
 
 export interface CheckoutLinkBlock extends BaseBlock {

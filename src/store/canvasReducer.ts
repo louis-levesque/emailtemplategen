@@ -18,6 +18,7 @@ export type CanvasAction =
   | { type: 'SET_COMPARE_SLOT'; instanceId: string; slotIndex: number; slot: CompareSlot | null }
   | { type: 'REORDER_COMPARE_SLOTS'; instanceId: string; slots: (CompareSlot | null)[] }
   | { type: 'TOGGLE_RECOMMENDED'; instanceId: string }
+  | { type: 'SET_BLOCK_ALIGNMENT'; instanceId: string; alignment: 'left' | 'center' | 'right' }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
 
 export const initialState: AppState = {
@@ -220,6 +221,16 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         }),
       };
     }
+
+    case 'SET_BLOCK_ALIGNMENT':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && (b.kind === 'text' || b.kind === 'heading')
+            ? { ...b, alignment: action.alignment }
+            : b
+        ),
+      };
 
     case 'SET_HEADER':
       return { ...state, header: { ...state.header, [action.field]: action.value } };

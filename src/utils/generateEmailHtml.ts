@@ -52,13 +52,16 @@ export function stripLinkSyntax(raw: string): string {
 }
 
 function renderTextBlock(block: TextBlock): string {
-  const processed = processTextContent(block.content);
-  return `<div style="${SECTION_STYLE}"><p style="margin:0;">${processed}</p></div>`;
+  const align = block.alignment ?? 'left';
+  const isHtml = /<[a-z][\s\S]*>/i.test(block.content);
+  const processedContent = isHtml ? block.content : processTextContent(block.content);
+  return `<div style="${SECTION_STYLE} text-align:${align};"><p style="margin:0;">${processedContent}</p></div>`;
 }
 
 function renderHeadingBlock(block: HeadingBlock): string {
   if (!block.text.trim()) return '';
-  return `<div style="${SECTION_STYLE}"><h2 style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:800; color:#1D2D44; line-height:1.2;">${escapeHtml(block.text)}</h2></div>`;
+  const align = block.alignment ?? 'center';
+  return `<div style="${SECTION_STYLE}"><h2 style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:800; color:#1D2D44; line-height:1.2; text-align:${align};">${escapeHtml(block.text)}</h2></div>`;
 }
 
 function buildFeatureRows(
@@ -513,9 +516,19 @@ export function generateEmailHtml(state: AppState, plans: PlanDefinition[], addo
 export function generateEmailText(state: AppState, plans: PlanDefinition[], addons: AddonDefinition[]): string {
   return state.blocks.map(block => {
     switch (block.kind) {
-      case 'text':
-        // Convert [text](url) links to "text (url)" for plain text
+      case 'text': {
+        const isHtml = /<[a-z][\s\S]*>/i.test(block.content);
+        if (isHtml) {
+          return block.content
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+        }
         return block.content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
+      }
       case 'heading':
         return block.text;
       case 'plan': {

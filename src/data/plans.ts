@@ -168,7 +168,7 @@ export const PLANS: PlanDefinition[] = [
   {
     id: 'plus',
     title: 'Plus',
-    tagline: 'The complete package for ambitious home service businesses.',
+    tagline: 'Complete package for ambitious businesses.',
     color: '#D97706',
     pricingOptions: [
       { id: 'plus-opt-2', label: '1-year commitment, billed annually' },

@@ -38,7 +38,7 @@ export interface AddonDefinition {
   features: PlanFeature[];
 }
 
-export type BlockKind = 'plan' | 'addon' | 'signature' | 'text' | 'checkout' | 'compare';
+export type BlockKind = 'plan' | 'addon' | 'signature' | 'text' | 'heading' | 'checkout' | 'compare';
 
 export interface PromoConfig {
   type: 'percent' | 'dollar';
@@ -84,6 +84,11 @@ export interface TextBlock extends BaseBlock {
   displayLabel?: string;
 }
 
+export interface HeadingBlock extends BaseBlock {
+  kind: 'heading';
+  text: string;
+}
+
 export interface CheckoutLinkBlock extends BaseBlock {
   kind: 'checkout';
   url: string;
@@ -117,7 +122,7 @@ export interface CompareBlock extends BaseBlock {
   slots: (CompareSlot | null)[]; // always length 3
 }
 
-export type CanvasBlock = PlanBlock | AddonBlock | SignatureBlock | TextBlock | CheckoutLinkBlock | CompareBlock;
+export type CanvasBlock = PlanBlock | AddonBlock | SignatureBlock | TextBlock | HeadingBlock | CheckoutLinkBlock | CompareBlock;
 
 export interface EmailHeader {
   to: string;

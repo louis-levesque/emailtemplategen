@@ -1,4 +1,4 @@
-import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition } from '../types';
+import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, HeadingBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition } from '../types';
 import {
   applyPromo,
   formatCurrency,
@@ -54,6 +54,11 @@ export function stripLinkSyntax(raw: string): string {
 function renderTextBlock(block: TextBlock): string {
   const processed = processTextContent(block.content);
   return `<div style="${SECTION_STYLE}"><p style="margin:0;">${processed}</p></div>`;
+}
+
+function renderHeadingBlock(block: HeadingBlock): string {
+  if (!block.text.trim()) return '';
+  return `<div style="${SECTION_STYLE}"><h2 style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:800; color:#1D2D44; line-height:1.2;">${escapeHtml(block.text)}</h2></div>`;
 }
 
 function buildFeatureRows(
@@ -483,6 +488,7 @@ function renderCompareBlock(block: CompareBlock, plans: PlanDefinition[], addons
 function renderBlock(block: CanvasBlock, plans: PlanDefinition[], addons: AddonDefinition[]): string {
   switch (block.kind) {
     case 'text': return renderTextBlock(block);
+    case 'heading': return renderHeadingBlock(block);
     case 'plan': return renderPlanBlock(block, plans);
     case 'addon': return renderAddonBlock(block, addons);
     case 'signature': return renderSignatureBlock();
@@ -510,6 +516,8 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
       case 'text':
         // Convert [text](url) links to "text (url)" for plain text
         return block.content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
+      case 'heading':
+        return block.text;
       case 'plan': {
         const def = plans.find(p => p.id === block.definitionId);
         if (!def) return '';

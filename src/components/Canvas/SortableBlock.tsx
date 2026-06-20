@@ -7,6 +7,7 @@ import { PlanBlock } from '../Blocks/PlanBlock';
 import { AddonBlock } from '../Blocks/AddonBlock';
 import { SignatureBlock } from '../Blocks/SignatureBlock';
 import { TextBlock } from '../Blocks/TextBlock';
+import { HeadingBlock } from '../Blocks/HeadingBlock';
 import { CheckoutLinkBlock } from '../Blocks/CheckoutLinkBlock';
 import { CompareBlock } from '../Blocks/CompareBlock';
 
@@ -22,6 +23,7 @@ function BlockContent({ block, dispatch }: Props) {
     case 'addon': return <AddonBlock block={block} dispatch={dispatch} />;
     case 'signature': return <SignatureBlock />;
     case 'text': return <TextBlock block={block} dispatch={dispatch} />;
+    case 'heading': return <HeadingBlock block={block} dispatch={dispatch} />;
     case 'checkout': return <CheckoutLinkBlock block={block} dispatch={dispatch} />;
     case 'compare': return <CompareBlock block={block} dispatch={dispatch} />;
   }

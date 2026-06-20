@@ -116,6 +116,13 @@ export function Sidebar({ dispatch }: Props) {
 
         <SidebarSection title="Other">
           <DraggableSidebarItem
+            id="heading"
+            label="Heading"
+            description="Large bold section header"
+            blockFactory={() => ({ instanceId: generateId(), kind: 'heading', text: '' })}
+            onAdd={() => addBlock({ instanceId: generateId(), kind: 'heading', text: '' })}
+          />
+          <DraggableSidebarItem
             id="free-text"
             label="Free Text"
             description="Add a custom paragraph or note"

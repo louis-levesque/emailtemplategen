@@ -13,6 +13,7 @@ export type CanvasAction =
   | { type: 'SET_ADDON_PROMOTIONS'; instanceId: string; promotions: Partial<Record<string, PromoConfig>>; validUntil: string | null }
   | { type: 'TOGGLE_ADDON_TIER_VISIBILITY'; instanceId: string; tierId: string }
   | { type: 'UPDATE_TEXT'; instanceId: string; content: string }
+  | { type: 'UPDATE_HEADING'; instanceId: string; text: string }
   | { type: 'SET_CHECKOUT_URL'; instanceId: string; url: string }
   | { type: 'SET_COMPARE_SLOT'; instanceId: string; slotIndex: number; slot: CompareSlot | null }
   | { type: 'REORDER_COMPARE_SLOTS'; instanceId: string; slots: (CompareSlot | null)[] }
@@ -116,6 +117,16 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         blocks: state.blocks.map(b =>
           b.instanceId === action.instanceId && b.kind === 'text'
             ? { ...b, content: action.content }
+            : b
+        ),
+      };
+
+    case 'UPDATE_HEADING':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'heading'
+            ? { ...b, text: action.text }
             : b
         ),
       };

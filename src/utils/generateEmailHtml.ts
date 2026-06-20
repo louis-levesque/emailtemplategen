@@ -367,7 +367,7 @@ function buildCompareFeatureRows(
   if (keyFeatures.length > 0) {
     html += `<div style="font-size:10px; font-weight:bold; color:#d97706; text-transform:uppercase; letter-spacing:0.05em; padding:2px 0 3px;">Key Features</div>`;
     html += keyFeatures.map(f =>
-      `<div style="font-size:12px; color:#222; font-weight:600; padding:2px 0;">&#9733; ${escapeHtml(stripLinkSyntax(f.label))}</div>`
+      `<div style="font-size:12px; color:#222; font-weight:600; padding:2px 0;">&#9733; ${processTextContent(f.label)}</div>`
     ).join('');
   }
 
@@ -376,7 +376,7 @@ function buildCompareFeatureRows(
       html += `<div style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:0.05em; padding:4px 0 3px;">Other features</div>`;
     }
     html += otherFeatures.map(f =>
-      `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${escapeHtml(stripLinkSyntax(f.label))}</div>`
+      `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${processTextContent(f.label)}</div>`
     ).join('');
   }
 

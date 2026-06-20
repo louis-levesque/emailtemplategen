@@ -129,6 +129,9 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
   // Build pricing rows — only for visible options
   // Featured option is pulled out as a standalone "Recommended" box; others go in the table.
   const featuredOptId = block.featuredPricingOptionId;
+  // When a featured option is visible, indent the other rows to align with the box content.
+  const hasFeaturedVisible = !!featuredOptId && visiblePricingOptionIds.includes(featuredOptId);
+  const rowPad = hasFeaturedVisible ? '5px 12px' : '4px 0';
   let featuredPricingBox = '';
   const pricingRows = def.pricingOptions
     .filter(opt => visiblePricingOptionIds.includes(opt.id))
@@ -157,8 +160,8 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
 
         return `
     <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
-      <td style="padding: 4px 0; text-align: right; font-size: 13px;">${priceHtml}</td>
+      <td style="padding: ${rowPad}; color: #555; font-size: 13px;">${label}</td>
+      <td style="padding: ${rowPad}; text-align: right; font-size: 13px;">${priceHtml}</td>
     </tr>`;
       }
 
@@ -171,8 +174,8 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
 
       return `
     <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${label}</td>
-      <td style="padding: 4px 0; text-align: right; font-weight: bold; color: ${def.color}; font-size: 13px;">
+      <td style="padding: ${rowPad}; color: #555; font-size: 13px;">${label}</td>
+      <td style="padding: ${rowPad}; text-align: right; font-weight: bold; color: ${def.color}; font-size: 13px;">
         ${original}
         ${monthlyEquivalent ? `<span style="display:block; font-size:11px; font-weight:normal; color:#888;">(${monthlyEquivalent})</span>` : ''}
       </td>
@@ -233,6 +236,8 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
   const visibleTiers = def.tiers.filter(t => visibleTierIds.includes(t.id));
 
   const featuredAddonTierId = block.featuredTierId;
+  const hasFeaturedAddonVisible = !!featuredAddonTierId && visibleTiers.some(t => t.id === featuredAddonTierId);
+  const addonRowPad = hasFeaturedAddonVisible ? '5px 12px' : '4px 0';
   let featuredAddonBox = '';
   const pricingRows = visibleTiers.map(tier => {
     const promo = promotions[tier.id];
@@ -252,8 +257,8 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
 
       return `
     <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
-      <td style="padding: 4px 0; text-align: right; font-size: 13px;">${priceHtml}</td>
+      <td style="padding: ${addonRowPad}; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
+      <td style="padding: ${addonRowPad}; text-align: right; font-size: 13px;">${priceHtml}</td>
     </tr>`;
     }
 
@@ -266,8 +271,8 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
 
     return `
     <tr>
-      <td style="padding: 4px 0; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
-      <td style="padding: 4px 0; text-align: right; font-weight: bold; color: #9DC63F; font-size: 13px;">
+      <td style="padding: ${addonRowPad}; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
+      <td style="padding: ${addonRowPad}; text-align: right; font-weight: bold; color: #9DC63F; font-size: 13px;">
         ${escapeHtml(tier.price)}
         ${tier.monthlyEquivalent ? `<span style="display:block; font-size:11px; font-weight:normal; color:#888;">${escapeHtml(tier.monthlyEquivalent)}</span>` : ''}
       </td>

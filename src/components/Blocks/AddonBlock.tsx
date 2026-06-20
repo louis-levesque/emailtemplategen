@@ -20,6 +20,7 @@ export function AddonBlock({ block, dispatch }: Props) {
 
   const visibleTierIds: string[] = block.visibleTierIds ?? def.tiers.map(t => t.id);
   const promotions = block.promotions ?? {};
+  const hasFeaturedVisible = !!block.featuredTierId && visibleTierIds.includes(block.featuredTierId);
   const hasAnyPromo = Object.keys(promotions).length > 0;
 
   const promoRows: PromoRow[] = def.tiers.map(tier => ({
@@ -150,7 +151,7 @@ export function AddonBlock({ block, dispatch }: Props) {
                   );
                 }
 
-                return <div key={tier.id}>{rowContent}</div>;
+                return <div key={tier.id} className={hasFeaturedVisible ? 'px-3' : ''}>{rowContent}</div>;
               })}
             </div>
 

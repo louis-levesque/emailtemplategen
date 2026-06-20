@@ -129,11 +129,15 @@ interface PlanSlotCardProps {
   instanceId: string;
   dispatch: Dispatch<CanvasAction>;
   onClear: () => void;
+  onModalOpenChange: (open: boolean) => void;
 }
 
-function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSlotCardProps) {
+function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear, onModalOpenChange }: PlanSlotCardProps) {
   const { plans } = useAdminData();
   const [showPromoModal, setShowPromoModal] = useState(false);
+
+  function openPromoModal() { setShowPromoModal(true); onModalOpenChange(true); }
+  function closePromoModal() { setShowPromoModal(false); onModalOpenChange(false); }
 
   const def = plans.find(p => p.id === slot.definitionId);
   if (!def) return null;
@@ -210,7 +214,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
             {/* Row 2: promo button */}
             <div className="mt-2 pl-5">
               <button
-                onClick={() => setShowPromoModal(true)}
+                onClick={openPromoModal}
                 className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
                   hasAnyPromo
                     ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
@@ -372,7 +376,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
               promoValidUntil: validUntil ?? undefined,
             });
           }}
-          onClose={() => setShowPromoModal(false)}
+          onClose={closePromoModal}
         />
       )}
     </>
@@ -389,11 +393,15 @@ interface AddonSlotCardProps {
   instanceId: string;
   dispatch: Dispatch<CanvasAction>;
   onClear: () => void;
+  onModalOpenChange: (open: boolean) => void;
 }
 
-function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: AddonSlotCardProps) {
+function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear, onModalOpenChange }: AddonSlotCardProps) {
   const { addons } = useAdminData();
   const [showPromoModal, setShowPromoModal] = useState(false);
+
+  function openPromoModal() { setShowPromoModal(true); onModalOpenChange(true); }
+  function closePromoModal() { setShowPromoModal(false); onModalOpenChange(false); }
 
   const def = addons.find(a => a.id === slot.definitionId);
   if (!def) return null;
@@ -468,7 +476,7 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
             {/* Row 2: promo button */}
             <div className="mt-2 pl-5">
               <button
-                onClick={() => setShowPromoModal(true)}
+                onClick={openPromoModal}
                 className={`text-xs font-semibold px-2 py-1 rounded-full border transition-colors ${
                   hasAnyPromo
                     ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
@@ -605,7 +613,7 @@ function AddonSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: Addon
               promoValidUntil: validUntil ?? undefined,
             });
           }}
-          onClose={() => setShowPromoModal(false)}
+          onClose={closePromoModal}
         />
       )}
     </>
@@ -639,9 +647,10 @@ interface SlotCardProps {
   instanceId: string;
   dispatch: Dispatch<CanvasAction>;
   onClear: () => void;
+  onModalOpenChange: (open: boolean) => void;
 }
 
-function SlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: SlotCardProps) {
+function SlotCard({ slot, slotIndex, instanceId, dispatch, onClear, onModalOpenChange }: SlotCardProps) {
   if (slot.kind === 'plan') {
     return (
       <PlanSlotCard
@@ -650,6 +659,7 @@ function SlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: SlotCardPr
         instanceId={instanceId}
         dispatch={dispatch}
         onClear={onClear}
+        onModalOpenChange={onModalOpenChange}
       />
     );
   }
@@ -660,6 +670,7 @@ function SlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: SlotCardPr
       instanceId={instanceId}
       dispatch={dispatch}
       onClear={onClear}
+      onModalOpenChange={onModalOpenChange}
     />
   );
 }
@@ -672,6 +683,11 @@ export function CompareBlock({ block, dispatch }: Props) {
   const [openPickerIndex, setOpenPickerIndex] = useState<number | null>(null);
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [modalOpenCount, setModalOpenCount] = useState(0);
+
+  function handleModalOpenChange(open: boolean) {
+    setModalOpenCount(c => open ? c + 1 : Math.max(0, c - 1));
+  }
 
   function setSlot(slotIndex: number, slot: CompareSlot | null) {
     dispatch({ type: 'SET_COMPARE_SLOT', instanceId: block.instanceId, slotIndex, slot });
@@ -737,8 +753,8 @@ export function CompareBlock({ block, dispatch }: Props) {
                 'flex-1 relative min-w-0 group/slot transition-opacity',
                 draggingIdx === i ? 'opacity-40' : '',
               ].join(' ')}
-              draggable={slot !== null}
-              onDragStart={slot !== null ? (e) => handleDragStart(i, e) : undefined}
+              draggable={slot !== null && modalOpenCount === 0}
+              onDragStart={slot !== null && modalOpenCount === 0 ? (e) => handleDragStart(i, e) : undefined}
               onDragEnter={() => handleDragEnter(i)}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(i)}
@@ -775,6 +791,7 @@ export function CompareBlock({ block, dispatch }: Props) {
                   instanceId={block.instanceId}
                   dispatch={dispatch}
                   onClear={() => setSlot(i, null)}
+                  onModalOpenChange={handleModalOpenChange}
                 />
               )}
             </div>

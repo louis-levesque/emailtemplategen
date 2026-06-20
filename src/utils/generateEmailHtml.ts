@@ -97,29 +97,20 @@ function buildFeatureRows(
 
 /**
  * Renders a single pricing option/tier as a "Recommended" featured box —
- * a fine Jobber dark-blue border with "Recommended" centered on the top edge.
+ * a dark navy header badge above the pricing row, all inside a rounded border.
  */
 function renderFeaturedPricingBox(
   label: string,
   priceHtml: string,
 ): string {
-  const borderColor = '#1D2D44';
   return `
-<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse; margin:8px 0 4px;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #1D2D44; border-radius:6px; border-collapse:separate; margin:8px 0 6px;">
   <tr>
-    <td style="width:30%; border-bottom:1px solid ${borderColor}; padding:0; font-size:0; line-height:0;"></td>
-    <td style="padding:0 10px 3px; white-space:nowrap; text-align:center; vertical-align:bottom; font-size:11px; font-weight:700; color:${borderColor}; font-family:Arial,Helvetica,sans-serif; letter-spacing:0.04em;">Recommended</td>
-    <td style="width:30%; border-bottom:1px solid ${borderColor}; padding:0; font-size:0; line-height:0;"></td>
+    <td colspan="2" style="background-color:#1D2D44; padding:4px 12px; text-align:center; font-size:10px; font-weight:700; color:#ffffff; font-family:Arial,Helvetica,sans-serif; letter-spacing:0.07em; border-radius:5px 5px 0 0;">RECOMMENDED</td>
   </tr>
   <tr>
-    <td colspan="3" style="padding:0;">
-      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-left:1px solid ${borderColor}; border-right:1px solid ${borderColor}; border-bottom:1px solid ${borderColor}; border-radius:0 0 6px 6px;">
-        <tr>
-          <td style="padding:7px 12px; color:#555; font-size:13px;">${label}</td>
-          <td style="padding:7px 12px; text-align:right; font-size:13px;">${priceHtml}</td>
-        </tr>
-      </table>
-    </td>
+    <td style="padding:8px 12px; color:#444; font-size:13px; border-top:1px solid #e5e7eb;">${label}</td>
+    <td style="padding:8px 12px; text-align:right; font-size:13px; border-top:1px solid #e5e7eb;">${priceHtml}</td>
   </tr>
 </table>`;
 }

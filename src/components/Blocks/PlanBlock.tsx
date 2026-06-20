@@ -183,14 +183,16 @@ export function PlanBlock({ block, dispatch }: Props) {
 
                 if (isFeatured) {
                   return (
-                    <div key={opt.id} className="relative border rounded-lg px-3 py-2 mt-4" style={{ borderColor: '#1D2D44' }}>
-                      <span
-                        className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-2 text-[10px] font-semibold whitespace-nowrap"
-                        style={{ color: '#1D2D44' }}
+                    <div key={opt.id} className="rounded-md overflow-hidden mt-3" style={{ border: '1px solid #1D2D44' }}>
+                      <div
+                        className="text-center text-[10px] font-bold tracking-widest py-1"
+                        style={{ backgroundColor: '#1D2D44', color: '#fff' }}
                       >
-                        Recommended
-                      </span>
-                      {rowContent}
+                        RECOMMENDED
+                      </div>
+                      <div className="px-3 py-2 border-t" style={{ borderColor: '#e5e7eb' }}>
+                        {rowContent}
+                      </div>
                     </div>
                   );
                 }

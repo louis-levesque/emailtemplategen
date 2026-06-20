@@ -26,6 +26,7 @@ export function PlanBlock({ block, dispatch }: Props) {
   const selectedTier = def.tiers.find(t => t.seats === block.selectedSeats) ?? def.tiers[0];
   const visiblePricingOptionIds: string[] = block.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
   const promotions = block.promotions ?? {};
+  const hasFeaturedVisible = !!block.featuredPricingOptionId && visiblePricingOptionIds.includes(block.featuredPricingOptionId);
   const hasAnyPromo = Object.keys(promotions).length > 0;
 
   const promoRows: PromoRow[] = def.pricingOptions.map(opt => ({
@@ -197,7 +198,7 @@ export function PlanBlock({ block, dispatch }: Props) {
                   );
                 }
 
-                return <div key={opt.id}>{rowContent}</div>;
+                return <div key={opt.id} className={hasFeaturedVisible ? 'px-3' : ''}>{rowContent}</div>;
               })}
             </div>
 

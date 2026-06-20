@@ -25,7 +25,7 @@ export function Sidebar({ dispatch }: Props) {
       </div>
 
       <div className="flex-1 px-2 py-3 overflow-y-auto">
-        <SidebarSection title="Must Haves">
+        <SidebarSection title="Customization Blocks">
           <DraggableSidebarItem
             id="greeting"
             label="Greeting"
@@ -50,9 +50,6 @@ export function Sidebar({ dispatch }: Props) {
             blockFactory={() => ({ instanceId: generateId(), kind: 'checkout', url: '' })}
             onAdd={() => addBlock({ instanceId: generateId(), kind: 'checkout', url: '' })}
           />
-        </SidebarSection>
-
-        <SidebarSection title="Customization Blocks">
           <DraggableSidebarItem
             id="heading"
             label="Heading"

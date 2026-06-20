@@ -21,7 +21,8 @@ export type CanvasAction =
   | { type: 'SET_BLOCK_ALIGNMENT'; instanceId: string; alignment: 'left' | 'center' | 'right' }
   | { type: 'SET_PLAN_FEATURED_OPTION'; instanceId: string; optionId: string | null }
   | { type: 'SET_ADDON_FEATURED_TIER'; instanceId: string; tierId: string | null }
-  | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string };
+  | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string }
+  | { type: 'RESET' };
 
 export const initialState: AppState = {
   header: { to: '', subject: '' },
@@ -256,6 +257,9 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
 
     case 'SET_HEADER':
       return { ...state, header: { ...state.header, [action.field]: action.value } };
+
+    case 'RESET':
+      return initialState;
 
     default:
       return state;

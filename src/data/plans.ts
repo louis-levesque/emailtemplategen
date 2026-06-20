@@ -4,7 +4,7 @@ export const PLANS: PlanDefinition[] = [
   {
     id: 'core',
     title: 'Core',
-    tagline: 'Get started with essential job management tools.',
+    tagline: 'Essential tools to grow your reputation as a professional home service business.',
     color: '#1F9839',
     pricingOptions: [
       { id: 'core-opt-2', label: '1-year commitment, billed annually' },
@@ -47,7 +47,7 @@ export const PLANS: PlanDefinition[] = [
   {
     id: 'connect',
     title: 'Connect',
-    tagline: 'Automate your workflow and grow your team.',
+    tagline: 'Automations and must-have integrations to reduce admin work and impress customers.',
     color: '#0A6FD1',
     pricingOptions: [
       { id: 'connect-opt-2', label: '1-year commitment, billed annually' },
@@ -112,7 +112,7 @@ export const PLANS: PlanDefinition[] = [
   {
     id: 'grow',
     title: 'Grow',
-    tagline: 'Win bigger jobs and scale your operations.',
+    tagline: 'Advanced tools to win bigger jobs, scale your operations, and take back your admin time.',
     color: '#7C3AED',
     pricingOptions: [
       { id: 'grow-opt-2', label: '1-year commitment, billed annually' },
@@ -168,7 +168,7 @@ export const PLANS: PlanDefinition[] = [
   {
     id: 'plus',
     title: 'Plus',
-    tagline: 'Complete package for ambitious businesses.',
+    tagline: 'All features backed by premium support to maximize efficiency and profits.',
     color: '#D97706',
     pricingOptions: [
       { id: 'plus-opt-2', label: '1-year commitment, billed annually' },

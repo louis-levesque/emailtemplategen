@@ -67,6 +67,15 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
     });
   }
 
+  function clearAll() {
+    setRowStates(() => {
+      const cleared: Record<string, RowState> = {};
+      rows.forEach(r => { cleared[r.key] = defaultRowState(); });
+      return cleared;
+    });
+    setValidUntil('');
+  }
+
   function handleSave() {
     const promos: Partial<Record<string, PromoConfig>> = {};
     rows.forEach(r => {
@@ -102,6 +111,12 @@ export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSa
               className="text-xs font-semibold text-jobber hover:text-jobber-dark transition-colors"
             >
               {allEnabled ? 'Deselect all' : 'Select all'}
+            </button>
+            <button
+              onClick={clearAll}
+              className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors"
+            >
+              Clear all
             </button>
             <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 text-lg font-light">×</button>
           </div>

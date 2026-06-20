@@ -345,7 +345,7 @@ function SortablePricingOptionRow({ planId, option, dispatch, canRemove }: Sorta
   );
 }
 
-// ─── Tier row ─────────────────────────────────────────────────────────────────
+// ─── Sortable tier row (plans) ────────────────────────────────────────────────
 
 interface TierRowProps {
   planId: string;
@@ -356,11 +356,29 @@ interface TierRowProps {
   canRemove: boolean;
 }
 
-function TierRow({ planId, tier, tierIndex, pricingOptions, dispatch, canRemove }: TierRowProps) {
+function SortableTierRow({ planId, tier, tierIndex, pricingOptions, dispatch, canRemove }: TierRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `tier:${planId}:${tierIndex}:${tier.seats}` });
+  const style = {
+    transform: CSS.Transform.toString(transform) ?? undefined,
+    transition: transition ?? undefined,
+    opacity: isDragging ? 0.3 : undefined,
+  };
+
   return (
-    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+    <div ref={setNodeRef} style={style} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
+            title="Drag to reorder"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <circle cx="3.5" cy="2.5" r="1.2"/><circle cx="3.5" cy="6" r="1.2"/><circle cx="3.5" cy="9.5" r="1.2"/>
+              <circle cx="8.5" cy="2.5" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/><circle cx="8.5" cy="9.5" r="1.2"/>
+            </svg>
+          </button>
           <span className="text-xs font-semibold text-gray-500">User seats:</span>
           <input
             type="number"
@@ -428,6 +446,18 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
   const taglineSelRef = useRef({ start: 0, end: 0 });
 
   const optionSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const tierSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  function handleTierDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const tierIds = plan.tiers.map((t, i) => `tier:${plan.id}:${i}:${t.seats}`);
+    const fromIndex = tierIds.indexOf(String(active.id));
+    const toIndex = tierIds.indexOf(String(over.id));
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      dispatch({ type: 'REORDER_PLAN_TIERS', planId: plan.id, fromIndex, toIndex });
+    }
+  }
 
   function handleOptionDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -548,19 +578,26 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
             {/* Seat tiers section */}
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Seat Tiers</p>
-              <div className="space-y-2">
-                {plan.tiers.map((tier, i) => (
-                  <TierRow
-                    key={i}
-                    planId={plan.id}
-                    tier={tier}
-                    tierIndex={i}
-                    pricingOptions={plan.pricingOptions}
-                    dispatch={dispatch}
-                    canRemove={plan.tiers.length > 1}
-                  />
-                ))}
-              </div>
+              <DndContext sensors={tierSensors} collisionDetection={closestCenter} onDragEnd={handleTierDragEnd}>
+                <SortableContext
+                  items={plan.tiers.map((t, i) => `tier:${plan.id}:${i}:${t.seats}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {plan.tiers.map((tier, i) => (
+                      <SortableTierRow
+                        key={`${i}:${tier.seats}`}
+                        planId={plan.id}
+                        tier={tier}
+                        tierIndex={i}
+                        pricingOptions={plan.pricingOptions}
+                        dispatch={dispatch}
+                        canRemove={plan.tiers.length > 1}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
               <button
                 onClick={() => dispatch({ type: 'ADD_TIER', planId: plan.id })}
                 className="text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1 mt-1"
@@ -833,7 +870,7 @@ function SortableAddonFeatureRow({ addonId, feature, dispatch }: SortableAddonFe
   );
 }
 
-// ─── Addon tier row ───────────────────────────────────────────────────────────
+// ─── Sortable addon tier row ──────────────────────────────────────────────────
 
 interface AddonTierRowProps {
   addonId: string;
@@ -843,11 +880,31 @@ interface AddonTierRowProps {
   canRemove: boolean;
 }
 
-function AddonTierRow({ addonId, tier, tierIndex, dispatch, canRemove }: AddonTierRowProps) {
+function SortableAddonTierRow({ addonId, tier, tierIndex, dispatch, canRemove }: AddonTierRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `addontier:${addonId}:${tierIndex}:${tier.id}` });
+  const style = {
+    transform: CSS.Transform.toString(transform) ?? undefined,
+    transition: transition ?? undefined,
+    opacity: isDragging ? 0.3 : undefined,
+  };
+
   return (
-    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+    <div ref={setNodeRef} style={style} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-gray-500">Pricing option</span>
+        <div className="flex items-center gap-2">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
+            title="Drag to reorder"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <circle cx="3.5" cy="2.5" r="1.2"/><circle cx="3.5" cy="6" r="1.2"/><circle cx="3.5" cy="9.5" r="1.2"/>
+              <circle cx="8.5" cy="2.5" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/><circle cx="8.5" cy="9.5" r="1.2"/>
+            </svg>
+          </button>
+          <span className="text-xs font-semibold text-gray-500">Pricing option</span>
+        </div>
         {canRemove && (
           <button
             onClick={() => dispatch({ type: 'REMOVE_ADDON_TIER', addonId, tierIndex })}
@@ -907,6 +964,18 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
   const descSelRef = useRef({ start: 0, end: 0 });
 
   const addonSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const addonTierSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  function handleAddonTierDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const tierIds = addon.tiers.map((t, i) => `addontier:${addon.id}:${i}:${t.id}`);
+    const fromIndex = tierIds.indexOf(String(active.id));
+    const toIndex = tierIds.indexOf(String(over.id));
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      dispatch({ type: 'REORDER_ADDON_TIERS', addonId: addon.id, fromIndex, toIndex });
+    }
+  }
 
   function captureDescSel() {
     const el = descRef.current;
@@ -1013,16 +1082,25 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
         </button>
         {pricingExpanded && (
           <div className="px-4 pb-3 space-y-2">
-            {addon.tiers.map((tier, i) => (
-              <AddonTierRow
-                key={i}
-                addonId={addon.id}
-                tier={tier}
-                tierIndex={i}
-                dispatch={dispatch}
-                canRemove={addon.tiers.length > 1}
-              />
-            ))}
+            <DndContext sensors={addonTierSensors} collisionDetection={closestCenter} onDragEnd={handleAddonTierDragEnd}>
+              <SortableContext
+                items={addon.tiers.map((t, i) => `addontier:${addon.id}:${i}:${t.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {addon.tiers.map((tier, i) => (
+                    <SortableAddonTierRow
+                      key={`${i}:${tier.id}`}
+                      addonId={addon.id}
+                      tier={tier}
+                      tierIndex={i}
+                      dispatch={dispatch}
+                      canRemove={addon.tiers.length > 1}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
             <button
               onClick={() => dispatch({ type: 'ADD_ADDON_TIER', addonId: addon.id })}
               className="text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1 mt-1"

@@ -20,6 +20,8 @@ export type AdminAction =
   | { type: 'REMOVE_PRICING_OPTION'; planId: string; optionId: string }
   | { type: 'UPDATE_PRICING_OPTION'; planId: string; optionId: string; label: string }
   | { type: 'REORDER_PRICING_OPTIONS'; planId: string; fromIndex: number; toIndex: number }
+  | { type: 'REORDER_PLAN_TIERS'; planId: string; fromIndex: number; toIndex: number }
+  | { type: 'REORDER_ADDON_TIERS'; addonId: string; fromIndex: number; toIndex: number }
   | { type: 'ADD_PLAN_FEATURE'; planId: string; label: string }
   | { type: 'UPDATE_PLAN_FEATURE'; planId: string; featureId: string; label: string }
   | { type: 'DELETE_PLAN_FEATURE'; planId: string; featureId: string }
@@ -175,6 +177,30 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
       return {
         ...state,
         plans: state.plans.map(p => p.id !== action.planId ? p : { ...p, pricingOptions: options }),
+      };
+    }
+
+    case 'REORDER_PLAN_TIERS': {
+      const plan = state.plans.find(p => p.id === action.planId);
+      if (!plan) return state;
+      const tiers = [...plan.tiers];
+      const [moved] = tiers.splice(action.fromIndex, 1);
+      tiers.splice(action.toIndex, 0, moved);
+      return {
+        ...state,
+        plans: state.plans.map(p => p.id !== action.planId ? p : { ...p, tiers }),
+      };
+    }
+
+    case 'REORDER_ADDON_TIERS': {
+      const addon = state.addons.find(a => a.id === action.addonId);
+      if (!addon) return state;
+      const tiers = [...addon.tiers];
+      const [moved] = tiers.splice(action.fromIndex, 1);
+      tiers.splice(action.toIndex, 0, moved);
+      return {
+        ...state,
+        addons: state.addons.map(a => a.id !== action.addonId ? a : { ...a, tiers }),
       };
     }
 

@@ -27,6 +27,27 @@ export function Sidebar({ dispatch }: Props) {
       <div className="flex-1 px-2 py-3 overflow-y-auto">
         <SidebarSection title="Customization Blocks">
           <DraggableSidebarItem
+            id="checkout"
+            label="Checkout Link"
+            description="Paste a checkout URL — renders as a button in the email"
+            blockFactory={() => ({ instanceId: generateId(), kind: 'checkout', url: '' })}
+            onAdd={() => addBlock({ instanceId: generateId(), kind: 'checkout', url: '' })}
+          />
+          <DraggableSidebarItem
+            id="compare"
+            label="Compare"
+            description="Side-by-side comparison of up to 3 plans or add-ons"
+            blockFactory={() => ({ instanceId: generateId(), kind: 'compare', slots: [null, null, null] })}
+            onAdd={() => addBlock({ instanceId: generateId(), kind: 'compare', slots: [null, null, null] })}
+          />
+          <DraggableSidebarItem
+            id="free-text"
+            label="Free Text"
+            description="Add a custom paragraph or note"
+            blockFactory={() => ({ instanceId: generateId(), kind: 'text', content: '' })}
+            onAdd={() => addBlock({ instanceId: generateId(), kind: 'text', content: '' })}
+          />
+          <DraggableSidebarItem
             id="greeting"
             label="Greeting"
             description="Personalised greeting"
@@ -44,32 +65,11 @@ export function Sidebar({ dispatch }: Props) {
             })}
           />
           <DraggableSidebarItem
-            id="checkout"
-            label="Checkout Link"
-            description="Paste a checkout URL — renders as a button in the email"
-            blockFactory={() => ({ instanceId: generateId(), kind: 'checkout', url: '' })}
-            onAdd={() => addBlock({ instanceId: generateId(), kind: 'checkout', url: '' })}
-          />
-          <DraggableSidebarItem
             id="heading"
             label="Heading"
             description="Large bold section header"
             blockFactory={() => ({ instanceId: generateId(), kind: 'heading', text: '', alignment: 'center' })}
             onAdd={() => addBlock({ instanceId: generateId(), kind: 'heading', text: '', alignment: 'center' })}
-          />
-          <DraggableSidebarItem
-            id="free-text"
-            label="Free Text"
-            description="Add a custom paragraph or note"
-            blockFactory={() => ({ instanceId: generateId(), kind: 'text', content: '' })}
-            onAdd={() => addBlock({ instanceId: generateId(), kind: 'text', content: '' })}
-          />
-          <DraggableSidebarItem
-            id="compare"
-            label="Compare"
-            description="Side-by-side comparison of up to 3 plans or add-ons"
-            blockFactory={() => ({ instanceId: generateId(), kind: 'compare', slots: [null, null, null] })}
-            onAdd={() => addBlock({ instanceId: generateId(), kind: 'compare', slots: [null, null, null] })}
           />
         </SidebarSection>
 

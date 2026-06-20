@@ -223,28 +223,26 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear }: PlanSl
           </div>
         </div>
 
-        {/* Seat selector */}
-        {def.tiers.length > 1 && (
-          <div className="px-4 py-2 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">User seats</p>
-            <div className="flex gap-1.5 flex-wrap">
-              {def.tiers.map(tier => (
-                <button
-                  key={tier.seats}
-                  onClick={() => updateSlot({ selectedSeats: tier.seats })}
-                  className="px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors"
-                  style={
-                    selectedTier.seats === tier.seats
-                      ? { backgroundColor: def.color, borderColor: def.color, color: '#fff' }
-                      : { backgroundColor: '#fff', borderColor: def.color + '66', color: def.color }
-                  }
-                >
-                  {tier.seats} {tier.seats === 1 ? 'user' : 'users'}
-                </button>
-              ))}
-            </div>
+        {/* Seat selector — always shown so single-tier plans (e.g. Core) display their seat count */}
+        <div className="px-4 py-2 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">User seats</p>
+          <div className="flex gap-1.5 flex-wrap">
+            {def.tiers.map(tier => (
+              <button
+                key={tier.seats}
+                onClick={() => updateSlot({ selectedSeats: tier.seats })}
+                className="px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors"
+                style={
+                  selectedTier.seats === tier.seats
+                    ? { backgroundColor: def.color, borderColor: def.color, color: '#fff' }
+                    : { backgroundColor: '#fff', borderColor: def.color + '66', color: def.color }
+                }
+              >
+                {tier.seats} {tier.seats === 1 ? 'user' : 'users'}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Tagline */}
         <div className="px-4 pt-2 pb-1 text-xs text-gray-600">{stripLinkSyntax(def.tagline)}</div>

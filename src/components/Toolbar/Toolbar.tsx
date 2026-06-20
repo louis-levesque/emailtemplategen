@@ -36,8 +36,8 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
     const html = generateEmailHtml(state, plans, addons);
     const printStyles = `<style>
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-      @page { margin: 15mm; size: A4 portrait; }
-      body { margin: 0 !important; background: white !important; }
+      @page { margin: 0; size: A4 portrait; }
+      body { margin: 15mm !important; background: white !important; }
     </style>`;
     const printHtml = html.replace('</head>', `${printStyles}</head>`);
     const win = window.open('', '_blank');

@@ -7,9 +7,9 @@ export const PLANS: PlanDefinition[] = [
     tagline: 'Get started with essential job management tools.',
     color: '#1F9839',
     pricingOptions: [
-      { id: 'core-opt-0', label: 'No commitment, billed monthly' },
-      { id: 'core-opt-1', label: '1-year commitment, billed monthly' },
       { id: 'core-opt-2', label: '1-year commitment, billed annually' },
+      { id: 'core-opt-1', label: '1-year commitment, billed monthly' },
+      { id: 'core-opt-0', label: 'No commitment, billed monthly' },
     ],
     tiers: [
       {
@@ -50,9 +50,9 @@ export const PLANS: PlanDefinition[] = [
     tagline: 'Automate your workflow and grow your team.',
     color: '#0A6FD1',
     pricingOptions: [
-      { id: 'connect-opt-0', label: 'No commitment, billed monthly' },
-      { id: 'connect-opt-1', label: '1-year commitment, billed monthly' },
       { id: 'connect-opt-2', label: '1-year commitment, billed annually' },
+      { id: 'connect-opt-1', label: '1-year commitment, billed monthly' },
+      { id: 'connect-opt-0', label: 'No commitment, billed monthly' },
     ],
     tiers: [
       {
@@ -115,9 +115,9 @@ export const PLANS: PlanDefinition[] = [
     tagline: 'Win bigger jobs and scale your operations.',
     color: '#7C3AED',
     pricingOptions: [
-      { id: 'grow-opt-0', label: 'No commitment, billed monthly' },
-      { id: 'grow-opt-1', label: '1-year commitment, billed monthly' },
       { id: 'grow-opt-2', label: '1-year commitment, billed annually' },
+      { id: 'grow-opt-1', label: '1-year commitment, billed monthly' },
+      { id: 'grow-opt-0', label: 'No commitment, billed monthly' },
     ],
     tiers: [
       {
@@ -171,9 +171,9 @@ export const PLANS: PlanDefinition[] = [
     tagline: 'The complete package for ambitious home service businesses.',
     color: '#D97706',
     pricingOptions: [
-      { id: 'plus-opt-0', label: 'No commitment, billed monthly' },
-      { id: 'plus-opt-1', label: '1-year commitment, billed monthly' },
       { id: 'plus-opt-2', label: '1-year commitment, billed annually' },
+      { id: 'plus-opt-1', label: '1-year commitment, billed monthly' },
+      { id: 'plus-opt-0', label: 'No commitment, billed monthly' },
     ],
     tiers: [
       {

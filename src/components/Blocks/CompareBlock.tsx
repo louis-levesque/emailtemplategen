@@ -678,6 +678,13 @@ export function CompareBlock({ block, dispatch }: Props) {
   }
 
   function handleDragStart(i: number, e: React.DragEvent) {
+    // Cancel drag if it originated from an interactive element (button, input, etc.)
+    // so that clicking those elements never puts the browser into drag mode.
+    const origin = e.target as HTMLElement;
+    if (origin.closest('button, input, textarea, select, a, [role="button"]')) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.effectAllowed = 'move';
     // Use the slot wrapper itself as the drag image so it looks like the card is moving.
     // We offset by the pointer position within the element for a natural grab feel.

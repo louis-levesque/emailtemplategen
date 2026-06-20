@@ -24,7 +24,7 @@ interface Props {
   onClose: () => void;
 }
 
-function defaultRowState(existing?: PromoConfig): RowState {
+function defaultRowState(existing?: PromoConfig, originalPrice?: string): RowState {
   if (existing) {
     return {
       enabled: true,
@@ -33,13 +33,14 @@ function defaultRowState(existing?: PromoConfig): RowState {
       durationMonths: String(existing.durationMonths),
     };
   }
-  return { enabled: false, type: 'percent', value: '', durationMonths: '3' };
+  const defaultDuration = originalPrice?.includes('/yr') ? '12' : '3';
+  return { enabled: false, type: 'percent', value: '', durationMonths: defaultDuration };
 }
 
 export function PromoModal({ title, rows, initialPromos, initialValidUntil, onSave, onClose }: Props) {
   const [rowStates, setRowStates] = useState<Record<string, RowState>>(() => {
     const s: Record<string, RowState> = {};
-    rows.forEach(r => { s[r.key] = defaultRowState(initialPromos[r.key]); });
+    rows.forEach(r => { s[r.key] = defaultRowState(initialPromos[r.key], r.originalPrice); });
     return s;
   });
   const [validUntil, setValidUntil] = useState<string>(initialValidUntil ?? '');

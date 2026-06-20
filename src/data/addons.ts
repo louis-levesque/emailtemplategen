@@ -5,7 +5,7 @@ export const ADDONS: AddonDefinition[] = [
     id: 'receptionist',
     name: 'Receptionist',
     description: 'Provide 24/7 customer service over call or text. When you\'re busy on a job, enjoying personal time, or your admin is focused on other work, your Receptionist is there.',
-    tiers: [{ id: 'receptionist-tier-0', label: 'Monthly, no commitment', price: '$29/mo' }],
+    tiers: [{ id: 'receptionist-tier-0', label: 'No commitment, billed monthly', price: '$29/mo' }],
     features: [
       { id: 'rec-0', label: '30 conversations — overages charged at $0.79/conversation' },
       { id: 'rec-1', label: 'Take time away from your phone without the risk of losing a lead to a competitor or damaging customer relationships.' },
@@ -17,7 +17,7 @@ export const ADDONS: AddonDefinition[] = [
     id: 'marketing-suite',
     name: 'Marketing Suite',
     description: 'All-in-one marketing toolkit to grow your business, build your brand, and win more work.',
-    tiers: [{ id: 'marketing-suite-tier-0', label: 'Monthly, no commitment', price: '$79/mo' }],
+    tiers: [{ id: 'marketing-suite-tier-0', label: 'No commitment, billed monthly', price: '$79/mo' }],
     features: [
       { id: 'ms-1', label: 'Social Posting: Create and publish posts to your Facebook page and Google Business Profile directly from Jobber.' },
       { id: 'ms-2', label: 'Job Showcase: Turn completed jobs into ready-to-publish marketing content.' },
@@ -31,7 +31,7 @@ export const ADDONS: AddonDefinition[] = [
     id: 'sales-pipeline',
     name: 'Sales Pipeline',
     description: 'A tool that keeps all your opportunities organized so you can turn more of them into booked jobs — without all the busywork.',
-    tiers: [{ id: 'sales-pipeline-tier-0', label: 'Monthly, no commitment', price: '$49/mo' }],
+    tiers: [{ id: 'sales-pipeline-tier-0', label: 'No commitment, billed monthly', price: '$49/mo' }],
     features: [
       { id: 'sp-1', label: 'Your sales process, visualized: In one glance see your entire pipeline so no opportunity ever falls between the cracks.' },
       { id: 'sp-2', label: 'Keep opportunities moving forward: Jobber automatically refreshes your pipeline as opportunities progress and flags when they\'re at risk of going cold.' },
@@ -41,7 +41,7 @@ export const ADDONS: AddonDefinition[] = [
     id: 'reviews',
     name: 'Reviews',
     description: 'Increase Google business reviews via an automated text to your preferred clients after work is done, with a direct link to leave a review.',
-    tiers: [{ id: 'reviews-tier-0', label: 'Monthly, no commitment', price: '$39/mo' }],
+    tiers: [{ id: 'reviews-tier-0', label: 'No commitment, billed monthly', price: '$39/mo' }],
     features: [
       { id: 'rev-1', label: 'Boost your online presence: Improve your reputation by automating Google review asks to your preferred customers.' },
       { id: 'rev-2', label: 'Attract more customers: Increase your visibility in local Google search results with more consistent reviews.' },
@@ -52,7 +52,7 @@ export const ADDONS: AddonDefinition[] = [
     id: 'campaigns',
     name: 'Campaigns',
     description: 'Stay top of mind by sending email campaigns to your clients in Jobber. 80% of campaigns sent with Jobber Campaigns lead to at least one new job!',
-    tiers: [{ id: 'campaigns-tier-0', label: 'Monthly, no commitment', price: '$29/mo' }],
+    tiers: [{ id: 'campaigns-tier-0', label: 'No commitment, billed monthly', price: '$29/mo' }],
     features: [
       { id: 'cam-1', label: 'Create campaigns in no time: Quickly create branded emails using editable templates.' },
       { id: 'cam-2', label: 'Target the right clients: Use your Jobber data to target specific client segments.' },
@@ -64,7 +64,7 @@ export const ADDONS: AddonDefinition[] = [
     id: 'referrals',
     name: 'Referrals',
     description: 'Get even more referrals with automated incentives that help you win more jobs and show your customers how much you appreciate them.',
-    tiers: [{ id: 'referrals-tier-0', label: 'Monthly, no commitment', price: '$29/mo' }],
+    tiers: [{ id: 'referrals-tier-0', label: 'No commitment, billed monthly', price: '$29/mo' }],
     features: [
       { id: 'ref-1', label: 'Referral Tracking: Know exactly which customer gave you a referral with automated tracking or manual entry.' },
       { id: 'ref-2', label: 'Automated incentives: Send dollar or percentage-based credits for every successful referral — automatically.' },

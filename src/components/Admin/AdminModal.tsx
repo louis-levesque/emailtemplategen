@@ -295,6 +295,56 @@ function AddFeatureRow({ planId, dispatch }: { planId: string; dispatch: Dispatc
   );
 }
 
+// ─── Sortable pricing option row (plans) ──────────────────────────────────────
+
+interface SortablePricingOptionRowProps {
+  planId: string;
+  option: PlanPricingOption;
+  dispatch: Dispatch<AdminAction>;
+  canRemove: boolean;
+}
+
+function SortablePricingOptionRow({ planId, option, dispatch, canRemove }: SortablePricingOptionRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: option.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform) ?? undefined,
+    transition: transition ?? undefined,
+    opacity: isDragging ? 0.3 : undefined,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-1.5">
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
+        title="Drag to reorder"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+          <circle cx="3.5" cy="2.5" r="1.2"/><circle cx="3.5" cy="6" r="1.2"/><circle cx="3.5" cy="9.5" r="1.2"/>
+          <circle cx="8.5" cy="2.5" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/><circle cx="8.5" cy="9.5" r="1.2"/>
+        </svg>
+      </button>
+      <input
+        value={option.label}
+        onChange={e => dispatch({ type: 'UPDATE_PRICING_OPTION', planId, optionId: option.id, label: e.target.value })}
+        className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+        placeholder="e.g. No commitment, billed monthly"
+      />
+      {canRemove && (
+        <button
+          onClick={() => dispatch({ type: 'REMOVE_PRICING_OPTION', planId, optionId: option.id })}
+          className="text-xs text-red-400 hover:text-red-600 font-medium flex-shrink-0"
+          title="Remove pricing option"
+        >
+          ✕
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Tier row ─────────────────────────────────────────────────────────────────
 
 interface TierRowProps {
@@ -376,6 +426,18 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
   const [showTaglineLinkForm, setShowTaglineLinkForm] = useState(false);
   const taglineRef = useRef<HTMLInputElement>(null);
   const taglineSelRef = useRef({ start: 0, end: 0 });
+
+  const optionSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  function handleOptionDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const fromIndex = plan.pricingOptions.findIndex(o => o.id === active.id);
+    const toIndex = plan.pricingOptions.findIndex(o => o.id === over.id);
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      dispatch({ type: 'REORDER_PRICING_OPTIONS', planId: plan.id, fromIndex, toIndex });
+    }
+  }
 
   function handleDeletePlan() {
     if (window.confirm(`Delete the "${plan.title}" plan? Any canvas blocks using this plan will become empty.`)) {
@@ -460,27 +522,21 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
             {/* Pricing Options section */}
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 mt-2">Pricing Options</p>
-              <div className="space-y-1.5">
-                {plan.pricingOptions.map(opt => (
-                  <div key={opt.id} className="flex items-center gap-1.5">
-                    <input
-                      value={opt.label}
-                      onChange={e => dispatch({ type: 'UPDATE_PRICING_OPTION', planId: plan.id, optionId: opt.id, label: e.target.value })}
-                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
-                      placeholder="e.g. Monthly, no commitment"
-                    />
-                    {plan.pricingOptions.length > 1 && (
-                      <button
-                        onClick={() => dispatch({ type: 'REMOVE_PRICING_OPTION', planId: plan.id, optionId: opt.id })}
-                        className="text-xs text-red-400 hover:text-red-600 font-medium flex-shrink-0"
-                        title="Remove pricing option"
-                      >
-                        ✕
-                      </button>
-                    )}
+              <DndContext sensors={optionSensors} collisionDetection={closestCenter} onDragEnd={handleOptionDragEnd}>
+                <SortableContext items={plan.pricingOptions.map(o => o.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-1.5">
+                    {plan.pricingOptions.map(opt => (
+                      <SortablePricingOptionRow
+                        key={opt.id}
+                        planId={plan.id}
+                        option={opt}
+                        dispatch={dispatch}
+                        canRemove={plan.pricingOptions.length > 1}
+                      />
+                    ))}
                   </div>
-                ))}
-              </div>
+                </SortableContext>
+              </DndContext>
               <button
                 onClick={() => dispatch({ type: 'ADD_PRICING_OPTION', planId: plan.id })}
                 className="mt-1.5 text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1"

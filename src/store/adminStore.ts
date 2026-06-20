@@ -19,6 +19,7 @@ export type AdminAction =
   | { type: 'ADD_PRICING_OPTION'; planId: string }
   | { type: 'REMOVE_PRICING_OPTION'; planId: string; optionId: string }
   | { type: 'UPDATE_PRICING_OPTION'; planId: string; optionId: string; label: string }
+  | { type: 'REORDER_PRICING_OPTIONS'; planId: string; fromIndex: number; toIndex: number }
   | { type: 'ADD_PLAN_FEATURE'; planId: string; label: string }
   | { type: 'UPDATE_PLAN_FEATURE'; planId: string; featureId: string; label: string }
   | { type: 'DELETE_PLAN_FEATURE'; planId: string; featureId: string }
@@ -162,6 +163,18 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
             ),
           }
         ),
+      };
+    }
+
+    case 'REORDER_PRICING_OPTIONS': {
+      const plan = state.plans.find(p => p.id === action.planId);
+      if (!plan) return state;
+      const options = [...plan.pricingOptions];
+      const [moved] = options.splice(action.fromIndex, 1);
+      options.splice(action.toIndex, 0, moved);
+      return {
+        ...state,
+        plans: state.plans.map(p => p.id !== action.planId ? p : { ...p, pricingOptions: options }),
       };
     }
 

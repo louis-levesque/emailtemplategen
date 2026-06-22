@@ -564,6 +564,17 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
         </div>
       )}
 
+      {/* Learn More URL */}
+      <div className="px-4 py-2 border-b border-gray-100">
+        <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Learn More URL (optional)</label>
+        <input
+          value={plan.learnMoreUrl ?? ''}
+          onChange={e => dispatch({ type: 'UPDATE_PLAN_META', planId: plan.id, field: 'learnMoreUrl', value: e.target.value })}
+          className="w-full text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-jobber"
+          placeholder="https://…"
+        />
+      </div>
+
       {/* Pricing Options — collapsible */}
       <div className="border-b border-gray-100">
         <button
@@ -1096,6 +1107,15 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
             <InsertLinkInline onInsert={handleDescLinkInsert} onClose={() => setShowDescLinkForm(false)} />
           </div>
         )}
+        <div className="mt-2">
+          <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Learn More URL (optional)</label>
+          <input
+            value={addon.learnMoreUrl ?? ''}
+            onChange={e => dispatch({ type: 'UPDATE_ADDON_META', addonId: addon.id, field: 'learnMoreUrl', value: e.target.value })}
+            className="w-full text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-jobber"
+            placeholder="https://…"
+          />
+        </div>
       </div>
 
       {/* Pricing tiers — collapsible */}

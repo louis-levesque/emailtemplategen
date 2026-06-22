@@ -208,7 +208,20 @@ export function PlanBlock({ block, dispatch }: Props) {
           </div>
 
           {/* Tagline */}
-          <div className="px-4 py-2 border-t border-b border-gray-100 text-sm text-gray-600">{stripLinkSyntax(def.tagline)}</div>
+          <div className="px-4 py-2 border-t border-b border-gray-100 text-sm text-gray-600">
+            {stripLinkSyntax(def.tagline)}
+            {def.learnMoreUrl && (
+              <a
+                href={def.learnMoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-1 font-medium"
+                style={{ color: def.color }}
+              >
+                Learn more
+              </a>
+            )}
+          </div>
 
           {/* Feature buckets */}
           <div className="px-4 py-3">

@@ -160,7 +160,19 @@ export function AddonBlock({ block, dispatch }: Props) {
           </div>
 
           {/* Description */}
-          <div className="px-4 py-2 border-t border-b border-gray-100 text-sm text-gray-600">{stripLinkSyntax(def.description)}</div>
+          <div className="px-4 py-2 border-t border-b border-gray-100 text-sm text-gray-600">
+            {stripLinkSyntax(def.description)}
+            {def.learnMoreUrl && (
+              <a
+                href={def.learnMoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-1 font-medium text-jobber"
+              >
+                Learn more
+              </a>
+            )}
+          </div>
 
           {/* Feature buckets */}
           <div className="px-4 py-3">

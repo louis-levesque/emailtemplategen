@@ -231,12 +231,14 @@ function SortableFeatureRow({ planId, feature, isDefaultKey, dispatch }: Sortabl
           )}
         </div>
 
-        {/* Default key feature star */}
-        {isDefaultKey && (
-          <span className="mt-0.5 flex-shrink-0" title="Default key feature">
-            <StarIcon filled />
-          </span>
-        )}
+        {/* Default key feature star toggle */}
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_DEFAULT_KEY_FEATURE', planId, featureId: feature.id })}
+          className={`mt-0.5 flex-shrink-0 transition-colors ${isDefaultKey ? 'text-amber-400' : 'text-gray-200 opacity-0 group-hover:opacity-100 hover:text-amber-300'}`}
+          title={isDefaultKey ? 'Remove as default key feature' : 'Mark as default key feature'}
+        >
+          <StarIcon filled={isDefaultKey} />
+        </button>
 
         {/* Link button */}
         <button

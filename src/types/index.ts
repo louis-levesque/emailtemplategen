@@ -21,6 +21,8 @@ export interface PlanDefinition {
   tiers: PriceTier[];
   color: string;
   features: PlanFeature[];
+  /** Feature IDs that should be marked as Key Features when a block is first created */
+  defaultKeyFeatureIds?: string[];
 }
 
 export interface AddonPriceTier {

@@ -53,7 +53,7 @@ export function PreviewModal({ html, onClose }: Props) {
         <div className="flex-1 overflow-auto bg-gray-100 p-4">
           <div className="bg-white rounded-lg shadow-sm mx-auto overflow-hidden" style={{ maxWidth: 600 }}>
             <iframe
-              srcDoc={html}
+              srcDoc={html.replace('<head>', '<head><base target="_blank" rel="noopener noreferrer">')}
               title="Email preview"
               className="w-full border-0 block"
               style={{ minHeight: 400 }}

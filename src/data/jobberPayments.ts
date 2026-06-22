@@ -24,6 +24,6 @@ export const JOBBER_PAYMENTS: JobberPaymentsDefinition = {
     { id: 'pay-5', label: 'Automatic Payments (Connect, Grow, Plus)' },
     { id: 'pay-6', label: 'Tip Collection' },
     { id: 'pay-7', label: 'Instant Payouts' },
-    { id: 'pay-8', label: 'Jobber Capital' },
+    { id: 'pay-8', label: 'Jobber Capital (CA and US Only)' },
   ],
 };

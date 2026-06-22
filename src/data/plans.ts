@@ -162,7 +162,7 @@ export const PLANS: PlanDefinition[] = [
       },
     ],
     features: [
-      { id: 'grow-0', label: 'Everything in Connect' },
+      { id: 'grow-0', label: 'All Core and Connect features' },
       { id: 'grow-4', label: 'Find a Time scheduling' },
       { id: 'grow-7', label: 'Markups on quotes' },
       { id: 'grow-8', label: 'Images and attachments on invoices' },
@@ -220,7 +220,7 @@ export const PLANS: PlanDefinition[] = [
       },
     ],
     features: [
-      { id: 'plus-0', label: 'Everything in Grow' },
+      { id: 'plus-0', label: 'All Core, Connect and Grow features' },
       { id: 'plus-1', label: 'Receptionist (included — $99/mo value)' },
       { id: 'plus-2', label: 'Pipeline (included — $49/mo value)' },
       { id: 'plus-3', label: 'Marketing Suite (included — $79/mo value)' },

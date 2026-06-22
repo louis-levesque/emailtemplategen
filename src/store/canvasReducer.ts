@@ -22,7 +22,8 @@ export type CanvasAction =
   | { type: 'SET_PLAN_FEATURED_OPTION'; instanceId: string; optionId: string | null }
   | { type: 'SET_ADDON_FEATURED_TIER'; instanceId: string; tierId: string | null }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'SET_PAYMENTS_RATE'; instanceId: string; rateId: string };
 
 export const initialState: AppState = {
   header: { to: '', subject: '' },
@@ -56,7 +57,7 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         ...state,
         blocks: state.blocks.map(b => {
           if (b.instanceId !== action.instanceId) return b;
-          if (b.kind !== 'plan' && b.kind !== 'addon') return b;
+          if (b.kind !== 'plan' && b.kind !== 'addon' && b.kind !== 'payments') return b;
           const has = b.visibleFeatureIds.includes(action.featureId);
           return {
             ...b,
@@ -73,7 +74,7 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
         ...state,
         blocks: state.blocks.map(b => {
           if (b.instanceId !== action.instanceId) return b;
-          if (b.kind !== 'plan' && b.kind !== 'addon') return b;
+          if (b.kind !== 'plan' && b.kind !== 'addon' && b.kind !== 'payments') return b;
           const { featureId, bucket } = action;
           const keyIds = b.keyFeatureIds ?? [];
           if (bucket === 'key') {
@@ -257,6 +258,16 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
 
     case 'SET_HEADER':
       return { ...state, header: { ...state.header, [action.field]: action.value } };
+
+    case 'SET_PAYMENTS_RATE':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId && b.kind === 'payments'
+            ? { ...b, selectedRateId: action.rateId }
+            : b
+        ),
+      };
 
     case 'RESET':
       return initialState;

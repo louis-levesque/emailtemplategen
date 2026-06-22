@@ -1,13 +1,15 @@
 import { useReducer, useState } from 'react';
 import { PLANS as DEFAULT_PLANS } from '../data/plans';
 import { ADDONS as DEFAULT_ADDONS } from '../data/addons';
-import type { PlanDefinition, AddonDefinition, PriceTier, AddonPriceTier, PlanPricingOption } from '../types';
+import { JOBBER_PAYMENTS as DEFAULT_JOBBER_PAYMENTS } from '../data/jobberPayments';
+import type { PlanDefinition, AddonDefinition, PriceTier, AddonPriceTier, PlanPricingOption, JobberPaymentsDefinition } from '../types';
 
 const STORAGE_KEY = 'jobber-email-builder-admin-v2';
 
 export interface AdminState {
   plans: PlanDefinition[];
   addons: AddonDefinition[];
+  jobberPayments: JobberPaymentsDefinition;
 }
 
 export type AdminAction =
@@ -40,7 +42,16 @@ export type AdminAction =
   | { type: 'DELETE_ADDON_FEATURE'; addonId: string; featureId: string }
   | { type: 'ADD_ADDON' }
   | { type: 'DELETE_ADDON'; addonId: string }
-  | { type: 'RESET_TO_STATE'; state: AdminState };
+  | { type: 'RESET_TO_STATE'; state: AdminState }
+  | { type: 'UPDATE_PAYMENTS_DESCRIPTION'; description: string }
+  | { type: 'UPDATE_PAYMENTS_RATE'; rateId: string; field: 'location' | 'standardRate' | 'tapToPayRate'; value: string }
+  | { type: 'ADD_PAYMENTS_RATE' }
+  | { type: 'REMOVE_PAYMENTS_RATE'; rateId: string }
+  | { type: 'ADD_PAYMENTS_FEATURE'; label: string }
+  | { type: 'UPDATE_PAYMENTS_FEATURE'; featureId: string; label: string }
+  | { type: 'DELETE_PAYMENTS_FEATURE'; featureId: string }
+  | { type: 'REORDER_PAYMENTS_FEATURES'; fromIndex: number; toIndex: number }
+  | { type: 'TOGGLE_PAYMENTS_DEFAULT_KEY_FEATURE'; featureId: string };
 
 function adminReducer(state: AdminState, action: AdminAction): AdminState {
   switch (action.type) {
@@ -433,6 +444,98 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
     case 'RESET_TO_STATE':
       return action.state;
 
+    case 'UPDATE_PAYMENTS_DESCRIPTION':
+      return {
+        ...state,
+        jobberPayments: { ...state.jobberPayments, description: action.description },
+      };
+
+    case 'UPDATE_PAYMENTS_RATE':
+      return {
+        ...state,
+        jobberPayments: {
+          ...state.jobberPayments,
+          rates: state.jobberPayments.rates.map(r =>
+            r.id !== action.rateId ? r : { ...r, [action.field]: action.value }
+          ),
+        },
+      };
+
+    case 'ADD_PAYMENTS_RATE': {
+      const newRateId = `rate-${Date.now()}`;
+      return {
+        ...state,
+        jobberPayments: {
+          ...state.jobberPayments,
+          rates: [...state.jobberPayments.rates, { id: newRateId, location: 'New Region', standardRate: '0%' }],
+        },
+      };
+    }
+
+    case 'REMOVE_PAYMENTS_RATE':
+      return {
+        ...state,
+        jobberPayments: {
+          ...state.jobberPayments,
+          rates: state.jobberPayments.rates.filter(r => r.id !== action.rateId),
+        },
+      };
+
+    case 'ADD_PAYMENTS_FEATURE': {
+      const newId = `pay-${Date.now()}`;
+      return {
+        ...state,
+        jobberPayments: {
+          ...state.jobberPayments,
+          features: [...state.jobberPayments.features, { id: newId, label: action.label }],
+        },
+      };
+    }
+
+    case 'UPDATE_PAYMENTS_FEATURE':
+      return {
+        ...state,
+        jobberPayments: {
+          ...state.jobberPayments,
+          features: state.jobberPayments.features.map(f =>
+            f.id !== action.featureId ? f : { ...f, label: action.label }
+          ),
+        },
+      };
+
+    case 'DELETE_PAYMENTS_FEATURE':
+      return {
+        ...state,
+        jobberPayments: {
+          ...state.jobberPayments,
+          features: state.jobberPayments.features.filter(f => f.id !== action.featureId),
+        },
+      };
+
+    case 'REORDER_PAYMENTS_FEATURES': {
+      const features = [...state.jobberPayments.features];
+      const [moved] = features.splice(action.fromIndex, 1);
+      features.splice(action.toIndex, 0, moved);
+      return {
+        ...state,
+        jobberPayments: { ...state.jobberPayments, features },
+      };
+    }
+
+    case 'TOGGLE_PAYMENTS_DEFAULT_KEY_FEATURE': {
+      const current = state.jobberPayments.defaultKeyFeatureIds ?? [];
+      const isKey = current.includes(action.featureId);
+      return {
+        ...state,
+        jobberPayments: {
+          ...state.jobberPayments,
+          defaultKeyFeatureIds: isKey
+            ? current.filter(id => id !== action.featureId)
+            : [...current, action.featureId],
+        },
+      };
+    }
+
     default:
       return state;
   }
@@ -497,7 +600,11 @@ function migrateAdminState(raw: AdminState): AdminState {
     }
     return a;
   });
-  return { ...raw, plans, addons };
+  const migrated = { ...raw, plans, addons };
+  if (!(migrated as any).jobberPayments) {
+    return { ...migrated, jobberPayments: DEFAULT_JOBBER_PAYMENTS };
+  }
+  return migrated as AdminState;
 }
 
 function loadFromStorage(): AdminState {
@@ -505,7 +612,7 @@ function loadFromStorage(): AdminState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return migrateAdminState(JSON.parse(raw) as AdminState);
   } catch {}
-  return { plans: DEFAULT_PLANS, addons: DEFAULT_ADDONS };
+  return { plans: DEFAULT_PLANS, addons: DEFAULT_ADDONS, jobberPayments: DEFAULT_JOBBER_PAYMENTS };
 }
 
 function persistToStorage(state: AdminState): void {
@@ -534,7 +641,7 @@ export function useAdminStore() {
   }
 
   function resetToDefaults() {
-    const defaults: AdminState = { plans: DEFAULT_PLANS, addons: DEFAULT_ADDONS };
+    const defaults: AdminState = { plans: DEFAULT_PLANS, addons: DEFAULT_ADDONS, jobberPayments: DEFAULT_JOBBER_PAYMENTS };
     adminDispatch({ type: 'RESET_TO_STATE', state: defaults });
     setSavedState(defaults);
     persistToStorage(defaults);

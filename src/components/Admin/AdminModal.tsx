@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { AdminAction } from '../../store/adminStore';
-import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPriceTier, PlanPricingOption } from '../../types';
+import type { PlanDefinition, AddonDefinition, PriceTier, PlanFeature, AddonPriceTier, PlanPricingOption, JobberPaymentsDefinition, PaymentRate } from '../../types';
 import type { Dispatch } from 'react';
 
 interface Props {
@@ -1215,11 +1215,296 @@ function AddonsTab({ addons, dispatch }: { addons: AddonDefinition[]; dispatch: 
   );
 }
 
+// ─── Sortable payments feature row ───────────────────────────────────────────
+
+interface SortablePaymentsFeatureProps {
+  feature: PlanFeature;
+  isDefaultKey: boolean;
+  dispatch: Dispatch<AdminAction>;
+}
+
+function SortablePaymentsFeatureRow({ feature, isDefaultKey, dispatch }: SortablePaymentsFeatureProps) {
+  const [label, setLabel] = useState(feature.label);
+  const [editing, setEditing] = useState(false);
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: `paymentsfeat:${feature.id}`,
+    data: { label: feature.label },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform) ?? undefined,
+    transition: transition ?? undefined,
+    opacity: isDragging ? 0.3 : undefined,
+  };
+
+  function commitEdit() {
+    setEditing(false);
+    if (label.trim()) {
+      dispatch({ type: 'UPDATE_PAYMENTS_FEATURE', featureId: feature.id, label: label.trim() });
+    } else {
+      setLabel(feature.label);
+    }
+  }
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="flex items-start gap-1.5 group rounded px-1 py-0.5 hover:bg-gray-50">
+        <button
+          {...attributes}
+          {...listeners}
+          className="mt-0.5 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none"
+          title="Drag to reorder"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <circle cx="3.5" cy="2.5" r="1.2"/><circle cx="3.5" cy="6" r="1.2"/><circle cx="3.5" cy="9.5" r="1.2"/>
+            <circle cx="8.5" cy="2.5" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/><circle cx="8.5" cy="9.5" r="1.2"/>
+          </svg>
+        </button>
+
+        <div className="flex-1 min-w-0">
+          {editing ? (
+            <input
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+              value={label}
+              onChange={e => setLabel(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={e => {
+                if (e.key === 'Enter') commitEdit();
+                if (e.key === 'Escape') { setLabel(feature.label); setEditing(false); }
+              }}
+              className="w-full text-xs border-b border-jobber outline-none py-0.5 bg-transparent"
+            />
+          ) : (
+            <span
+              onClick={() => { setLabel(feature.label); setEditing(true); }}
+              className="block text-xs text-gray-700 cursor-text leading-relaxed"
+              title="Click to edit"
+            >
+              {feature.label}
+            </span>
+          )}
+        </div>
+
+        {/* Default key feature star toggle */}
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_PAYMENTS_DEFAULT_KEY_FEATURE', featureId: feature.id })}
+          className={`mt-0.5 flex-shrink-0 transition-colors ${isDefaultKey ? 'text-amber-400' : 'text-gray-200 opacity-0 group-hover:opacity-100 hover:text-amber-300'}`}
+          title={isDefaultKey ? 'Remove as default key feature' : 'Mark as default key feature'}
+        >
+          <StarIcon filled={isDefaultKey} />
+        </button>
+
+        {/* Delete button */}
+        <button
+          onClick={() => dispatch({ type: 'DELETE_PAYMENTS_FEATURE', featureId: feature.id })}
+          className="mt-0.5 text-red-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+          title="Delete feature"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Payments tab ─────────────────────────────────────────────────────────────
+
+interface PaymentsTabProps {
+  def: JobberPaymentsDefinition;
+  dispatch: Dispatch<AdminAction>;
+}
+
+function PaymentsTab({ def, dispatch }: PaymentsTabProps) {
+  const [ratesExpanded, setRatesExpanded] = useState(false);
+  const [addingFeature, setAddingFeature] = useState(false);
+  const [newFeatureLabel, setNewFeatureLabel] = useState('');
+  const [activeDragLabel, setActiveDragLabel] = useState<string | null>(null);
+
+  const featureSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  function submitFeature() {
+    const label = newFeatureLabel.trim();
+    if (!label) return;
+    dispatch({ type: 'ADD_PAYMENTS_FEATURE', label });
+    setNewFeatureLabel('');
+    setAddingFeature(false);
+  }
+
+  function handleFeatureDragStart(event: DragStartEvent) {
+    setActiveDragLabel(event.active.data.current?.label as string ?? null);
+  }
+
+  function handleFeatureDragEnd(event: DragEndEvent) {
+    setActiveDragLabel(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (!activeId.startsWith('paymentsfeat:') || !overId.startsWith('paymentsfeat:')) return;
+    const fromFeatureId = activeId.split(':')[1];
+    const toFeatureId = overId.split(':')[1];
+    const fromIndex = def.features.findIndex(f => f.id === fromFeatureId);
+    const toIndex = def.features.findIndex(f => f.id === toFeatureId);
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      dispatch({ type: 'REORDER_PAYMENTS_FEATURES', fromIndex, toIndex });
+    }
+  }
+
+  return (
+    <div>
+      <p className="text-xs text-gray-400 mb-4">
+        Edit the Jobber Payments description, rates, and features. Click a feature to edit inline. Star a feature to make it a default key feature.
+      </p>
+
+      <div className="border border-gray-200 rounded-xl overflow-hidden">
+        {/* Description */}
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Description</label>
+          <textarea
+            value={def.description}
+            onChange={e => dispatch({ type: 'UPDATE_PAYMENTS_DESCRIPTION', description: e.target.value })}
+            rows={2}
+            className="w-full text-xs text-gray-600 bg-white border border-gray-200 rounded px-2 py-1.5 outline-none resize-none focus:ring-1 focus:ring-jobber"
+            placeholder="Payments description…"
+          />
+        </div>
+
+        {/* Rates — collapsible */}
+        <div className="border-b border-gray-100">
+          <button
+            onClick={() => setRatesExpanded(x => !x)}
+            className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wide hover:bg-gray-50"
+          >
+            <span>Rates &amp; Settings ({def.rates.length} region{def.rates.length !== 1 ? 's' : ''})</span>
+            <span className="text-gray-300">{ratesExpanded ? '▲' : '▼'}</span>
+          </button>
+          {ratesExpanded && (
+            <div className="px-4 pb-3 space-y-3">
+              {def.rates.map((rate: PaymentRate) => (
+                <div key={rate.id} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-gray-500">Region</span>
+                    {def.rates.length > 1 && (
+                      <button
+                        onClick={() => dispatch({ type: 'REMOVE_PAYMENTS_RATE', rateId: rate.id })}
+                        className="text-xs text-red-400 hover:text-red-600 font-medium"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-0.5">Location</label>
+                      <input
+                        value={rate.location}
+                        onChange={e => dispatch({ type: 'UPDATE_PAYMENTS_RATE', rateId: rate.id, field: 'location', value: e.target.value })}
+                        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+                        placeholder="e.g. Canada & US"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-0.5">Standard Rate</label>
+                        <input
+                          value={rate.standardRate}
+                          onChange={e => dispatch({ type: 'UPDATE_PAYMENTS_RATE', rateId: rate.id, field: 'standardRate', value: e.target.value })}
+                          className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+                          placeholder="e.g. 2.9% + 30¢"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-0.5">Tap to Pay Rate (optional)</label>
+                        <input
+                          value={rate.tapToPayRate ?? ''}
+                          onChange={e => dispatch({ type: 'UPDATE_PAYMENTS_RATE', rateId: rate.id, field: 'tapToPayRate', value: e.target.value })}
+                          className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+                          placeholder="e.g. 2.7% + 30¢"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => dispatch({ type: 'ADD_PAYMENTS_RATE' })}
+                className="text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1 mt-1"
+              >
+                + Add rate
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Features */}
+        <div className="px-4 py-3">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Features ({def.features.length})</p>
+          <DndContext
+            sensors={featureSensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleFeatureDragStart}
+            onDragEnd={handleFeatureDragEnd}
+          >
+            <SortableContext
+              items={def.features.map(f => `paymentsfeat:${f.id}`)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-0.5 max-h-60 overflow-y-auto pr-1">
+                {def.features.map(f => (
+                  <SortablePaymentsFeatureRow
+                    key={f.id}
+                    feature={f}
+                    isDefaultKey={def.defaultKeyFeatureIds?.includes(f.id) ?? false}
+                    dispatch={dispatch}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+            <DragOverlay>
+              {activeDragLabel && (
+                <div className="bg-white border border-jobber shadow-lg rounded-full px-3 py-1 text-xs font-semibold text-jobber-dark cursor-grabbing">
+                  {activeDragLabel}
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
+          {addingFeature ? (
+            <div className="mt-2 flex items-center gap-1.5">
+              <input
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus
+                value={newFeatureLabel}
+                onChange={e => setNewFeatureLabel(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') submitFeature(); if (e.key === 'Escape') { setNewFeatureLabel(''); setAddingFeature(false); } }}
+                placeholder="Feature description…"
+                className="flex-1 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+              />
+              <button onClick={submitFeature} disabled={!newFeatureLabel.trim()} className="text-xs bg-jobber text-jobber-dark px-2 py-1 rounded disabled:opacity-40">Add</button>
+              <button onClick={() => { setNewFeatureLabel(''); setAddingFeature(false); }} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setAddingFeature(true)}
+              className="mt-2 text-xs text-jobber hover:opacity-80 font-semibold flex items-center gap-1"
+            >
+              + Add feature
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main modal ───────────────────────────────────────────────────────────────
 
 export function AdminModal({ onClose }: Props) {
-  const [tab, setTab] = useState<'plans' | 'addons'>('plans');
-  const { plans, addons, adminDispatch, isDirty, save, cancel, resetToDefaults } = useAdminData();
+  const [tab, setTab] = useState<'plans' | 'addons' | 'payments'>('plans');
+  const { plans, addons, jobberPayments, adminDispatch, isDirty, save, cancel, resetToDefaults } = useAdminData();
 
   function handleReset() {
     if (window.confirm('Reset all pricing and features to the original defaults? This cannot be undone.')) {
@@ -1284,7 +1569,7 @@ export function AdminModal({ onClose }: Props) {
 
         {/* Tabs */}
         <div className="flex border-b border-gray-200 px-6">
-          {(['plans', 'addons'] as const).map(t => (
+          {(['plans', 'addons', 'payments'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -1294,7 +1579,7 @@ export function AdminModal({ onClose }: Props) {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              {t === 'plans' ? 'Plans' : 'Add-ons'}
+              {t === 'plans' ? 'Plans' : t === 'addons' ? 'Add-ons' : 'Jobber Payments'}
             </button>
           ))}
         </div>
@@ -1303,6 +1588,7 @@ export function AdminModal({ onClose }: Props) {
         <div className="p-6">
           {tab === 'plans' && <PlansTab plans={plans} dispatch={adminDispatch} />}
           {tab === 'addons' && <AddonsTab addons={addons} dispatch={adminDispatch} />}
+          {tab === 'payments' && <PaymentsTab def={jobberPayments} dispatch={adminDispatch} />}
         </div>
       </div>
     </div>

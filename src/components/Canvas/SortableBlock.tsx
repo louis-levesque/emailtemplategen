@@ -10,6 +10,7 @@ import { TextBlock } from '../Blocks/TextBlock';
 import { HeadingBlock } from '../Blocks/HeadingBlock';
 import { CheckoutLinkBlock } from '../Blocks/CheckoutLinkBlock';
 import { CompareBlock } from '../Blocks/CompareBlock';
+import { JobberPaymentsBlock } from '../Blocks/JobberPaymentsBlock';
 
 interface Props {
   block: CanvasBlock;
@@ -26,6 +27,7 @@ function BlockContent({ block, dispatch }: Props) {
     case 'heading': return <HeadingBlock block={block} dispatch={dispatch} />;
     case 'checkout': return <CheckoutLinkBlock block={block} dispatch={dispatch} />;
     case 'compare': return <CompareBlock block={block} dispatch={dispatch} />;
+    case 'payments': return <JobberPaymentsBlock block={block} dispatch={dispatch} />;
   }
 }
 

@@ -1,4 +1,4 @@
-import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, HeadingBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition } from '../types';
+import type { AppState, CanvasBlock, PlanBlock, AddonBlock, TextBlock, HeadingBlock, CheckoutLinkBlock, CompareBlock, CompareSlot, PlanDefinition, AddonDefinition, JobberPaymentsBlock, JobberPaymentsDefinition } from '../types';
 import {
   applyPromo,
   formatCurrency,
@@ -585,7 +585,51 @@ function renderCompareBlock(block: CompareBlock, plans: PlanDefinition[], addons
 </div>`;
 }
 
-function renderBlock(block: CanvasBlock, plans: PlanDefinition[], addons: AddonDefinition[]): string {
+function renderJobberPaymentsBlock(block: JobberPaymentsBlock, def: JobberPaymentsDefinition): string {
+  const selectedRate = def.rates.find(r => r.id === block.selectedRateId) ?? def.rates[0];
+  const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? []);
+  const hasFeatures = featureRows.length > 0;
+  const TEAL = '#0891B2';
+
+  return `
+<div style="${SECTION_STYLE}">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid ${TEAL}; border-radius: 4px;">
+    <tr>
+      <td style="padding: 10px 14px; background-color: #f9fafb;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="${TEAL}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><rect x="1" y="3" width="14" height="10" rx="1.5"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="3.5" y1="10" x2="6" y2="10"/></svg>
+        <strong style="font-size: 15px; color: #111; vertical-align: middle;">Jobber Payments</strong>
+      </td>
+    </tr>
+    ${selectedRate ? `
+    <tr>
+      <td style="padding: 8px 14px; border-top: 1px solid #f0f0f0;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="color: #555; font-size: 13px;">${escapeHtml(selectedRate.location)}</td>
+            <td style="text-align: right;">
+              <strong style="color: ${TEAL}; font-size: 13px;">${escapeHtml(selectedRate.standardRate)}</strong>
+              ${selectedRate.tapToPayRate ? `<span style="display:block; font-size:11px; color:#555;">Tap to Pay: <strong style="color:${TEAL};">${escapeHtml(selectedRate.tapToPayRate)}</strong></span>` : ''}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>` : ''}
+    <tr>
+      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}</td>
+    </tr>
+    ${hasFeatures ? `
+    <tr>
+      <td style="padding: 8px 14px 12px;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          ${featureRows}
+        </table>
+      </td>
+    </tr>` : ''}
+  </table>
+</div>`;
+}
+
+function renderBlock(block: CanvasBlock, plans: PlanDefinition[], addons: AddonDefinition[], jobberPayments?: JobberPaymentsDefinition): string {
   switch (block.kind) {
     case 'text': return renderTextBlock(block);
     case 'heading': return renderHeadingBlock(block);
@@ -594,11 +638,12 @@ function renderBlock(block: CanvasBlock, plans: PlanDefinition[], addons: AddonD
     case 'signature': return renderSignatureBlock();
     case 'checkout': return renderCheckoutLinkBlock(block);
     case 'compare': return renderCompareBlock(block, plans, addons);
+    case 'payments': return jobberPayments ? renderJobberPaymentsBlock(block, jobberPayments) : '';
   }
 }
 
-export function generateEmailHtml(state: AppState, plans: PlanDefinition[], addons: AddonDefinition[]): string {
-  const body = state.blocks.map(b => renderBlock(b, plans, addons)).join('\n');
+export function generateEmailHtml(state: AppState, plans: PlanDefinition[], addons: AddonDefinition[], jobberPayments?: JobberPaymentsDefinition): string {
+  const body = state.blocks.map(b => renderBlock(b, plans, addons, jobberPayments)).join('\n');
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
@@ -610,7 +655,7 @@ export function generateEmailHtml(state: AppState, plans: PlanDefinition[], addo
 </html>`;
 }
 
-export function generateEmailText(state: AppState, plans: PlanDefinition[], addons: AddonDefinition[]): string {
+export function generateEmailText(state: AppState, plans: PlanDefinition[], addons: AddonDefinition[], jobberPayments?: JobberPaymentsDefinition): string {
   return state.blocks.map(block => {
     switch (block.kind) {
       case 'text': {
@@ -729,6 +774,28 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
           })
           .filter(Boolean);
         return `--- Compare ---\n${names.join(' | ')}`;
+      }
+      case 'payments': {
+        if (!jobberPayments) return '';
+        const def = jobberPayments;
+        const selectedRate = def.rates.find(r => r.id === block.selectedRateId) ?? def.rates[0];
+        const keyIds = block.keyFeatureIds ?? [];
+        const keyFeaturesText = def.features
+          .filter(f => keyIds.includes(f.id) && block.visibleFeatureIds.includes(f.id))
+          .map(f => `  ★ ${stripLinkSyntax(f.label)}`)
+          .join('\n');
+        const otherFeaturesText = def.features
+          .filter(f => block.visibleFeatureIds.includes(f.id) && !keyIds.includes(f.id))
+          .map(f => `  ✓ ${stripLinkSyntax(f.label)}`)
+          .join('\n');
+        const features = [
+          keyFeaturesText ? `Key Features:\n${keyFeaturesText}` : '',
+          otherFeaturesText ? (keyFeaturesText ? `Other features included:\n${otherFeaturesText}` : otherFeaturesText) : '',
+        ].filter(Boolean).join('\n');
+        const rateText = selectedRate
+          ? `${selectedRate.location}: ${selectedRate.standardRate}${selectedRate.tapToPayRate ? ` | Tap to Pay: ${selectedRate.tapToPayRate}` : ''}`
+          : '';
+        return ['Jobber Payments', def.description, rateText, features].filter(Boolean).join('\n');
       }
     }
   }).join('\n\n');

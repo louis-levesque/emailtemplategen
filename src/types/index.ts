@@ -40,7 +40,21 @@ export interface AddonDefinition {
   features: PlanFeature[];
 }
 
-export type BlockKind = 'plan' | 'addon' | 'signature' | 'text' | 'heading' | 'checkout' | 'compare';
+export interface PaymentRate {
+  id: string;
+  location: string;
+  standardRate: string;
+  tapToPayRate?: string;
+}
+
+export interface JobberPaymentsDefinition {
+  description: string;
+  rates: PaymentRate[];
+  features: PlanFeature[];
+  defaultKeyFeatureIds?: string[];
+}
+
+export type BlockKind = 'plan' | 'addon' | 'signature' | 'text' | 'heading' | 'checkout' | 'compare' | 'payments';
 
 export interface PromoConfig {
   type: 'percent' | 'dollar';
@@ -130,7 +144,14 @@ export interface CompareBlock extends BaseBlock {
   slots: (CompareSlot | null)[]; // always length 3
 }
 
-export type CanvasBlock = PlanBlock | AddonBlock | SignatureBlock | TextBlock | HeadingBlock | CheckoutLinkBlock | CompareBlock;
+export interface JobberPaymentsBlock extends BaseBlock {
+  kind: 'payments';
+  selectedRateId: string;
+  visibleFeatureIds: string[];
+  keyFeatureIds: string[];
+}
+
+export type CanvasBlock = PlanBlock | AddonBlock | SignatureBlock | TextBlock | HeadingBlock | CheckoutLinkBlock | CompareBlock | JobberPaymentsBlock;
 
 export interface EmailHeader {
   to: string;

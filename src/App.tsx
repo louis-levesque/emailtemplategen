@@ -99,7 +99,7 @@ export default function App() {
   }
 
   return (
-    <AdminDataContext.Provider value={{ plans: adminState.plans, addons: adminState.addons, adminDispatch, isDirty, save, cancel, resetToDefaults }}>
+    <AdminDataContext.Provider value={{ plans: adminState.plans, addons: adminState.addons, jobberPayments: adminState.jobberPayments, adminDispatch, isDirty, save, cancel, resetToDefaults }}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

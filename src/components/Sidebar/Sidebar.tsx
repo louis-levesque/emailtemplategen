@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function Sidebar({ dispatch }: Props) {
-  const { plans, addons } = useAdminData();
+  const { plans, addons, jobberPayments } = useAdminData();
 
   function addBlock(block: CanvasBlock) {
     dispatch({ type: 'ADD_BLOCK', block });
@@ -133,6 +133,28 @@ export function Sidebar({ dispatch }: Props) {
               })}
             />
           ))}
+        </SidebarSection>
+
+        <SidebarSection title="Jobber Payments">
+          <DraggableSidebarItem
+            id="jobber-payments"
+            label="Jobber Payments"
+            description={jobberPayments.description}
+            blockFactory={() => ({
+              instanceId: generateId(),
+              kind: 'payments',
+              selectedRateId: jobberPayments.rates[0]?.id ?? '',
+              visibleFeatureIds: jobberPayments.features.map(f => f.id),
+              keyFeatureIds: jobberPayments.defaultKeyFeatureIds ?? [],
+            })}
+            onAdd={() => addBlock({
+              instanceId: generateId(),
+              kind: 'payments',
+              selectedRateId: jobberPayments.rates[0]?.id ?? '',
+              visibleFeatureIds: jobberPayments.features.map(f => f.id),
+              keyFeatureIds: jobberPayments.defaultKeyFeatureIds ?? [],
+            })}
+          />
         </SidebarSection>
 
         <SidebarSection title="Other">

@@ -50,6 +50,7 @@ export interface PaymentRate {
 
 export interface JobberPaymentsDefinition {
   description: string;
+  learnMoreUrl?: string;
   rates: PaymentRate[];
   features: PlanFeature[];
   defaultKeyFeatureIds?: string[];

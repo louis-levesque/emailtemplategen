@@ -1371,6 +1371,13 @@ function PaymentsTab({ def, dispatch }: PaymentsTabProps) {
             className="w-full text-xs text-gray-600 bg-white border border-gray-200 rounded px-2 py-1.5 outline-none resize-none focus:ring-1 focus:ring-jobber"
             placeholder="Payments description…"
           />
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mt-2 mb-1">Learn More URL (optional)</label>
+          <input
+            value={def.learnMoreUrl ?? ''}
+            onChange={e => dispatch({ type: 'UPDATE_PAYMENTS_LEARN_MORE_URL', url: e.target.value })}
+            className="w-full text-xs text-gray-600 bg-white border border-gray-200 rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-jobber"
+            placeholder="https://…"
+          />
         </div>
 
         {/* Rates — collapsible */}

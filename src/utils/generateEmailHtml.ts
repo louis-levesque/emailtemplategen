@@ -616,7 +616,7 @@ function renderJobberPaymentsBlock(block: JobberPaymentsBlock, def: JobberPaymen
       </td>
     </tr>` : ''}
     <tr>
-      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}</td>
+      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:${TEAL}; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
     </tr>
     ${hasFeatures ? `
     <tr>
@@ -796,7 +796,8 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         const rateText = selectedRate
           ? `${selectedRate.location}: ${selectedRate.standardRate} per transaction${selectedRate.tapToPayRate ? ` | Tap to Pay: ${selectedRate.tapToPayRate} per transaction` : ''}${selectedRate.achRate ? ` | ACH (US Only): ${selectedRate.achRate} per transaction` : ''}`
           : '';
-        return ['Jobber Payments', def.description, rateText, features].filter(Boolean).join('\n');
+        const descriptionText = def.description + (def.learnMoreUrl ? ` Learn more: ${def.learnMoreUrl}` : '');
+        return ['Jobber Payments', descriptionText, rateText, features].filter(Boolean).join('\n');
       }
     }
   }).join('\n\n');

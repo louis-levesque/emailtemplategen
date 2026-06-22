@@ -44,6 +44,7 @@ export type AdminAction =
   | { type: 'DELETE_ADDON'; addonId: string }
   | { type: 'RESET_TO_STATE'; state: AdminState }
   | { type: 'UPDATE_PAYMENTS_DESCRIPTION'; description: string }
+  | { type: 'UPDATE_PAYMENTS_LEARN_MORE_URL'; url: string }
   | { type: 'UPDATE_PAYMENTS_RATE'; rateId: string; field: 'location' | 'standardRate' | 'tapToPayRate' | 'achRate'; value: string }
   | { type: 'ADD_PAYMENTS_RATE' }
   | { type: 'REMOVE_PAYMENTS_RATE'; rateId: string }
@@ -448,6 +449,12 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
       return {
         ...state,
         jobberPayments: { ...state.jobberPayments, description: action.description },
+      };
+
+    case 'UPDATE_PAYMENTS_LEARN_MORE_URL':
+      return {
+        ...state,
+        jobberPayments: { ...state.jobberPayments, learnMoreUrl: action.url },
       };
 
     case 'UPDATE_PAYMENTS_RATE':

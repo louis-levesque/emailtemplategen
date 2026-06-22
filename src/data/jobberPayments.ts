@@ -2,6 +2,7 @@ import type { JobberPaymentsDefinition } from '../types';
 
 export const JOBBER_PAYMENTS: JobberPaymentsDefinition = {
   description: 'Included on all plans, get paid 4x faster on average by accepting online payments directly in Jobber.',
+  learnMoreUrl: 'https://help.getjobber.com/hc/en-us/articles/115009571387-Jobber-Payments-Basics',
   rates: [
     {
       id: 'rate-ca-us',

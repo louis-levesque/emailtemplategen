@@ -9,7 +9,7 @@ export interface PlanPricingOption {
 }
 
 export interface PriceTier {
-  seats: number;
+  seats: number | 'unlimited';
   prices: Record<string, { price: string; monthlyEquivalent?: string }>;
 }
 
@@ -21,6 +21,8 @@ export interface PlanDefinition {
   tiers: PriceTier[];
   color: string;
   features: PlanFeature[];
+  /** Feature IDs that should be marked as Key Features when a block is first created */
+  defaultKeyFeatureIds?: string[];
 }
 
 export interface AddonPriceTier {
@@ -54,7 +56,7 @@ interface BaseBlock {
 export interface PlanBlock extends BaseBlock {
   kind: 'plan';
   definitionId: string;
-  selectedSeats: number;
+  selectedSeats: number | 'unlimited';
   visibleFeatureIds: string[];
   keyFeatureIds: string[];
   visiblePricingOptionIds: string[];
@@ -102,7 +104,7 @@ export type CompareSlot =
   | {
       kind: 'plan';
       definitionId: string;
-      selectedSeats: number;
+      selectedSeats: number | 'unlimited';
       visibleFeatureIds: string[];
       keyFeatureIds: string[];
       visiblePricingOptionIds: string[];

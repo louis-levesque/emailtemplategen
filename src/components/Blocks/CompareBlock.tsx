@@ -5,7 +5,7 @@ import type { CanvasAction } from '../../store/canvasReducer';
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
 import { FeatureBuckets } from './FeatureBuckets';
 import { PromoModal, type PromoRow } from './PromoModal';
-import { applyPromo, formatCurrency, formatValidUntil } from '../../utils/priceUtils';
+import { applyPromo, formatCurrency, formatValidUntil, formatSeats } from '../../utils/priceUtils';
 
 interface Props {
   block: CompareBlockType;
@@ -43,7 +43,7 @@ function SlotPicker({ onSelect, onClose }: SlotPickerProps) {
       definitionId: plan.id,
       selectedSeats: plan.tiers[0].seats,
       visibleFeatureIds: plan.features.map(f => f.id),
-      keyFeatureIds: [],
+      keyFeatureIds: plan.defaultKeyFeatureIds ?? [],
       visiblePricingOptionIds: plan.pricingOptions.map(o => o.id),
       promotions: {},
     });
@@ -242,7 +242,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear, onModalO
                     : { backgroundColor: '#fff', borderColor: def.color + '66', color: def.color }
                 }
               >
-                {tier.seats} {tier.seats === 1 ? 'user' : 'users'}
+                {formatSeats(tier.seats)}
               </button>
             ))}
           </div>
@@ -366,7 +366,7 @@ function PlanSlotCard({ slot, slotIndex, instanceId, dispatch, onClear, onModalO
 
       {showPromoModal && (
         <PromoModal
-          title={`${def.title} — ${selectedTier.seats} ${selectedTier.seats === 1 ? 'user' : 'users'}`}
+          title={`${def.title} — ${formatSeats(selectedTier.seats)}`}
           rows={promoRows}
           initialPromos={promotions}
           initialValidUntil={slot.promoValidUntil}

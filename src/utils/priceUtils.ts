@@ -1,5 +1,12 @@
 import type { PromoConfig } from '../types';
 
+/** Format a seats value for display (e.g. 5 → "5 users", 'unlimited' → "Unlimited users") */
+export function formatSeats(seats: number | 'unlimited', unit: 'user' | 'user seat' = 'user'): string {
+  if (seats === 'unlimited') return `Unlimited ${unit}s`;
+  const plural = unit + (seats === 1 ? '' : 's');
+  return `${seats} ${plural}`;
+}
+
 /** Strip '$', commas, '/mo', '/yr' and return the numeric value */
 export function parsePrice(str: string): number {
   const match = str.match(/[\d,]+(?:\.\d+)?/);

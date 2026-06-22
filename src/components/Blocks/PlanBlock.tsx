@@ -8,6 +8,7 @@ import {
   applyPromo,
   formatCurrency,
   formatValidUntil,
+  formatSeats,
 } from '../../utils/priceUtils';
 
 import { stripLinkSyntax } from '../../utils/generateEmailHtml';
@@ -92,7 +93,7 @@ export function PlanBlock({ block, dispatch }: Props) {
                         : { backgroundColor: '#fff', borderColor: def.color + '66', color: def.color }
                     }
                   >
-                    {tier.seats} {tier.seats === 1 ? 'user' : 'users'}
+                    {formatSeats(tier.seats)}
                   </button>
                 ))}
               </div>
@@ -225,7 +226,7 @@ export function PlanBlock({ block, dispatch }: Props) {
 
       {showPromoModal && (
         <PromoModal
-          title={`${def.title} — ${selectedTier.seats} ${selectedTier.seats === 1 ? 'user' : 'users'}`}
+          title={`${def.title} — ${formatSeats(selectedTier.seats)}`}
           rows={promoRows}
           initialPromos={promotions}
           initialValidUntil={block.promoValidUntil}

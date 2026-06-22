@@ -26,6 +26,14 @@ interface Props {
 
 // ─── Small shared helpers ─────────────────────────────────────────────────────
 
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="11" height="11" viewBox="0 0 14 14" fill={filled ? '#f59e0b' : 'none'} stroke={filled ? '#f59e0b' : 'currentColor'} strokeWidth="1.2">
+      <polygon points="7,1 8.8,5.2 13.4,5.6 10,8.6 11,13.2 7,10.8 3,13.2 4,8.6 0.6,5.6 5.2,5.2" />
+    </svg>
+  );
+}
+
 function LinkIcon() {
   return (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
@@ -116,10 +124,11 @@ function InsertLinkInline({ onInsert, onClose, defaultText = '' }: InsertLinkInl
 interface SortableFeatureProps {
   planId: string;
   feature: PlanFeature;
+  isDefaultKey: boolean;
   dispatch: Dispatch<AdminAction>;
 }
 
-function SortableFeatureRow({ planId, feature, dispatch }: SortableFeatureProps) {
+function SortableFeatureRow({ planId, feature, isDefaultKey, dispatch }: SortableFeatureProps) {
   const [label, setLabel] = useState(feature.label);
   const [editing, setEditing] = useState(false);
   const [showLinkForm, setShowLinkForm] = useState(false);
@@ -221,6 +230,15 @@ function SortableFeatureRow({ planId, feature, dispatch }: SortableFeatureProps)
             </span>
           )}
         </div>
+
+        {/* Default key feature star toggle */}
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_DEFAULT_KEY_FEATURE', planId, featureId: feature.id })}
+          className={`mt-0.5 flex-shrink-0 transition-colors ${isDefaultKey ? 'text-amber-400' : 'text-gray-200 opacity-0 group-hover:opacity-100 hover:text-amber-300'}`}
+          title={isDefaultKey ? 'Remove as default key feature' : 'Mark as default key feature'}
+        >
+          <StarIcon filled={isDefaultKey} />
+        </button>
 
         {/* Link button */}
         <button
@@ -381,11 +399,19 @@ function SortableTierRow({ planId, tier, tierIndex, pricingOptions, dispatch, ca
           </button>
           <span className="text-xs font-semibold text-gray-500">User seats:</span>
           <input
-            type="number"
-            min={1}
-            value={tier.seats}
-            onChange={e => dispatch({ type: 'UPDATE_TIER_SEATS', planId, tierIndex, seats: Number(e.target.value) })}
-            className="w-16 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
+            type="text"
+            value={tier.seats === 'unlimited' ? 'Unlimited' : String(tier.seats)}
+            onChange={e => {
+              const v = e.target.value.trim().toLowerCase();
+              if (v === 'unlimited') {
+                dispatch({ type: 'UPDATE_TIER_SEATS', planId, tierIndex, seats: 'unlimited' });
+              } else {
+                const n = parseInt(v, 10);
+                if (!isNaN(n) && n > 0) dispatch({ type: 'UPDATE_TIER_SEATS', planId, tierIndex, seats: n });
+              }
+            }}
+            placeholder="e.g. 5 or Unlimited"
+            className="w-24 text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-jobber"
           />
         </div>
         {canRemove && (
@@ -632,6 +658,7 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
                 key={feature.id}
                 planId={plan.id}
                 feature={feature}
+                isDefaultKey={plan.defaultKeyFeatureIds?.includes(feature.id) ?? false}
                 dispatch={dispatch}
               />
             ))}

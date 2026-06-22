@@ -7,7 +7,7 @@ export type CanvasAction =
   | { type: 'REORDER_BLOCKS'; orderedIds: string[] }
   | { type: 'TOGGLE_FEATURE'; instanceId: string; featureId: string }
   | { type: 'SET_FEATURE_BUCKET'; instanceId: string; featureId: string; bucket: 'key' | 'included' | 'hidden' }
-  | { type: 'SET_PLAN_SEATS'; instanceId: string; seats: number }
+  | { type: 'SET_PLAN_SEATS'; instanceId: string; seats: number | 'unlimited' }
   | { type: 'TOGGLE_PLAN_PRICING_OPTION'; instanceId: string; optionId: string }
   | { type: 'SET_PLAN_PROMOTIONS'; instanceId: string; promotions: Partial<Record<string, PromoConfig>>; validUntil: string | null }
   | { type: 'SET_ADDON_PROMOTIONS'; instanceId: string; promotions: Partial<Record<string, PromoConfig>>; validUntil: string | null }

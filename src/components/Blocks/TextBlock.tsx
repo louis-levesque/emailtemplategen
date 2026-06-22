@@ -81,7 +81,11 @@ export function TextBlock({ block, dispatch }: Props) {
   const currentAlignment = block.alignment ?? 'left';
 
   function handleInput() {
-    const html = editorRef.current?.innerHTML ?? '';
+    const raw = editorRef.current?.innerHTML ?? '';
+    // Normalize &nbsp; entities and Unicode non-breaking spaces inserted by
+    // the browser's contentEditable into regular spaces, so they don't get
+    // double-encoded by escapeHtml() into literal "&amp;nbsp;" in email output.
+    const html = raw.replace(/&nbsp;/g, ' ').replace(/ /g, ' ');
     const effectivelyEmpty = html === '' || html === '<br>';
     setIsEmpty(effectivelyEmpty);
     dispatch({

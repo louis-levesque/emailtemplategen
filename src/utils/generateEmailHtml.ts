@@ -3,6 +3,7 @@ import {
   applyPromo,
   formatCurrency,
   formatValidUntil,
+  formatSeats,
 } from './priceUtils';
 
 const OUTER_STYLE = 'font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6;';
@@ -136,7 +137,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
   const featureRows = buildFeatureRows(def.features, block.visibleFeatureIds, block.keyFeatureIds ?? []);
   const hasFeatures = featureRows.length > 0;
 
-  const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
+  const seatLabel = formatSeats(tier.seats, 'user seat');
   const visiblePricingOptionIds = block.visiblePricingOptionIds ?? def.pricingOptions.map(o => o.id);
   const promotions = block.promotions ?? {};
 
@@ -439,7 +440,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
       : '';
 
     const featureRows = buildCompareFeatureRows(def.features, slot.visibleFeatureIds, slot.keyFeatureIds);
-    const seatLabel = `${tier.seats} ${tier.seats === 1 ? 'user seat' : 'user seats'}`;
+    const seatLabel = formatSeats(tier.seats, 'user seat');
 
     const planSlotRecommendedRow = anyRecommended
       ? `<tr><td style="padding:4px 10px; background-color:${slot.isRecommended ? '#ecfccb' : '#f3f4f6'}; text-align:center; font-size:10px; font-weight:600; color:${slot.isRecommended ? '#4d7c0f' : '#f3f4f6'}; letter-spacing:0.03em;">${slot.isRecommended ? 'Recommended' : '&nbsp;'}</td></tr>`
@@ -669,7 +670,7 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
           ? `  Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
           : '';
         return [
-          `${def.title} (${tier.seats} ${tier.seats === 1 ? 'user' : 'users'}) — ${stripLinkSyntax(def.tagline)}`,
+          `${def.title} (${formatSeats(tier.seats)}) — ${stripLinkSyntax(def.tagline)}`,
           pricing,
           validUntilPlan,
           features,

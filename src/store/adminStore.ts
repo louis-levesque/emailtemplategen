@@ -12,7 +12,7 @@ export interface AdminState {
 
 export type AdminAction =
   | { type: 'UPDATE_PLAN_META'; planId: string; field: 'title' | 'tagline' | 'color'; value: string }
-  | { type: 'UPDATE_TIER_SEATS'; planId: string; tierIndex: number; seats: number }
+  | { type: 'UPDATE_TIER_SEATS'; planId: string; tierIndex: number; seats: number | 'unlimited' }
   | { type: 'UPDATE_TIER_PRICE'; planId: string; tierIndex: number; optionId: string; field: 'price' | 'monthlyEquivalent'; value: string }
   | { type: 'ADD_TIER'; planId: string }
   | { type: 'REMOVE_TIER'; planId: string; tierIndex: number }
@@ -25,6 +25,7 @@ export type AdminAction =
   | { type: 'ADD_PLAN_FEATURE'; planId: string; label: string }
   | { type: 'UPDATE_PLAN_FEATURE'; planId: string; featureId: string; label: string }
   | { type: 'DELETE_PLAN_FEATURE'; planId: string; featureId: string }
+  | { type: 'TOGGLE_DEFAULT_KEY_FEATURE'; planId: string; featureId: string }
   | { type: 'MOVE_PLAN_FEATURE'; fromPlanId: string; toPlanId: string; featureId: string }
   | { type: 'REORDER_PLAN_FEATURES'; planId: string; fromIndex: number; toIndex: number }
   | { type: 'REORDER_ADDON_FEATURES'; addonId: string; fromIndex: number; toIndex: number }
@@ -90,7 +91,8 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
     case 'ADD_TIER': {
       const plan = state.plans.find(p => p.id === action.planId);
       if (!plan) return state;
-      const maxSeats = Math.max(...plan.tiers.map(t => t.seats));
+      const numericSeats = plan.tiers.map(t => t.seats).filter((s): s is number => s !== 'unlimited');
+      const maxSeats = numericSeats.length > 0 ? Math.max(...numericSeats) : 0;
       const seedPrices: PriceTier['prices'] = {};
       for (const opt of plan.pricingOptions) {
         seedPrices[opt.id] = { price: '$0/mo' };
@@ -240,6 +242,23 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
           }
         ),
       };
+
+    case 'TOGGLE_DEFAULT_KEY_FEATURE': {
+      return {
+        ...state,
+        plans: state.plans.map(p => {
+          if (p.id !== action.planId) return p;
+          const current = p.defaultKeyFeatureIds ?? [];
+          const isKey = current.includes(action.featureId);
+          return {
+            ...p,
+            defaultKeyFeatureIds: isKey
+              ? current.filter(id => id !== action.featureId)
+              : [...current, action.featureId],
+          };
+        }),
+      };
+    }
 
     case 'MOVE_PLAN_FEATURE': {
       if (action.fromPlanId === action.toPlanId) return state;

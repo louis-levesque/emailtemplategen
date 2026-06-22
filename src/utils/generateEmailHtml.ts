@@ -607,9 +607,9 @@ function renderJobberPaymentsBlock(block: JobberPaymentsBlock, def: JobberPaymen
           <tr>
             <td style="color: #555; font-size: 13px;">${escapeHtml(selectedRate.location)}</td>
             <td style="text-align: right;">
-              <strong style="color: ${TEAL}; font-size: 13px;">${escapeHtml(selectedRate.standardRate)}</strong>
-              ${selectedRate.tapToPayRate ? `<span style="display:block; font-size:11px; color:#555;">Tap to Pay: <strong style="color:${TEAL};">${escapeHtml(selectedRate.tapToPayRate)}</strong></span>` : ''}
-              ${selectedRate.achRate ? `<span style="display:block; font-size:11px; color:#555;">ACH (US Only): <strong style="color:${TEAL};">${escapeHtml(selectedRate.achRate)}</strong></span>` : ''}
+              <strong style="color: ${TEAL}; font-size: 13px;">${escapeHtml(selectedRate.standardRate)}</strong><span style="font-size:11px; color:#999;"> per transaction</span>
+              ${selectedRate.tapToPayRate ? `<span style="display:block; font-size:11px; color:#555;">Tap to Pay: <strong style="color:${TEAL};">${escapeHtml(selectedRate.tapToPayRate)}</strong><span style="color:#999;"> per transaction</span></span>` : ''}
+              ${selectedRate.achRate ? `<span style="display:block; font-size:11px; color:#555;">ACH (US Only): <strong style="color:${TEAL};">${escapeHtml(selectedRate.achRate)}</strong><span style="color:#999;"> per transaction</span></span>` : ''}
             </td>
           </tr>
         </table>
@@ -794,7 +794,7 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
           otherFeaturesText ? (keyFeaturesText ? `Other features included:\n${otherFeaturesText}` : otherFeaturesText) : '',
         ].filter(Boolean).join('\n');
         const rateText = selectedRate
-          ? `${selectedRate.location}: ${selectedRate.standardRate}${selectedRate.tapToPayRate ? ` | Tap to Pay: ${selectedRate.tapToPayRate}` : ''}${selectedRate.achRate ? ` | ACH (US Only): ${selectedRate.achRate}` : ''}`
+          ? `${selectedRate.location}: ${selectedRate.standardRate} per transaction${selectedRate.tapToPayRate ? ` | Tap to Pay: ${selectedRate.tapToPayRate} per transaction` : ''}${selectedRate.achRate ? ` | ACH (US Only): ${selectedRate.achRate} per transaction` : ''}`
           : '';
         return ['Jobber Payments', def.description, rateText, features].filter(Boolean).join('\n');
       }

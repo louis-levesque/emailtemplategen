@@ -161,18 +161,18 @@ export function Sidebar({ dispatch }: Props) {
   ];
 
   const filteredCustomization = q
-    ? customizationLabels.filter(i => matches(q, i.label, i.desc)).map(i => i.el)
+    ? customizationLabels.filter(i => matches(q, i.label)).map(i => i.el)
     : customizationItems;
 
   const filteredPlans = q
-    ? plans.filter(p => matches(q, p.title, p.tagline)).map(p => planItems[plans.indexOf(p)])
+    ? plans.filter(p => matches(q, p.title)).map(p => planItems[plans.indexOf(p)])
     : planItems;
 
   const filteredAddons = q
-    ? addons.filter(a => matches(q, a.name, a.description)).map(a => addonItems[addons.indexOf(a)])
+    ? addons.filter(a => matches(q, a.name)).map(a => addonItems[addons.indexOf(a)])
     : addonItems;
 
-  const filteredPayments = !q || matches(q, 'Jobber Payments', jobberPayments.description)
+  const filteredPayments = !q || matches(q, 'Jobber Payments')
     ? [paymentsItem]
     : [];
 

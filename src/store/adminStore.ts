@@ -3,7 +3,7 @@ import { PLANS as DEFAULT_PLANS } from '../data/plans';
 import { ADDONS as DEFAULT_ADDONS } from '../data/addons';
 import type { PlanDefinition, AddonDefinition, PriceTier, AddonPriceTier, PlanPricingOption } from '../types';
 
-const STORAGE_KEY = 'jobber-email-builder-admin-v1';
+const STORAGE_KEY = 'jobber-email-builder-admin-v2';
 
 export interface AdminState {
   plans: PlanDefinition[];

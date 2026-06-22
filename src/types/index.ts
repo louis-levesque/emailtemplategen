@@ -17,6 +17,7 @@ export interface PlanDefinition {
   id: string;
   title: string;
   tagline: string;
+  learnMoreUrl?: string;
   pricingOptions: PlanPricingOption[];
   tiers: PriceTier[];
   color: string;
@@ -36,6 +37,7 @@ export interface AddonDefinition {
   id: string;
   name: string;
   description: string;
+  learnMoreUrl?: string;
   tiers: AddonPriceTier[];
   features: PlanFeature[];
 }

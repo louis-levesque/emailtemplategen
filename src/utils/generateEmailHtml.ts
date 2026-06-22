@@ -226,7 +226,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
       </td>
     </tr>
     <tr>
-      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.tagline)}</td>
+      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.tagline)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:${escapeHtml(def.color)}; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
     </tr>
     ${hasFeatures ? `
     <tr>
@@ -316,7 +316,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
       </td>
     </tr>
     <tr>
-      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}</td>
+      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:#9DC63F; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
     </tr>
     ${hasFeatures ? `
     <tr>
@@ -469,7 +469,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
           </td>
         </tr>` : ''}
         <tr>
-          <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.tagline)}</td>
+          <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.tagline)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:${escapeHtml(def.color)}; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
         </tr>
         ${featureRows ? `
         <tr>
@@ -547,7 +547,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
         </td>
       </tr>` : ''}
       <tr>
-        <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.description)}</td>
+        <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.description)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:#9DC63F; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
       </tr>
       ${featureRows ? `
       <tr>
@@ -715,8 +715,9 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         const validUntilPlan = block.promoValidUntil && Object.keys(promotions).length > 0
           ? `  Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
           : '';
+        const taglineText = stripLinkSyntax(def.tagline) + (def.learnMoreUrl ? ` Learn more: ${def.learnMoreUrl}` : '');
         return [
-          `${def.title} (${formatSeats(tier.seats)}) — ${stripLinkSyntax(def.tagline)}`,
+          `${def.title} (${formatSeats(tier.seats)}) — ${taglineText}`,
           pricing,
           validUntilPlan,
           features,
@@ -755,7 +756,8 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         const validUntilAddon = Object.keys(addonPromotions).length > 0 && block.promoValidUntil
           ? `Promotional pricing valid until ${formatValidUntil(block.promoValidUntil)}.`
           : '';
-        return [def.name, stripLinkSyntax(def.description), pricing, validUntilAddon, features].filter(Boolean).join('\n');
+        const addonDescText = stripLinkSyntax(def.description) + (def.learnMoreUrl ? ` Learn more: ${def.learnMoreUrl}` : '');
+        return [def.name, addonDescText, pricing, validUntilAddon, features].filter(Boolean).join('\n');
       }
       case 'signature':
         return '{{{Sender.Email_Signature_Rich_Text__c}}}';

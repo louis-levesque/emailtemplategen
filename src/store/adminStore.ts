@@ -13,7 +13,7 @@ export interface AdminState {
 }
 
 export type AdminAction =
-  | { type: 'UPDATE_PLAN_META'; planId: string; field: 'title' | 'tagline' | 'color'; value: string }
+  | { type: 'UPDATE_PLAN_META'; planId: string; field: 'title' | 'tagline' | 'color' | 'learnMoreUrl'; value: string }
   | { type: 'UPDATE_TIER_SEATS'; planId: string; tierIndex: number; seats: number | 'unlimited' }
   | { type: 'UPDATE_TIER_PRICE'; planId: string; tierIndex: number; optionId: string; field: 'price' | 'monthlyEquivalent'; value: string }
   | { type: 'ADD_TIER'; planId: string }
@@ -33,7 +33,7 @@ export type AdminAction =
   | { type: 'REORDER_ADDON_FEATURES'; addonId: string; fromIndex: number; toIndex: number }
   | { type: 'ADD_PLAN' }
   | { type: 'DELETE_PLAN'; planId: string }
-  | { type: 'UPDATE_ADDON_META'; addonId: string; field: 'name' | 'description'; value: string }
+  | { type: 'UPDATE_ADDON_META'; addonId: string; field: 'name' | 'description' | 'learnMoreUrl'; value: string }
   | { type: 'ADD_ADDON_TIER'; addonId: string }
   | { type: 'REMOVE_ADDON_TIER'; addonId: string; tierIndex: number }
   | { type: 'UPDATE_ADDON_TIER'; addonId: string; tierIndex: number; field: 'label' | 'price' | 'monthlyEquivalent'; value: string }

@@ -234,5 +234,6 @@ export const PLANS: PlanDefinition[] = [
       { id: 'plus-7', label: 'Data Import (included — $499 value)' },
       { id: 'plus-4', label: 'White glove onboarding' },
     ],
+    defaultKeyFeatureIds: ['plus-0', 'plus-8', 'plus-9', 'plus-10', 'plus-11', 'plus-12'],
   },
 ];

@@ -26,6 +26,14 @@ interface Props {
 
 // ─── Small shared helpers ─────────────────────────────────────────────────────
 
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="11" height="11" viewBox="0 0 14 14" fill={filled ? '#f59e0b' : 'none'} stroke={filled ? '#f59e0b' : 'currentColor'} strokeWidth="1.2">
+      <polygon points="7,1 8.8,5.2 13.4,5.6 10,8.6 11,13.2 7,10.8 3,13.2 4,8.6 0.6,5.6 5.2,5.2" />
+    </svg>
+  );
+}
+
 function LinkIcon() {
   return (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
@@ -116,10 +124,11 @@ function InsertLinkInline({ onInsert, onClose, defaultText = '' }: InsertLinkInl
 interface SortableFeatureProps {
   planId: string;
   feature: PlanFeature;
+  isDefaultKey: boolean;
   dispatch: Dispatch<AdminAction>;
 }
 
-function SortableFeatureRow({ planId, feature, dispatch }: SortableFeatureProps) {
+function SortableFeatureRow({ planId, feature, isDefaultKey, dispatch }: SortableFeatureProps) {
   const [label, setLabel] = useState(feature.label);
   const [editing, setEditing] = useState(false);
   const [showLinkForm, setShowLinkForm] = useState(false);
@@ -221,6 +230,13 @@ function SortableFeatureRow({ planId, feature, dispatch }: SortableFeatureProps)
             </span>
           )}
         </div>
+
+        {/* Default key feature star */}
+        {isDefaultKey && (
+          <span className="mt-0.5 flex-shrink-0" title="Default key feature">
+            <StarIcon filled />
+          </span>
+        )}
 
         {/* Link button */}
         <button
@@ -640,6 +656,7 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
                 key={feature.id}
                 planId={plan.id}
                 feature={feature}
+                isDefaultKey={plan.defaultKeyFeatureIds?.includes(feature.id) ?? false}
                 dispatch={dispatch}
               />
             ))}

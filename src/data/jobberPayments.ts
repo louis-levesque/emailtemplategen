@@ -23,7 +23,7 @@ export const JOBBER_PAYMENTS: JobberPaymentsDefinition = {
     { id: 'pay-4', label: 'Tap to Pay with Mobile App' },
     { id: 'pay-5', label: 'Automatic Payments (Connect, Grow, Plus)' },
     { id: 'pay-6', label: 'Tip Collection' },
-    { id: 'pay-7', label: 'Instant Payouts' },
+    { id: 'pay-7', label: 'Instant Payouts (CA and US Only)' },
     { id: 'pay-8', label: 'Jobber Capital (CA and US Only)' },
   ],
 };

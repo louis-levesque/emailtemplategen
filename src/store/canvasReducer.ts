@@ -23,7 +23,11 @@ export type CanvasAction =
   | { type: 'SET_ADDON_FEATURED_TIER'; instanceId: string; tierId: string | null }
   | { type: 'SET_HEADER'; field: keyof EmailHeader; value: string }
   | { type: 'RESET' }
-  | { type: 'SET_PAYMENTS_RATE'; instanceId: string; rateId: string };
+  | { type: 'SET_PAYMENTS_RATE'; instanceId: string; rateId: string }
+  | { type: 'TOGGLE_BLOCK_COLLAPSED'; instanceId: string }
+  | { type: 'COLLAPSE_ALL' }
+  | { type: 'EXPAND_ALL' }
+  | { type: 'COLLAPSE_ALL_BUT_TEXT' };
 
 export const initialState: AppState = {
   header: { to: '', subject: '' },
@@ -267,6 +271,29 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
             ? { ...b, selectedRateId: action.rateId }
             : b
         ),
+      };
+
+    case 'TOGGLE_BLOCK_COLLAPSED':
+      return {
+        ...state,
+        blocks: state.blocks.map(b =>
+          b.instanceId === action.instanceId ? { ...b, collapsed: !b.collapsed } : b
+        ),
+      };
+
+    case 'COLLAPSE_ALL':
+      return { ...state, blocks: state.blocks.map(b => ({ ...b, collapsed: true })) };
+
+    case 'EXPAND_ALL':
+      return { ...state, blocks: state.blocks.map(b => ({ ...b, collapsed: false })) };
+
+    case 'COLLAPSE_ALL_BUT_TEXT':
+      return {
+        ...state,
+        blocks: state.blocks.map(b => ({
+          ...b,
+          collapsed: b.kind !== 'text' && b.kind !== 'heading',
+        })),
       };
 
     case 'RESET':

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, type Dispatch } from 'react';
 import type { AppState } from '../../types';
+import type { CanvasAction } from '../../store/canvasReducer';
 import { generateEmailHtml, generateEmailText } from '../../utils/generateEmailHtml';
 import { copyToClipboard, copyRichTextToClipboard } from '../../utils/clipboard';
 import { useAdminData } from '../../contexts/AdminDataContext';
@@ -7,10 +8,11 @@ import { PreviewModal } from './PreviewModal';
 
 interface Props {
   state: AppState;
+  dispatch: Dispatch<CanvasAction>;
   onOpenAdmin: () => void;
 }
 
-export function Toolbar({ state, onOpenAdmin }: Props) {
+export function Toolbar({ state, dispatch, onOpenAdmin }: Props) {
   const { plans, addons, jobberPayments } = useAdminData();
   const [copied, setCopied] = useState(false);
   const [copiedRich, setCopiedRich] = useState(false);
@@ -165,6 +167,31 @@ export function Toolbar({ state, onOpenAdmin }: Props) {
           </button>
         </div>
       </header>
+
+      {/* View controls */}
+      {hasBlocks && (
+        <div className="px-6 py-1 border-b border-gray-100 bg-white flex items-center gap-0.5">
+          <span className="text-xs text-gray-400 mr-1.5">View:</span>
+          <button
+            onClick={() => dispatch({ type: 'EXPAND_ALL' })}
+            className="text-xs px-2.5 py-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors font-medium"
+          >
+            Expand All
+          </button>
+          <button
+            onClick={() => dispatch({ type: 'COLLAPSE_ALL' })}
+            className="text-xs px-2.5 py-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors font-medium"
+          >
+            Collapse All
+          </button>
+          <button
+            onClick={() => dispatch({ type: 'COLLAPSE_ALL_BUT_TEXT' })}
+            className="text-xs px-2.5 py-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors font-medium"
+          >
+            Collapse All but text
+          </button>
+        </div>
+      )}
 
       {previewing && (
         <PreviewModal

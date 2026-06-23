@@ -110,7 +110,7 @@ export default function App() {
         <div className="flex h-screen overflow-hidden bg-gray-50">
           <Sidebar dispatch={dispatch} />
           <div className="flex flex-col flex-1 overflow-hidden">
-            <Toolbar state={state} onOpenAdmin={() => setShowAdmin(true)} />
+            <Toolbar state={state} dispatch={dispatch} onOpenAdmin={() => setShowAdmin(true)} />
             <Canvas
               state={state}
               dispatch={dispatch}

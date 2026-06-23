@@ -69,6 +69,7 @@ export interface PromoConfig {
 interface BaseBlock {
   instanceId: string;
   kind: BlockKind;
+  collapsed?: boolean;
 }
 
 export interface PlanBlock extends BaseBlock {

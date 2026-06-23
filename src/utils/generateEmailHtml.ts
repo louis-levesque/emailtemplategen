@@ -62,7 +62,8 @@ function renderTextBlock(block: TextBlock): string {
 function renderHeadingBlock(block: HeadingBlock): string {
   if (!block.text.trim()) return '';
   const align = block.alignment ?? 'center';
-  return `<div style="${SECTION_STYLE}"><h2 style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:800; color:#1D2D44; line-height:1.2; text-align:${align};">${escapeHtml(block.text)}</h2></div>`;
+  const safeText = escapeHtml(block.text).replace(/\n/g, '<br>');
+  return `<div style="${SECTION_STYLE}"><h2 style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:800; color:#1D2D44; line-height:1.2; text-align:${align}; word-wrap:break-word; overflow-wrap:break-word;">${safeText}</h2></div>`;
 }
 
 function buildFeatureRows(

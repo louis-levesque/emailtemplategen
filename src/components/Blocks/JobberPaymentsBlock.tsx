@@ -35,7 +35,7 @@ export function JobberPaymentsBlock({ block, dispatch }: Props) {
           <span style={{ color: PAYMENTS_COLOR }}>
             <PaymentCardIcon />
           </span>
-          <span className="font-extrabold leading-snug" style={{ fontFamily: "'Nunito', Arial, sans-serif", color: '#1D2D44' }}>Jobber Payments</span>
+          <span className="font-semibold text-gray-800 leading-snug">Jobber Payments</span>
         </div>
 
         {/* Rate selector */}

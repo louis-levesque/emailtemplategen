@@ -36,7 +36,7 @@ export function AddonBlock({ block, dispatch }: Props) {
           {/* Header — name + recommended + promo button only */}
           <div className="px-4 py-3 bg-gray-50 flex justify-between items-start gap-2">
             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-              <span className="font-extrabold leading-snug" style={{ fontFamily: "'Nunito', Arial, sans-serif", color: '#1D2D44' }}>{def.name}</span>
+              <span className="font-semibold text-gray-800 leading-snug">{def.name}</span>
               <button
                 onClick={() => dispatch({ type: 'TOGGLE_RECOMMENDED', instanceId: block.instanceId })}
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${

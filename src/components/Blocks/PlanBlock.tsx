@@ -48,7 +48,7 @@ export function PlanBlock({ block, dispatch }: Props) {
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-0.5"
                 style={{ backgroundColor: def.color }}
               />
-              <span className="font-extrabold leading-snug" style={{ fontFamily: "'Nunito', Arial, sans-serif", color: '#1D2D44' }}>{def.title}</span>
+              <span className="font-semibold text-gray-800 leading-snug">{def.title}</span>
               <button
                 onClick={() => dispatch({ type: 'TOGGLE_RECOMMENDED', instanceId: block.instanceId })}
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${

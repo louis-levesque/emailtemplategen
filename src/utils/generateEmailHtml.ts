@@ -6,8 +6,7 @@ import {
   formatSeats,
 } from './priceUtils';
 
-const BRAND_FONT = "'Nunito', Arial, Helvetica, sans-serif";
-const OUTER_STYLE = `font-family: ${BRAND_FONT}; font-size: 14px; color: #333333; line-height: 1.6;`;
+const OUTER_STYLE = 'font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6;';
 const CONTAINER_STYLE = 'max-width: 600px; margin: 0 auto;';
 const SECTION_STYLE = 'margin-bottom: 20px;';
 
@@ -80,18 +79,18 @@ function buildFeatureRows(
   let rows = '';
 
   if (keyFeatures.length > 0) {
-    rows += `<tr><td style="padding: 6px 0 4px; font-size: 11px; font-weight: 800; color: #d97706; text-transform: uppercase; letter-spacing: 0.06em; font-family:${BRAND_FONT};">Key Features</td></tr>`;
+    rows += `<tr><td style="padding: 6px 0 4px; font-size: 11px; font-weight: bold; color: #d97706; text-transform: uppercase; letter-spacing: 0.06em;">Key Features</td></tr>`;
     rows += keyFeatures.map(f =>
-      `<tr><td style="padding: 3px 0 3px 8px; font-weight: 700; color: #1D2D44; font-family:${BRAND_FONT};">&#9733; ${processTextContent(f.label)}</td></tr>`
+      `<tr><td style="padding: 3px 0 3px 8px; font-weight: 600; color: #222;">&#9733; ${processTextContent(f.label)}</td></tr>`
     ).join('');
   }
 
   if (otherFeatures.length > 0) {
     if (keyFeatures.length > 0) {
-      rows += `<tr><td style="padding: 10px 0 4px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; font-family:${BRAND_FONT};">Other features included</td></tr>`;
+      rows += `<tr><td style="padding: 10px 0 4px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em;">Other features included</td></tr>`;
     }
     rows += otherFeatures.map(f =>
-      `<tr><td style="padding: 3px 0 3px 8px; color: #444; font-family:${BRAND_FONT};">&#10003; ${processTextContent(f.label)}</td></tr>`
+      `<tr><td style="padding: 3px 0 3px 8px; color: #444;">&#10003; ${processTextContent(f.label)}</td></tr>`
     ).join('');
   }
 
@@ -210,7 +209,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
     <tr>
       <td style="padding: 10px 14px; background-color: #f9fafb;">
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${def.color};margin-right:6px;vertical-align:middle;"></span>
-        <strong style="font-size: 17px; color: #1D2D44; font-family:${BRAND_FONT}; font-weight:800; vertical-align: middle;">${def.title}</strong>${recommendedBadge}
+        <strong style="font-size: 15px; color: #111; vertical-align: middle;">${def.title}</strong>${recommendedBadge}
       </td>
     </tr>
     <tr>
@@ -305,7 +304,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e5e7eb; border-left: 4px solid #9DC63F; border-radius: 4px;">
     <tr>
       <td style="padding: 10px 14px; background-color: #f9fafb;">
-        <strong style="font-size: 17px; color: #1D2D44; font-family:${BRAND_FONT}; font-weight:800;">${def.name}</strong>${addonRecommendedBadge}
+        <strong style="font-size: 15px; color: #111;">${def.name}</strong>${addonRecommendedBadge}
       </td>
     </tr>
     <tr>
@@ -368,18 +367,18 @@ function buildCompareFeatureRows(
   let html = '';
 
   if (keyFeatures.length > 0) {
-    html += `<div style="font-size:10px; font-weight:800; color:#d97706; text-transform:uppercase; letter-spacing:0.05em; padding:2px 0 3px; font-family:${BRAND_FONT};">Key Features</div>`;
+    html += `<div style="font-size:10px; font-weight:bold; color:#d97706; text-transform:uppercase; letter-spacing:0.05em; padding:2px 0 3px;">Key Features</div>`;
     html += keyFeatures.map(f =>
-      `<div style="font-size:12px; color:#1D2D44; font-weight:700; padding:2px 0; font-family:${BRAND_FONT};">&#9733; ${processTextContent(f.label)}</div>`
+      `<div style="font-size:12px; color:#222; font-weight:600; padding:2px 0;">&#9733; ${processTextContent(f.label)}</div>`
     ).join('');
   }
 
   if (otherFeatures.length > 0) {
     if (keyFeatures.length > 0) {
-      html += `<div style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:0.05em; padding:4px 0 3px; font-family:${BRAND_FONT};">Other features</div>`;
+      html += `<div style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:0.05em; padding:4px 0 3px;">Other features</div>`;
     }
     html += otherFeatures.map(f =>
-      `<div style="font-size:12px; color:#555; padding:2px 0; font-family:${BRAND_FONT};">&#10003; ${processTextContent(f.label)}</div>`
+      `<div style="font-size:12px; color:#555; padding:2px 0;">&#10003; ${processTextContent(f.label)}</div>`
     ).join('');
   }
 
@@ -454,7 +453,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
         <tr>
           <td style="padding:8px 10px; background-color:#f9fafb;">
             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:${def.color};margin-right:5px;vertical-align:middle;"></span>
-            <strong style="font-size:14px; color:#1D2D44; font-family:${BRAND_FONT}; font-weight:800; vertical-align:middle;">${escapeHtml(def.title)}</strong>
+            <strong style="font-size:13px; color:#111; vertical-align:middle;">${escapeHtml(def.title)}</strong>
           </td>
         </tr>
         <tr>
@@ -537,7 +536,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
       ${addonSlotRecommendedRow}
       <tr>
         <td style="padding:8px 10px; background-color:#f9fafb;">
-          <strong style="font-size:14px; color:#1D2D44; font-family:${BRAND_FONT}; font-weight:800;">${escapeHtml(def.name)}</strong>
+          <strong style="font-size:13px; color:#111;">${escapeHtml(def.name)}</strong>
         </td>
       </tr>
       ${featuredAddonCompareBox || addonPricingRows || promoValidUntilHtml ? `
@@ -599,7 +598,7 @@ function renderJobberPaymentsBlock(block: JobberPaymentsBlock, def: JobberPaymen
     <tr>
       <td style="padding: 10px 14px; background-color: #f9fafb;">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="${TEAL}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><rect x="1" y="3" width="14" height="10" rx="1.5"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="3.5" y1="10" x2="6" y2="10"/></svg>
-        <strong style="font-size: 17px; color: #1D2D44; font-family:${BRAND_FONT}; font-weight:800; vertical-align: middle;">Jobber Payments</strong>
+        <strong style="font-size: 15px; color: #111; vertical-align: middle;">Jobber Payments</strong>
       </td>
     </tr>
     ${selectedRate ? `
@@ -649,12 +648,7 @@ export function generateEmailHtml(state: AppState, plans: PlanDefinition[], addo
   const body = state.blocks.map(b => renderBlock(b, plans, addons, jobberPayments)).join('\n');
   return `<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-</head>
+<head><meta charset="UTF-8"></head>
 <body style="${OUTER_STYLE}">
   <div style="${CONTAINER_STYLE}">
     ${body}

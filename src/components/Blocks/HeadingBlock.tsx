@@ -1,4 +1,4 @@
-import type { Dispatch } from 'react';
+import { useEffect, useRef, type Dispatch } from 'react';
 import type { HeadingBlock as HeadingBlockType } from '../../types';
 import type { CanvasAction } from '../../store/canvasReducer';
 
@@ -42,10 +42,22 @@ function AlignRightIcon() {
 
 export function HeadingBlock({ block, dispatch }: Props) {
   const currentAlignment = block.alignment ?? 'center';
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const alignBtnBase = 'p-1 rounded transition-colors';
   const alignBtnActive = 'bg-gray-200 text-gray-700';
   const alignBtnInactive = 'text-gray-400 hover:bg-gray-100 hover:text-gray-600';
+
+  function autoResize() {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }
+
+  // Resize on mount and whenever text changes
+  useEffect(() => { autoResize(); }, [block.text]);
 
   function handleAlignmentClick(alignment: 'left' | 'center' | 'right') {
     dispatch({ type: 'SET_BLOCK_ALIGNMENT', instanceId: block.instanceId, alignment });
@@ -78,12 +90,16 @@ export function HeadingBlock({ block, dispatch }: Props) {
           <AlignRightIcon />
         </button>
       </div>
-      <input
-        type="text"
+      <textarea
+        ref={textareaRef}
+        rows={1}
         value={block.text}
-        onChange={e => dispatch({ type: 'UPDATE_HEADING', instanceId: block.instanceId, text: e.target.value })}
+        onChange={e => {
+          dispatch({ type: 'UPDATE_HEADING', instanceId: block.instanceId, text: e.target.value });
+          autoResize();
+        }}
         placeholder="Enter heading text…"
-        className="w-full bg-transparent outline-none border-b border-transparent hover:border-gray-200 focus:border-jobber transition-colors"
+        className="w-full bg-transparent outline-none border-b border-transparent hover:border-gray-200 focus:border-jobber transition-colors resize-none overflow-hidden"
         style={{
           fontFamily: 'Arial, Helvetica, sans-serif',
           fontSize: '22px',

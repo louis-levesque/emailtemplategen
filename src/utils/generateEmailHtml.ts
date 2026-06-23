@@ -274,7 +274,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
       return `
     <tr>
       <td style="padding: ${addonRowPad}; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
-      <td style="padding: ${addonRowPad}; text-align: right; font-size: 13px;">${priceHtml}</td>
+      <td style="padding: ${addonRowPad}; text-align: right; font-size: 16px;">${priceHtml}</td>
     </tr>`;
     }
 
@@ -288,7 +288,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
     return `
     <tr>
       <td style="padding: ${addonRowPad}; color: #555; font-size: 13px;">${escapeHtml(tier.label)}</td>
-      <td style="padding: ${addonRowPad}; text-align: right; font-weight: bold; color: #9DC63F; font-size: 13px;">
+      <td style="padding: ${addonRowPad}; text-align: right; font-weight: bold; color: #9DC63F; font-size: 16px;">
         ${escapeHtml(tier.price)}
         ${tier.monthlyEquivalent ? `<span style="display:block; font-size:11px; font-weight:normal; color:#888;">${escapeHtml(tier.monthlyEquivalent)}</span>` : ''}
       </td>

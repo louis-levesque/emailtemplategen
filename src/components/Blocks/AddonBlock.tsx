@@ -93,7 +93,7 @@ export function AddonBlock({ block, dispatch }: Props) {
                         <>
                           <div className="flex items-center gap-1.5 justify-end flex-wrap">
                             <span className="text-xs text-gray-400 line-through">{tier.price}</span>
-                            <span className="text-sm font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
+                            <span className="text-base font-bold text-amber-600">{formatCurrency(discounted)}{unit}</span>
                           </div>
                           {tier.monthlyEquivalent && (
                             <div className="text-xs text-amber-500">({formatCurrency(Math.round((discounted / 12) * 100) / 100)}/mo)</div>
@@ -104,7 +104,7 @@ export function AddonBlock({ block, dispatch }: Props) {
                         </>
                       ) : (
                         <>
-                          <span className="text-sm font-semibold" style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}>
+                          <span className="text-base font-bold" style={{ color: isVisible ? '#9DC63F' : '#d1d5db' }}>
                             {tier.price}
                           </span>
                           {tier.monthlyEquivalent && isVisible && (

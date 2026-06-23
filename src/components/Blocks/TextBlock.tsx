@@ -168,19 +168,10 @@ export function TextBlock({ block, dispatch }: Props) {
 
   return (
     <div className="p-3">
-      {/* Header row: label + link button */}
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-          {block.displayLabel ?? 'Body Text'}
-        </p>
-        <button
-          onClick={handleLinkButtonClick}
-          className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors"
-        >
-          <LinkIcon />
-          Insert Link
-        </button>
-      </div>
+      {/* Header row: label only */}
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+        {block.displayLabel ?? 'Body Text'}
+      </p>
 
       {/* Formatting toolbar */}
       <div className="flex items-center gap-1 mb-2">
@@ -231,6 +222,19 @@ export function TextBlock({ block, dispatch }: Props) {
           title="Align right"
         >
           <AlignRightIcon />
+        </button>
+
+        {/* Divider */}
+        <span className="w-px h-4 bg-gray-200 mx-1" />
+
+        {/* Insert Link */}
+        <button
+          onClick={handleLinkButtonClick}
+          className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors"
+          title="Insert link"
+        >
+          <LinkIcon />
+          Insert Link
         </button>
       </div>
 

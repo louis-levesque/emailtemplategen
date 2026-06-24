@@ -1,4 +1,4 @@
-import { useRef, type Dispatch } from 'react';
+import { useRef, useEffect, type Dispatch } from 'react';
 import type { OnboardingLinksBlock as OnboardingLinksBlockType } from '../../types';
 import { useAdminData } from '../../contexts/AdminDataContext';
 import type { CanvasAction } from '../../store/canvasReducer';
@@ -28,37 +28,53 @@ export function OnboardingLinksBlock({ block, dispatch }: Props) {
   const { onboardingLinks: def } = useAdminData();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  /** Insert `text` at the current cursor position in the textarea. */
+  // Keep the uncontrolled textarea in sync when content changes externally
+  // (e.g. on initial load from localStorage or block reset). We skip the
+  // update when the textarea already has focus so we never interrupt typing
+  // or an in-progress TextExpander expansion.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    if (document.activeElement === el) return; // don't clobber while focused
+    if (el.value !== block.content) {
+      el.value = block.content;
+    }
+  }, [block.content]);
+
+  function syncToState() {
+    const el = textareaRef.current;
+    if (!el) return;
+    dispatch({ type: 'SET_ONBOARDING_CONTENT', instanceId: block.instanceId, content: el.value });
+  }
+
+  /** Insert `text` at the current cursor position, then sync state. */
   function insertAtCursor(text: string) {
     const el = textareaRef.current;
-    const current = block.content;
-
     if (!el) {
-      // Fallback: append to end
-      const newContent = current ? current + '\n' + text : text;
-      dispatch({ type: 'SET_ONBOARDING_CONTENT', instanceId: block.instanceId, content: newContent });
+      // Fallback if ref isn't ready
+      dispatch({
+        type: 'SET_ONBOARDING_CONTENT',
+        instanceId: block.instanceId,
+        content: block.content ? block.content + '\n' + text : text,
+      });
       return;
     }
 
-    const start = el.selectionStart ?? current.length;
-    const end = el.selectionEnd ?? current.length;
-
-    // Add a newline before the insertion if there's existing content and the
-    // cursor isn't already at the start of a line.
-    const before = current.slice(0, start);
-    const after = current.slice(end);
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const before = el.value.slice(0, start);
+    const after = el.value.slice(end);
     const needsNewline = before.length > 0 && !before.endsWith('\n');
     const insertion = (needsNewline ? '\n' : '') + text;
 
-    const newContent = before + insertion + after;
-    dispatch({ type: 'SET_ONBOARDING_CONTENT', instanceId: block.instanceId, content: newContent });
+    // Mutate the DOM directly — no re-render needed for the insertion itself
+    el.value = before + insertion + after;
+    const newPos = start + insertion.length;
+    el.setSelectionRange(newPos, newPos);
+    el.focus();
 
-    // Restore focus and move cursor to after the inserted text
-    requestAnimationFrame(() => {
-      el.focus();
-      const newPos = start + insertion.length;
-      el.setSelectionRange(newPos, newPos);
-    });
+    // Sync the new value back to React state
+    dispatch({ type: 'SET_ONBOARDING_CONTENT', instanceId: block.instanceId, content: el.value });
   }
 
   function handlePillClick(pill: (typeof def.pills)[number]) {
@@ -106,7 +122,7 @@ export function OnboardingLinksBlock({ block, dispatch }: Props) {
               <button
                 key={pill.id}
                 onClick={() => handlePillClick(pill)}
-                className="px-3 py-1 rounded-full text-xs font-semibold border transition-colors"
+                className="px-3 py-1 rounded-full text-xs font-semibold border transition-colors hover:opacity-80"
                 style={{ backgroundColor: '#fff', borderColor: ONBOARDING_COLOR + '88', color: ONBOARDING_COLOR }}
                 title={
                   pill.linkUrl
@@ -120,7 +136,9 @@ export function OnboardingLinksBlock({ block, dispatch }: Props) {
           </div>
         </div>
 
-        {/* Free-text content area */}
+        {/* Free-text content area — intentionally UNCONTROLLED so TextExpander
+            can expand snippets without React fighting it for DOM control.
+            State is synced on blur and on pill insertions. */}
         <div className="px-4 py-3">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
             Content
@@ -128,9 +146,9 @@ export function OnboardingLinksBlock({ block, dispatch }: Props) {
           </p>
           <textarea
             ref={textareaRef}
-            value={block.content}
-            onChange={e => dispatch({ type: 'SET_ONBOARDING_CONTENT', instanceId: block.instanceId, content: e.target.value })}
-            placeholder="Click a training session above to insert its snippet, or type directly here…"
+            defaultValue={block.content}
+            onBlur={syncToState}
+            placeholder="Click a training session above to insert its snippet, or type directly…"
             rows={5}
             className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-jobber focus:border-transparent resize-y font-mono leading-relaxed placeholder-gray-300"
           />

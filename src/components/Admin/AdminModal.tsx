@@ -1656,7 +1656,7 @@ function OnboardingLinksTab({ def, dispatch }: OnboardingLinksTabProps) {
                 </div>
               ) : (
                 <div>
-                  <label className="text-[10px] text-gray-400 uppercase tracking-wide">Outlook Snippet Code</label>
+                  <label className="text-[10px] text-gray-400 uppercase tracking-wide">Snippet Code</label>
                   <input
                     type="text"
                     value={pill.insertText ?? ''}

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { isValidHttpUrl } from '../../utils/sanitize';
 import {
   DndContext,
   DragOverlay,
@@ -573,6 +574,9 @@ function PlanEditor({ plan, dispatch }: PlanEditorProps) {
           className="w-full text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-jobber"
           placeholder="https://…"
         />
+        {plan.learnMoreUrl && !isValidHttpUrl(plan.learnMoreUrl) && (
+          <p className="text-[10px] text-red-500 mt-0.5">URL must start with https:// or http://</p>
+        )}
       </div>
 
       {/* Pricing Options — collapsible */}
@@ -1115,6 +1119,9 @@ function AddonEditor({ addon, dispatch }: AddonEditorProps) {
             className="w-full text-xs text-gray-500 bg-transparent border border-transparent hover:border-gray-200 focus:border-gray-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-jobber"
             placeholder="https://…"
           />
+          {addon.learnMoreUrl && !isValidHttpUrl(addon.learnMoreUrl) && (
+            <p className="text-[10px] text-red-500 mt-0.5">URL must start with https:// or http://</p>
+          )}
         </div>
       </div>
 
@@ -1398,6 +1405,9 @@ function PaymentsTab({ def, dispatch }: PaymentsTabProps) {
             className="w-full text-xs text-gray-600 bg-white border border-gray-200 rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-jobber"
             placeholder="https://…"
           />
+          {def.learnMoreUrl && !isValidHttpUrl(def.learnMoreUrl) && (
+            <p className="text-[10px] text-red-500 mt-0.5">URL must start with https:// or http://</p>
+          )}
         </div>
 
         {/* Rates — collapsible */}

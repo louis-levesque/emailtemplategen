@@ -5,6 +5,7 @@ import {
   formatValidUntil,
   formatSeats,
 } from './priceUtils';
+import { safeUrl } from './sanitize';
 
 const OUTER_STYLE = 'font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #333333; line-height: 1.6;';
 const CONTAINER_STYLE = 'max-width: 600px; margin: 0 auto;';
@@ -13,6 +14,11 @@ const SECTION_STYLE = 'margin-bottom: 20px;';
 /** Escape HTML special characters in a plain-text segment. */
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Escape for safe insertion inside a double-quoted HTML attribute value. */
+function escapeAttr(str: string): string {
+  return escapeHtml(str).replace(/"/g, '&quot;');
 }
 
 /**
@@ -33,10 +39,14 @@ function processTextContent(raw: string, linkColor = '#1F9839'): string {
       parts.push(escapeHtml(raw.slice(lastIndex, match.index)));
     }
     const linkText = escapeHtml(match[1]);
-    const linkUrl = match[2].replace(/"/g, '&quot;');
-    parts.push(
-      `<a href="${linkUrl}" target="_blank" style="color: ${linkColor}; text-decoration: underline;">${linkText}</a>`
-    );
+    const linkUrl = safeUrl(match[2]);
+    if (linkUrl) {
+      parts.push(
+        `<a href="${escapeAttr(linkUrl)}" target="_blank" style="color: ${linkColor}; text-decoration: underline;">${linkText}</a>`
+      );
+    } else {
+      parts.push(linkText);
+    }
     lastIndex = match.index + match[0].length;
   }
 
@@ -50,6 +60,14 @@ function processTextContent(raw: string, linkColor = '#1F9839'): string {
 /** Strip [display text](url) link syntax, leaving just the display text. */
 export function stripLinkSyntax(raw: string): string {
   return raw.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+}
+
+/** Render a "Learn more" anchor only when the URL passes http(s) validation. */
+function renderLearnMoreLink(url: string | undefined, color: string): string {
+  if (!url) return '';
+  const safe = safeUrl(url);
+  if (!safe) return '';
+  return ` <a href="${escapeAttr(safe)}" style="color:${escapeAttr(color)}; font-weight:600; text-decoration:none;">Learn more</a>`;
 }
 
 function renderTextBlock(block: TextBlock): string {
@@ -227,7 +245,7 @@ function renderPlanBlock(block: PlanBlock, plans: PlanDefinition[]): string {
       </td>
     </tr>
     <tr>
-      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.tagline)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:${escapeHtml(def.color)}; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
+      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.tagline)}${renderLearnMoreLink(def.learnMoreUrl, def.color)}</td>
     </tr>
     ${hasFeatures ? `
     <tr>
@@ -317,7 +335,7 @@ function renderAddonBlock(block: AddonBlock, addons: AddonDefinition[]): string 
       </td>
     </tr>
     <tr>
-      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:#9DC63F; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
+      <td style="padding: 4px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}${renderLearnMoreLink(def.learnMoreUrl, '#9DC63F')}</td>
     </tr>
     ${hasFeatures ? `
     <tr>
@@ -336,13 +354,14 @@ function renderSignatureBlock(): string {
 }
 
 function renderCheckoutLinkBlock(block: CheckoutLinkBlock): string {
-  if (!block.url) return '';
+  const url = safeUrl(block.url ?? '');
+  if (!url) return '';
   return `
 <div style="${SECTION_STYLE} text-align: center;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
     <tr>
       <td align="center" style="padding: 8px 0;">
-        <a href="${block.url}" target="_blank" style="display: inline-block; background-color: #9DC63F; color: #1D2D44; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; text-decoration: none; padding: 12px 28px; border-radius: 8px;">Preview Checkout Page</a>
+        <a href="${escapeAttr(url)}" target="_blank" style="display: inline-block; background-color: #9DC63F; color: #1D2D44; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; text-decoration: none; padding: 12px 28px; border-radius: 8px;">Preview Checkout Page</a>
       </td>
     </tr>
   </table>
@@ -470,7 +489,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
           </td>
         </tr>` : ''}
         <tr>
-          <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.tagline)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:${escapeHtml(def.color)}; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
+          <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.tagline)}${renderLearnMoreLink(def.learnMoreUrl, def.color)}</td>
         </tr>
         ${featureRows ? `
         <tr>
@@ -548,7 +567,7 @@ function renderCompareSlotCell(slot: CompareSlot, plans: PlanDefinition[], addon
         </td>
       </tr>` : ''}
       <tr>
-        <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.description)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:#9DC63F; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
+        <td style="padding:3px 10px 6px; color:#555; font-size:12px; border-bottom:1px solid #f0f0f0;">${processTextContent(def.description)}${renderLearnMoreLink(def.learnMoreUrl, '#9DC63F')}</td>
       </tr>
       ${featureRows ? `
       <tr>
@@ -617,7 +636,7 @@ function renderJobberPaymentsBlock(block: JobberPaymentsBlock, def: JobberPaymen
       </td>
     </tr>` : ''}
     <tr>
-      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}${def.learnMoreUrl ? ` <a href="${escapeHtml(def.learnMoreUrl)}" style="color:${TEAL}; font-weight:600; text-decoration:none;">Learn more</a>` : ''}</td>
+      <td style="padding: 6px 14px 8px; color: #555; font-size: 13px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;">${processTextContent(def.description)}${renderLearnMoreLink(def.learnMoreUrl, TEAL)}</td>
     </tr>
     ${hasFeatures ? `
     <tr>

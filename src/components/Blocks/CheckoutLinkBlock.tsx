@@ -1,6 +1,7 @@
 import { useState, type Dispatch } from 'react';
 import type { CheckoutLinkBlock as CheckoutLinkBlockType } from '../../types';
 import type { CanvasAction } from '../../store/canvasReducer';
+import { isValidHttpUrl } from '../../utils/sanitize';
 
 interface Props {
   block: CheckoutLinkBlockType;
@@ -11,10 +12,12 @@ export function CheckoutLinkBlock({ block, dispatch }: Props) {
   const [draft, setDraft] = useState(block.url);
   const [editing, setEditing] = useState(!block.url);
 
+  const draftTrimmed = draft.trim();
+  const urlIsInvalid = !!draftTrimmed && !isValidHttpUrl(draftTrimmed);
+
   function handleSave() {
-    const trimmed = draft.trim();
-    if (!trimmed) return;
-    dispatch({ type: 'SET_CHECKOUT_URL', instanceId: block.instanceId, url: trimmed });
+    if (!draftTrimmed || urlIsInvalid) return;
+    dispatch({ type: 'SET_CHECKOUT_URL', instanceId: block.instanceId, url: draftTrimmed });
     setEditing(false);
   }
 
@@ -35,13 +38,16 @@ export function CheckoutLinkBlock({ block, dispatch }: Props) {
             onChange={e => setDraft(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             placeholder="https://checkout.jobber.com/..."
-            className="w-full text-sm border border-blue-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent mb-2"
+            className="w-full text-sm border border-blue-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent mb-1"
             autoFocus
           />
+          {urlIsInvalid && (
+            <p className="text-xs text-red-500 mb-2">URL must start with https:// or http://</p>
+          )}
           <button
             onClick={handleSave}
-            disabled={!draft.trim()}
-            className="px-4 py-1.5 rounded-md text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            disabled={!draftTrimmed || urlIsInvalid}
+            className="px-4 py-1.5 rounded-md text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors mt-1"
           >
             Save
           </button>

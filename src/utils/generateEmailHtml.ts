@@ -651,25 +651,12 @@ function renderJobberPaymentsBlock(block: JobberPaymentsBlock, def: JobberPaymen
 }
 
 function renderOnboardingLinksBlock(block: OnboardingLinksBlock, def: OnboardingLinksDefinition): string {
-  const selectedPills = def.pills.filter(p => block.selectedPillIds.includes(p.id));
-  if (selectedPills.length === 0) return '';
-
   const header = block.header.trim() || def.header;
-  const NAVY = '#1D2D44';
+  const content = block.content.trim();
+  if (!content && !header) return '';
 
-  const pillRows = selectedPills.map(pill => {
-    const label = escapeHtml(pill.label);
-    if (pill.linkUrl) {
-      const safe = safeUrl(pill.linkUrl);
-      if (safe) {
-        return `<tr><td style="padding: 4px 0;">&#8226; <a href="${escapeAttr(safe)}" target="_blank" style="color:${NAVY}; font-weight:600; text-decoration:underline;">${label}</a></td></tr>`;
-      }
-      return `<tr><td style="padding: 4px 0;">&#8226; <strong>${label}</strong></td></tr>`;
-    }
-    // Snippet-based: show label + code in monospace
-    const code = pill.insertText ? ` <code style="background:#f3f4f6; border-radius:3px; padding:1px 4px; font-size:12px; color:#374151;">${escapeHtml(pill.insertText)}</code>` : '';
-    return `<tr><td style="padding: 4px 0; color:#444;">&#8226; ${label}${code}</td></tr>`;
-  }).join('');
+  const NAVY = '#1D2D44';
+  const processedContent = content ? processTextContent(content) : '';
 
   return `
 <div style="${SECTION_STYLE}">
@@ -679,13 +666,10 @@ function renderOnboardingLinksBlock(block: OnboardingLinksBlock, def: Onboarding
         <strong style="font-size: 15px; color: ${NAVY};">${escapeHtml(header)}</strong>
       </td>
     </tr>
+    ${processedContent ? `
     <tr>
-      <td style="padding: 8px 14px 12px;">
-        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-size: 14px;">
-          ${pillRows}
-        </table>
-      </td>
-    </tr>
+      <td style="padding: 10px 14px 12px; font-size: 14px; color: #333; line-height: 1.7; white-space: pre-wrap;">${processedContent}</td>
+    </tr>` : ''}
   </table>
 </div>`;
 }
@@ -863,14 +847,13 @@ export function generateEmailText(state: AppState, plans: PlanDefinition[], addo
         return ['Jobber Payments', descriptionText, rateText, features].filter(Boolean).join('\n');
       }
       case 'onboarding': {
-        if (!onboardingLinks) return '';
-        const header = block.header.trim() || onboardingLinks.header;
-        const selectedPills = onboardingLinks.pills.filter(p => block.selectedPillIds.includes(p.id));
-        if (selectedPills.length === 0) return '';
-        const lines = selectedPills.map(p =>
-          p.linkUrl ? `  • ${p.label} — ${p.linkUrl}` : `  • ${p.label}${p.insertText ? ' — ' + p.insertText : ''}`
-        );
-        return [header, ...lines].join('\n');
+        const def = onboardingLinks;
+        const header = block.header.trim() || (def?.header ?? '');
+        const content = block.content.trim();
+        if (!header && !content) return '';
+        // Strip [text](url) → "text (url)" for plain text
+        const plainContent = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
+        return [header, plainContent].filter(Boolean).join('\n');
       }
     }
   }).join('\n\n');

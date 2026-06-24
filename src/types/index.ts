@@ -176,8 +176,9 @@ export interface OnboardingLinksBlock extends BaseBlock {
   kind: 'onboarding';
   /** Per-block editable header, defaults to the definition header */
   header: string;
-  /** IDs of pills that are currently toggled on */
-  selectedPillIds: string[];
+  /** Free-text area content — reps click pills to insert snippet codes here,
+   *  then TextExpander expands them inline. Supports [text](url) link syntax. */
+  content: string;
 }
 
 export type CanvasBlock = PlanBlock | AddonBlock | SignatureBlock | TextBlock | HeadingBlock | CheckoutLinkBlock | CompareBlock | JobberPaymentsBlock | OnboardingLinksBlock;

@@ -76,13 +76,13 @@ export function Sidebar({ dispatch }: Props) {
         instanceId: generateId(),
         kind: 'onboarding',
         header: onboardingLinks.header,
-        selectedPillIds: onboardingLinks.pills.map(p => p.id),
+        content: '',
       })}
       onAdd={() => addBlock({
         instanceId: generateId(),
         kind: 'onboarding',
         header: onboardingLinks.header,
-        selectedPillIds: onboardingLinks.pills.map(p => p.id),
+        content: '',
       })}
     />,
   ];

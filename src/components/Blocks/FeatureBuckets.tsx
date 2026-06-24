@@ -10,6 +10,8 @@ interface Props {
   visibleFeatureIds: string[];
   keyFeatureIds: string[];
   onSetBucket: (featureId: string, bucket: 'key' | 'included' | 'hidden') => void;
+  onHideAll: () => void;
+  onShowAll: () => void;
 }
 
 function StarFilledIcon() {
@@ -45,15 +47,47 @@ function EyeOnIcon() {
   );
 }
 
-export function FeatureBuckets({ allFeatures, visibleFeatureIds, keyFeatureIds, onSetBucket }: Props) {
+export function FeatureBuckets({ allFeatures, visibleFeatureIds, keyFeatureIds, onSetBucket, onHideAll, onShowAll }: Props) {
   const keyFeatures = allFeatures.filter(f => keyFeatureIds.includes(f.id));
   const includedFeatures = allFeatures.filter(f => visibleFeatureIds.includes(f.id) && !keyFeatureIds.includes(f.id));
   const hiddenFeatures = allFeatures.filter(f => !visibleFeatureIds.includes(f.id));
 
   const hasVisible = keyFeatures.length > 0 || includedFeatures.length > 0;
 
+  const allHidden = visibleFeatureIds.length === 0;
+
   return (
     <div className="space-y-3">
+      {/* Hide All / Show All toggle */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Features</span>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onShowAll}
+            disabled={!allHidden && visibleFeatureIds.length === allFeatures.length}
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded transition-colors ${
+              !allHidden
+                ? 'text-jobber hover:bg-jobber/10'
+                : 'text-gray-300 cursor-default'
+            }`}
+          >
+            Show All
+          </button>
+          <span className="text-gray-200 text-xs">|</span>
+          <button
+            onClick={onHideAll}
+            disabled={allHidden}
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded transition-colors ${
+              !allHidden
+                ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                : 'text-gray-300 cursor-default'
+            }`}
+          >
+            Hide All
+          </button>
+        </div>
+      </div>
+
       {/* Key Features */}
       <div>
         <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1.5 flex items-center gap-1">

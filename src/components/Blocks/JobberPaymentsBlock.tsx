@@ -110,6 +110,8 @@ export function JobberPaymentsBlock({ block, dispatch }: Props) {
             onSetBucket={(featureId, bucket) =>
               dispatch({ type: 'SET_FEATURE_BUCKET', instanceId: block.instanceId, featureId, bucket })
             }
+            onHideAll={() => dispatch({ type: 'HIDE_ALL_FEATURES', instanceId: block.instanceId })}
+            onShowAll={() => dispatch({ type: 'SHOW_ALL_FEATURES', instanceId: block.instanceId, allFeatureIds: def.features.map(f => f.id), defaultKeyFeatureIds: def.defaultKeyFeatureIds ?? [] })}
           />
         </div>
       </div>

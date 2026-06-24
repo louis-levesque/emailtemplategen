@@ -27,7 +27,9 @@ export type CanvasAction =
   | { type: 'TOGGLE_BLOCK_COLLAPSED'; instanceId: string }
   | { type: 'COLLAPSE_ALL' }
   | { type: 'EXPAND_ALL' }
-  | { type: 'COLLAPSE_ALL_BUT_TEXT' };
+  | { type: 'COLLAPSE_ALL_BUT_TEXT' }
+  | { type: 'HIDE_ALL_FEATURES'; instanceId: string }
+  | { type: 'SHOW_ALL_FEATURES'; instanceId: string; allFeatureIds: string[]; defaultKeyFeatureIds: string[] };
 
 export const initialState: AppState = {
   header: { to: '', subject: '' },
@@ -104,6 +106,33 @@ export function canvasReducer(state: AppState, action: CanvasAction): AppState {
             ...b,
             visibleFeatureIds: b.visibleFeatureIds.filter(id => id !== featureId),
             keyFeatureIds: keyIds.filter(id => id !== featureId),
+          };
+        }),
+      };
+    }
+
+    case 'HIDE_ALL_FEATURES': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b => {
+          if (b.instanceId !== action.instanceId) return b;
+          if (b.kind !== 'plan' && b.kind !== 'addon' && b.kind !== 'payments') return b;
+          return { ...b, visibleFeatureIds: [], keyFeatureIds: [] };
+        }),
+      };
+    }
+
+    case 'SHOW_ALL_FEATURES': {
+      return {
+        ...state,
+        blocks: state.blocks.map(b => {
+          if (b.instanceId !== action.instanceId) return b;
+          if (b.kind !== 'plan' && b.kind !== 'addon' && b.kind !== 'payments') return b;
+          // Restore all features as visible and reset key features to their defaults
+          return {
+            ...b,
+            visibleFeatureIds: action.allFeatureIds,
+            keyFeatureIds: action.defaultKeyFeatureIds,
           };
         }),
       };

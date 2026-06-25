@@ -206,7 +206,7 @@ export function OnboardingLinksBlock({ block, dispatch }: Props) {
           <span style={{ color: ONBOARDING_COLOR }}>
             <CalendarIcon />
           </span>
-          <span className="font-semibold text-gray-800 leading-snug">Onboarding Links</span>
+          <span className="font-semibold text-gray-800 leading-snug">Onboarding Links (AM/KAM)</span>
         </div>
 
         {/* Editable section header */}

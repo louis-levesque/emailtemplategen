@@ -43,7 +43,7 @@ function getBlockMeta(block: CanvasBlock, plans: PlanDefinition[], addons: Addon
     case 'payments':
       return { label: 'Jobber Payments', color: '#0891B2' };
     case 'onboarding':
-      return { label: 'Onboarding Links', color: '#1D2D44' };
+      return { label: 'Onboarding Links (AM/KAM)', color: '#1D2D44' };
     case 'signature':
       return { label: 'Signature', color: '#6b7280' };
   }

@@ -1887,7 +1887,7 @@ export function AdminModal({ onClose }: Props) {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              {t === 'plans' ? 'Plans' : t === 'addons' ? 'Add-ons' : t === 'payments' ? 'Jobber Payments' : 'Onboarding Links'}
+              {t === 'plans' ? 'Plans' : t === 'addons' ? 'Add-ons' : t === 'payments' ? 'Jobber Payments' : 'Onboarding Links (AM/KAM)'}
             </button>
           ))}
         </div>

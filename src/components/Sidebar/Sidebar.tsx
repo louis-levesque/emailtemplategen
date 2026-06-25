@@ -234,6 +234,22 @@ export function Sidebar({ dispatch }: Props) {
             </button>
           )}
         </div>
+
+        {/* Collapse / Expand all */}
+        <div className="flex gap-2 mt-2.5">
+          <button
+            onClick={() => dispatch({ type: 'COLLAPSE_ALL' })}
+            className="flex-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 border border-gray-200 rounded-lg py-1 transition-colors"
+          >
+            Collapse all
+          </button>
+          <button
+            onClick={() => dispatch({ type: 'EXPAND_ALL' })}
+            className="flex-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 border border-gray-200 rounded-lg py-1 transition-colors"
+          >
+            Expand all
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 px-2 py-3 overflow-y-auto">

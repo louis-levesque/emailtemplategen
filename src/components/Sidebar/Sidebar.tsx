@@ -67,6 +67,9 @@ export function Sidebar({ dispatch }: Props) {
       blockFactory={() => ({ instanceId: generateId(), kind: 'heading', text: '', alignment: 'center' })}
       onAdd={() => addBlock({ instanceId: generateId(), kind: 'heading', text: '', alignment: 'center' })}
     />,
+  ];
+
+  const onboardingItem = (
     <DraggableSidebarItem
       key="onboarding"
       id="onboarding"
@@ -84,8 +87,8 @@ export function Sidebar({ dispatch }: Props) {
         header: onboardingLinks.header,
         content: '',
       })}
-    />,
-  ];
+    />
+  );
 
   const planItems = plans.map(plan => (
     <DraggableSidebarItem
@@ -176,7 +179,6 @@ export function Sidebar({ dispatch }: Props) {
     { el: customizationItems[2], label: 'Free Text', desc: 'Add a custom paragraph or note' },
     { el: customizationItems[3], label: 'Greeting', desc: 'Personalised greeting' },
     { el: customizationItems[4], label: 'Heading', desc: 'Large bold section header' },
-    { el: customizationItems[5], label: 'Onboarding Links (AM/KAM)', desc: 'Training session booking links with pill toggles' },
   ];
 
   const filteredCustomization = q
@@ -195,7 +197,11 @@ export function Sidebar({ dispatch }: Props) {
     ? [paymentsItem]
     : [];
 
-  const totalResults = filteredCustomization.length + filteredPlans.length + filteredAddons.length + filteredPayments.length;
+  const filteredOnboarding = !q || matches(q, 'Onboarding Links', 'AM/KAM', 'training')
+    ? [onboardingItem]
+    : [];
+
+  const totalResults = filteredCustomization.length + filteredPlans.length + filteredAddons.length + filteredPayments.length + filteredOnboarding.length;
 
   return (
     <aside className="w-72 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 overflow-y-auto">
@@ -253,6 +259,11 @@ export function Sidebar({ dispatch }: Props) {
             {filteredPayments.length > 0 && (
               <SidebarSection key={`payments-${!!q}`} title="Jobber Payments">
                 {filteredPayments}
+              </SidebarSection>
+            )}
+            {filteredOnboarding.length > 0 && (
+              <SidebarSection key={`onboarding-${!!q}`} title="Onboarding Links">
+                {filteredOnboarding}
               </SidebarSection>
             )}
             {!q && (
